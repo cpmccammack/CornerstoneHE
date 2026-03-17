@@ -28,10 +28,16 @@
       top: 0; left: 0; right: 0;
       z-index: 100;
       display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px 14px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+    }
+
+    .top-bar-row {
+      display: flex;
       align-items: center;
       gap: 10px;
-      padding: 12px 14px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%);
     }
 
     .top-bar h1 {
@@ -44,6 +50,39 @@
 
     .top-bar h1 span {
       color: #7dc87d;
+    }
+
+    /* Search bar */
+    .search-wrap {
+      display: flex;
+      gap: 8px;
+    }
+
+    #addressInput {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px);
+      color: white;
+      font-size: 14px;
+      outline: none;
+    }
+
+    #addressInput::placeholder { color: rgba(255,255,255,0.4); }
+
+    .search-btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      background: rgba(28,58,28,0.8);
+      backdrop-filter: blur(10px);
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
     }
 
     .icon-btn {
@@ -410,9 +449,15 @@
 
 <!-- Top bar -->
 <div class="top-bar">
-  <h1>Cornerstone <span>Bid</span></h1>
-  <button class="icon-btn" id="drawBtn" onclick="startDrawing()">✏️ Draw</button>
-  <button class="icon-btn" onclick="clearDrawing()">🗑 Clear</button>
+  <div class="top-bar-row">
+    <h1>Cornerstone <span>Bid</span></h1>
+    <button class="icon-btn" id="drawBtn" onclick="startDrawing()">✏️ Draw</button>
+    <button class="icon-btn" onclick="clearDrawing()">🗑 Clear</button>
+  </div>
+  <div class="search-wrap">
+    <input id="addressInput" type="text" placeholder="Search address or location…" onkeydown="if(event.key==='Enter') searchAddress()">
+    <button class="search-btn" onclick="searchAddress()">Go</button>
+  </div>
 </div>
 
 <!-- Acreage badge -->
@@ -488,7 +533,7 @@
 
   function loadMaps(key) {
     const s = document.createElement('script');
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=drawing,geometry&callback=initMap`;
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=drawing,geometry,places&callback=initMap`;
     s.async = true; s.defer = true;
     document.head.appendChild(s);
   }
@@ -535,6 +580,21 @@
       updateAcreage();
       google.maps.event.addListener(poly.getPath(), 'set_at', updateAcreage);
       google.maps.event.addListener(poly.getPath(), 'insert_at', updateAcreage);
+    });
+  }
+
+  function searchAddress() {
+    const input = document.getElementById('addressInput').value.trim();
+    if (!input || !map) return;
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ address: input }, (results, status) => {
+      if (status === 'OK') {
+        map.setCenter(results[0].geometry.location);
+        map.setZoom(17);
+        document.getElementById('addressInput').blur();
+      } else {
+        alert('Address not found. Try a more specific address.');
+      }
     });
   }
 
