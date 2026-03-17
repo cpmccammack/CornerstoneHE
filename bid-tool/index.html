@@ -55,35 +55,54 @@
     /* Search bar */
     .search-wrap {
       display: flex;
-      gap: 8px;
+      gap: 6px;
     }
 
     #addressInput {
       flex: 1;
-      padding: 10px 14px;
-      border-radius: 10px;
+      padding: 7px 12px;
+      border-radius: 8px;
       border: 1.5px solid rgba(255,255,255,0.2);
       background: rgba(0,0,0,0.6);
       backdrop-filter: blur(10px);
       color: white;
-      font-size: 14px;
+      font-size: 13px;
       outline: none;
     }
 
     #addressInput::placeholder { color: rgba(255,255,255,0.4); }
 
     .search-btn {
-      padding: 10px 14px;
-      border-radius: 10px;
+      padding: 7px 12px;
+      border-radius: 8px;
       border: 1.5px solid rgba(255,255,255,0.2);
       background: rgba(28,58,28,0.8);
       backdrop-filter: blur(10px);
       color: white;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
     }
+
+    /* Override Google autocomplete dropdown to match dark theme */
+    .pac-container {
+      background: rgba(15,31,15,0.97);
+      border: 1px solid rgba(125,200,125,0.3);
+      border-radius: 10px;
+      margin-top: 4px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    .pac-item {
+      color: #c5d9c5;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .pac-item:hover { background: rgba(74,124,74,0.3); }
+    .pac-item-query { color: white; font-weight: 600; }
+    .pac-icon { display: none; }
 
     .icon-btn {
       background: rgba(255,255,255,0.15);
@@ -571,6 +590,7 @@
     });
 
     drawingManager.setMap(map);
+    initAutocomplete();
 
     google.maps.event.addListener(drawingManager, 'polygoncomplete', poly => {
       if (polygon) polygon.setMap(null);
@@ -583,6 +603,21 @@
     });
   }
 
+  function initAutocomplete() {
+    const input = document.getElementById('addressInput');
+    const autocomplete = new google.maps.places.Autocomplete(input, {
+      fields: ['geometry'],
+    });
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (place.geometry) {
+        map.setCenter(place.geometry.location);
+        map.setZoom(17);
+        input.blur();
+      }
+    });
+  }
+
   function searchAddress() {
     const input = document.getElementById('addressInput').value.trim();
     if (!input || !map) return;
@@ -592,8 +627,6 @@
         map.setCenter(results[0].geometry.location);
         map.setZoom(17);
         document.getElementById('addressInput').blur();
-      } else {
-        alert('Address not found. Try a more specific address.');
       }
     });
   }
