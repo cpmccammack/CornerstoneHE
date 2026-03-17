@@ -3,480 +3,513 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cornerstone Bid Calculator</title>
+  <title>Cornerstone Bid</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f2f0eb;
-      color: #1a1a1a;
-      min-height: 100vh;
-    }
-
-    header {
-      background: #1c3a1c;
-      color: white;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    header h1 {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-    }
-
-    header p {
-      font-size: 12px;
-      color: #a8c5a8;
-      margin-top: 2px;
-    }
-
-    .logo {
-      width: 40px;
-      height: 40px;
-      background: #4a7c4a;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-
-    .container {
-      padding: 16px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 18px;
-      margin-bottom: 14px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
-
-    .card-title {
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #4a7c4a;
-      margin-bottom: 14px;
-    }
-
-    /* Map */
-    #map {
-      width: 100%;
-      height: 280px;
-      border-radius: 8px;
+    html, body {
+      width: 100%; height: 100%;
       overflow: hidden;
-      background: #e8e8e8;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
-    .map-controls {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
+    /* ── Full screen map ── */
+    #map {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #1a1a1a;
     }
 
-    .map-btn {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s;
-    }
-
-    .map-btn:active { opacity: 0.7; }
-
-    .btn-draw {
-      background: #1c3a1c;
-      color: white;
-    }
-
-    .btn-clear {
-      background: #f0ede8;
-      color: #666;
-    }
-
-    .acreage-display {
-      margin-top: 12px;
-      background: #f7f5f0;
-      border-radius: 8px;
-      padding: 12px 16px;
+    /* ── Top bar ── */
+    .top-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0) 100%);
     }
 
-    .acreage-label {
-      font-size: 13px;
-      color: #666;
-    }
-
-    .acreage-value {
-      font-size: 22px;
-      font-weight: 700;
-      color: #1c3a1c;
-    }
-
-    .acreage-unit {
-      font-size: 13px;
-      color: #888;
-      margin-left: 4px;
-    }
-
-    /* Options */
-    .option-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-    }
-
-    .option-btn {
-      border: 2px solid #e0ddd8;
-      background: white;
-      border-radius: 10px;
-      padding: 12px 8px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.15s;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .option-btn.selected {
-      border-color: #1c3a1c;
-      background: #f0f5f0;
-    }
-
-    .option-btn .opt-icon {
-      font-size: 22px;
-      margin-bottom: 4px;
-    }
-
-    .option-btn .opt-label {
-      font-size: 13px;
-      font-weight: 700;
-      color: #1a1a1a;
-    }
-
-    .option-btn .opt-desc {
-      font-size: 10px;
-      color: #888;
-      margin-top: 2px;
-      line-height: 1.3;
-    }
-
-    .option-btn .opt-price {
-      font-size: 12px;
-      font-weight: 700;
-      color: #4a7c4a;
-      margin-top: 4px;
-    }
-
-    /* Terrain toggle */
-    .terrain-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    /* Quote */
-    .quote-card {
-      background: #1c3a1c;
-      color: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 14px;
-      box-shadow: 0 2px 8px rgba(28,58,28,0.3);
-    }
-
-    .quote-title {
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #a8c5a8;
-      margin-bottom: 14px;
-    }
-
-    .quote-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      font-size: 14px;
-    }
-
-    .quote-row:last-of-type { border-bottom: none; }
-
-    .quote-row .label { color: #c5d9c5; }
-    .quote-row .value { font-weight: 600; }
-
-    .quote-total {
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 2px solid rgba(255,255,255,0.2);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .quote-total .label {
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .quote-total .value {
-      font-size: 28px;
+    .top-bar h1 {
+      font-size: 15px;
       font-weight: 800;
+      color: white;
+      letter-spacing: 0.3px;
+      flex: 1;
+    }
+
+    .top-bar h1 span {
       color: #7dc87d;
     }
 
-    .badge-days {
-      display: inline-block;
-      background: #e8a020;
+    .icon-btn {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
       color: white;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 20px;
-      margin-top: 10px;
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
     }
 
-    .empty-state {
-      text-align: center;
-      padding: 20px;
-      color: #a8c5a8;
+    .icon-btn:active { background: rgba(255,255,255,0.3); }
+
+    .icon-btn.draw-active {
+      background: rgba(125,200,125,0.4);
+      border-color: #7dc87d;
+    }
+
+    /* ── Acreage badge ── */
+    .acreage-badge {
+      position: fixed;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(125,200,125,0.4);
+      border-radius: 20px;
+      padding: 6px 16px;
+      color: white;
       font-size: 14px;
+      font-weight: 700;
+      display: none;
+      white-space: nowrap;
+    }
+
+    .acreage-badge.visible { display: block; }
+    .acreage-badge span { color: #7dc87d; }
+
+    /* ── Bottom controls ── */
+    .bottom-controls {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 16px 14px 28px;
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .control-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .pill {
+      flex: 1;
+      max-width: 120px;
+      padding: 10px 8px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.15s;
+    }
+
+    .pill .pill-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+    .pill .pill-sub { font-size: 10px; color: rgba(255,255,255,0.55); font-weight: 500; margin-top: 1px; }
+
+    .pill.selected {
+      border-color: #7dc87d;
+      background: rgba(28,58,28,0.85);
+    }
+
+    .pill.selected-warn {
+      border-color: #f0a030;
+      background: rgba(80,40,0,0.85);
+    }
+
+    .quote-btn {
+      width: 100%;
+      padding: 14px;
+      background: #2a6a2a;
+      color: white;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+
+    .quote-btn:active { background: #3a8a3a; }
+
+    /* ── Side panel ── */
+    .panel-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .panel-backdrop.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .side-panel {
+      position: fixed;
+      top: 0; right: 0;
+      width: min(360px, 88vw);
+      height: 100vh;
+      z-index: 201;
+      background: #0f1f0f;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .side-panel.open {
+      transform: translateX(0);
+    }
+
+    .panel-header {
+      background: #1c3a1c;
+      padding: 52px 20px 18px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .panel-header h2 {
+      font-size: 20px;
+      font-weight: 800;
+      color: white;
+    }
+
+    .panel-header p {
+      font-size: 12px;
+      color: #7dc87d;
+      margin-top: 2px;
+    }
+
+    .close-btn {
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .summary-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .chip {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.08);
+      color: #c5d9c5;
+    }
+
+    .chip.green { background: rgba(74,124,74,0.4); color: #7dc87d; }
+    .chip.orange { background: rgba(200,120,20,0.4); color: #f0c060; }
+
+    /* Quote rows */
+    .q-section {
+      margin-bottom: 20px;
+    }
+
+    .q-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #4a7c4a;
+      margin-bottom: 10px;
+    }
+
+    .q-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 14px;
+    }
+
+    .q-row .lbl { color: #8aaa8a; }
+    .q-row .val { color: white; font-weight: 600; }
+
+    .q-total {
+      background: rgba(74,124,74,0.2);
+      border: 1px solid rgba(125,200,125,0.3);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .q-total .lbl { color: #a8c5a8; font-size: 14px; font-weight: 700; }
+    .q-total .val { font-size: 30px; font-weight: 900; color: #7dc87d; }
+
+    /* Timeline */
+    .timeline-box {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .timeline-box .tl-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #4a7c4a;
+      margin-bottom: 10px;
+    }
+
+    .timeline-days {
+      font-size: 28px;
+      font-weight: 900;
+      color: white;
+    }
+
+    .timeline-days span { font-size: 14px; color: #8aaa8a; font-weight: 500; margin-left: 4px; }
+
+    .timeline-note {
+      font-size: 12px;
+      color: #8aaa8a;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .terrain-warning {
+      background: rgba(200,120,20,0.15);
+      border: 1px solid rgba(200,120,20,0.3);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #f0c060;
+      margin-bottom: 16px;
+      line-height: 1.4;
     }
 
     .copy-btn {
       width: 100%;
       padding: 14px;
-      background: #4a7c4a;
+      background: #2a6a2a;
       color: white;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
-      margin-top: 10px;
-      transition: opacity 0.15s;
+      transition: background 0.15s;
     }
 
-    .copy-btn:active { opacity: 0.8; }
+    .copy-btn:active { background: #3a8a3a; }
 
-    .api-notice {
-      background: #fff8e6;
-      border: 1px solid #f0c040;
-      border-radius: 8px;
-      padding: 12px;
-      font-size: 12px;
-      color: #7a5c00;
-      margin-bottom: 14px;
-      line-height: 1.5;
+    /* API key screen */
+    .api-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: #0f1f0f;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      text-align: center;
     }
 
-    .api-notice a {
-      color: #4a7c4a;
-      font-weight: 700;
-    }
+    .api-screen .logo { font-size: 48px; margin-bottom: 16px; }
+    .api-screen h2 { font-size: 22px; font-weight: 800; color: white; margin-bottom: 8px; }
+    .api-screen p { font-size: 14px; color: #7a9a7a; margin-bottom: 24px; line-height: 1.5; }
 
-    input[type="text"] {
+    .api-input {
       width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1.5px solid #2a5a2a;
+      background: rgba(255,255,255,0.07);
+      color: white;
       font-size: 14px;
-      margin-top: 8px;
+      margin-bottom: 12px;
+      outline: none;
     }
 
-    .save-key-btn {
+    .api-input::placeholder { color: #4a6a4a; }
+
+    .api-save-btn {
       width: 100%;
-      padding: 10px;
-      background: #1c3a1c;
+      padding: 14px;
+      background: #2a6a2a;
       color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      margin-top: 8px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
       cursor: pointer;
     }
+
+    .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 4px 0; }
   </style>
 </head>
 <body>
 
-<header>
+<!-- API Key Screen -->
+<div class="api-screen" id="apiScreen">
   <div class="logo">🌲</div>
-  <div>
-    <h1>Cornerstone Bid Calculator</h1>
-    <p>Forestry Mulching</p>
-  </div>
-</header>
+  <h2>Cornerstone Bid Tool</h2>
+  <p>Enter your Google Maps API key to get started. You only need to do this once.</p>
+  <input class="api-input" id="apiKeyInput" type="text" placeholder="Paste API key here…">
+  <button class="api-save-btn" onclick="saveApiKey()">Load Map →</button>
+</div>
 
-<div class="container">
+<!-- Full screen map -->
+<div id="map"></div>
 
-  <!-- API Key Setup (shown only if no key saved) -->
-  <div class="api-notice" id="apiNotice">
-    <strong>Google Maps API Key Required</strong><br>
-    Enter your key below to enable the map.<br>
-    <a href="https://console.cloud.google.com" target="_blank">Get a key at console.cloud.google.com</a>
-    <input type="text" id="apiKeyInput" placeholder="Paste your API key here">
-    <button class="save-key-btn" onclick="saveApiKey()">Save & Load Map</button>
-  </div>
+<!-- Top bar -->
+<div class="top-bar">
+  <h1>Cornerstone <span>Bid</span></h1>
+  <button class="icon-btn" id="drawBtn" onclick="startDrawing()">✏️ Draw</button>
+  <button class="icon-btn" onclick="clearDrawing()">🗑 Clear</button>
+</div>
 
-  <!-- Step 1: Map -->
-  <div class="card">
-    <div class="card-title">Step 1 — Draw the Area</div>
-    <div id="map">
-      <div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:14px;">
-        Enter API key above to load map
-      </div>
+<!-- Acreage badge -->
+<div class="acreage-badge" id="acreageBadge">
+  <span id="acreageVal">—</span> acres drawn
+</div>
+
+<!-- Bottom controls -->
+<div class="bottom-controls">
+  <div class="control-row" id="densityRow">
+    <div class="pill" id="pill-light" onclick="selectDensity('light')">
+      <span class="pill-icon">🌿</span>
+      Light
+      <div class="pill-sub">$3,500/ac</div>
     </div>
-    <div class="map-controls">
-      <button class="map-btn btn-draw" onclick="startDrawing()">✏️ Draw Area</button>
-      <button class="map-btn btn-clear" onclick="clearDrawing()">🗑 Clear</button>
+    <div class="pill" id="pill-medium" onclick="selectDensity('medium')">
+      <span class="pill-icon">🌳</span>
+      Medium
+      <div class="pill-sub">$4,500/ac</div>
     </div>
-    <div class="acreage-display">
-      <span class="acreage-label">Calculated Acreage</span>
-      <div>
-        <span class="acreage-value" id="acreageVal">—</span>
-        <span class="acreage-unit">acres</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Step 2: Density -->
-  <div class="card">
-    <div class="card-title">Step 2 — Vegetation Density</div>
-    <div class="option-grid">
-      <div class="option-btn" id="opt-light" onclick="selectDensity('light')">
-        <div class="opt-icon">🌿</div>
-        <div class="opt-label">Light</div>
-        <div class="opt-desc">Small brush, 3–4" diameter</div>
-        <div class="opt-price">$3,500/ac</div>
-      </div>
-      <div class="option-btn" id="opt-medium" onclick="selectDensity('medium')">
-        <div class="opt-icon">🌳</div>
-        <div class="opt-label">Medium</div>
-        <div class="opt-desc">3–6" trees</div>
-        <div class="opt-price">$4,500/ac</div>
-      </div>
-      <div class="option-btn" id="opt-dense" onclick="selectDensity('dense')">
-        <div class="opt-icon">🌲</div>
-        <div class="opt-label">Dense</div>
-        <div class="opt-desc">Thick area or big trees, needs excavator</div>
-        <div class="opt-price">$6,000/ac</div>
-      </div>
+    <div class="pill" id="pill-dense" onclick="selectDensity('dense')">
+      <span class="pill-icon">🌲</span>
+      Dense
+      <div class="pill-sub">$6,500/ac</div>
     </div>
   </div>
-
-  <!-- Step 3: Terrain -->
-  <div class="card">
-    <div class="card-title">Step 3 — Terrain Difficulty</div>
-    <div class="terrain-grid">
-      <div class="option-btn" id="opt-smooth" onclick="selectTerrain('smooth')">
-        <div class="opt-icon">✅</div>
-        <div class="opt-label">Smooth</div>
-        <div class="opt-desc">Easy skid loader access, flat or gentle slope</div>
-      </div>
-      <div class="option-btn" id="opt-difficult" onclick="selectTerrain('difficult')">
-        <div class="opt-icon">⚠️</div>
-        <div class="opt-label">Difficult</div>
-        <div class="opt-desc">Rocky, trash, steep, or hard skid loader access</div>
-      </div>
+  <div class="control-row" id="terrainRow">
+    <div class="pill" id="pill-smooth" onclick="selectTerrain('smooth')">
+      <span class="pill-icon">✅</span>
+      Smooth
+      <div class="pill-sub">Standard</div>
+    </div>
+    <div class="pill pill-warn" id="pill-difficult" onclick="selectTerrain('difficult')">
+      <span class="pill-icon">⚠️</span>
+      Difficult
+      <div class="pill-sub">+$2,200/day</div>
     </div>
   </div>
+  <button class="quote-btn" id="quoteBtn" onclick="openPanel()">View Estimate →</button>
+</div>
 
-  <!-- Quote Output -->
-  <div class="quote-card" id="quoteCard">
-    <div class="quote-title">Estimate</div>
-    <div class="empty-state" id="quoteEmpty">Fill in steps above to generate a quote</div>
-    <div id="quoteBreakdown" style="display:none;">
-      <div class="quote-row">
-        <span class="label">Acreage</span>
-        <span class="value" id="qAcreage">—</span>
-      </div>
-      <div class="quote-row">
-        <span class="label">Density Rate</span>
-        <span class="value" id="qRate">—</span>
-      </div>
-      <div class="quote-row">
-        <span class="label">Base Price</span>
-        <span class="value" id="qBase">—</span>
-      </div>
-      <div class="quote-row" id="qTerrainRow" style="display:none;">
-        <span class="label">Terrain Upcharge</span>
-        <span class="value" id="qTerrain">+$2,200</span>
-      </div>
-      <div class="quote-total">
-        <span class="label">Total Quote</span>
-        <span class="value" id="qTotal">—</span>
-      </div>
-      <div id="qDaysBadge"></div>
+<!-- Panel backdrop -->
+<div class="panel-backdrop" id="backdrop" onclick="closePanel()"></div>
+
+<!-- Side panel -->
+<div class="side-panel" id="sidePanel">
+  <div class="panel-header">
+    <div>
+      <h2>Estimate</h2>
+      <p>Forestry Mulching</p>
     </div>
-    <button class="copy-btn" id="copyBtn" style="display:none;" onclick="copyQuote()">📋 Copy Quote</button>
+    <button class="close-btn" onclick="closePanel()">✕</button>
   </div>
-
+  <div class="panel-body" id="panelBody"></div>
 </div>
 
 <script>
-  const RATES = { light: 3500, medium: 4500, dense: 6000 };
+  const RATES    = { light: 3500, medium: 4500, dense: 6500 };
+  const PROD_DAY = { light: 2.5,  medium: 1.5,  dense: 0.75 }; // acres/day
   const TERRAIN_UPCHARGE = 2200;
 
-  let acreage = null;
-  let density = null;
-  let terrain = null;
+  let acreage = null, density = null, terrain = null;
   let map, drawingManager, polygon;
 
-  // ── API Key ──────────────────────────────────────────────────
-
+  // ── API Key ─────────────────────────────────────────────────────
   function saveApiKey() {
     const key = document.getElementById('apiKeyInput').value.trim();
-    if (!key) return alert('Please enter a valid API key.');
-    localStorage.setItem('gmaps_api_key', key);
-    loadGoogleMaps(key);
-    document.getElementById('apiNotice').style.display = 'none';
+    if (!key) return;
+    localStorage.setItem('gmaps_key', key);
+    document.getElementById('apiScreen').style.display = 'none';
+    loadMaps(key);
   }
 
-  function loadGoogleMaps(key) {
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=drawing,geometry&callback=initMap`;
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
+  function loadMaps(key) {
+    const s = document.createElement('script');
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=drawing,geometry&callback=initMap`;
+    s.async = true; s.defer = true;
+    document.head.appendChild(s);
   }
 
-  // Auto-load if key already saved
   window.addEventListener('load', () => {
-    const savedKey = localStorage.getItem('gmaps_api_key');
-    if (savedKey) {
-      document.getElementById('apiNotice').style.display = 'none';
-      loadGoogleMaps(savedKey);
+    const key = localStorage.getItem('gmaps_key');
+    if (key) {
+      document.getElementById('apiScreen').style.display = 'none';
+      loadMaps(key);
     }
   });
 
-  // ── Google Maps ──────────────────────────────────────────────
-
+  // ── Map init ────────────────────────────────────────────────────
   function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
-      center: { lat: 38.2527, lng: -85.7585 }, // Louisville, KY
-      zoom: 15,
+      center: { lat: 38.2527, lng: -85.7585 },
+      zoom: 16,
       mapTypeId: 'satellite',
       disableDefaultUI: true,
-      zoomControl: true,
       gestureHandling: 'greedy',
+      tilt: 0,
     });
 
     drawingManager = new google.maps.drawing.DrawingManager({
@@ -484,9 +517,9 @@
       drawingControl: false,
       polygonOptions: {
         fillColor: '#4a7c4a',
-        fillOpacity: 0.35,
+        fillOpacity: 0.3,
         strokeColor: '#7dc87d',
-        strokeWeight: 2,
+        strokeWeight: 2.5,
         editable: true,
         draggable: true,
       },
@@ -494,123 +527,163 @@
 
     drawingManager.setMap(map);
 
-    google.maps.event.addListener(drawingManager, 'polygoncomplete', (poly) => {
+    google.maps.event.addListener(drawingManager, 'polygoncomplete', poly => {
       if (polygon) polygon.setMap(null);
       polygon = poly;
       drawingManager.setDrawingMode(null);
+      document.getElementById('drawBtn').classList.remove('draw-active');
       updateAcreage();
-
       google.maps.event.addListener(poly.getPath(), 'set_at', updateAcreage);
       google.maps.event.addListener(poly.getPath(), 'insert_at', updateAcreage);
     });
   }
 
   function startDrawing() {
-    if (!drawingManager) return alert('Map not loaded yet. Enter your API key first.');
-    if (polygon) polygon.setMap(null);
-    polygon = null;
-    acreage = null;
-    document.getElementById('acreageVal').textContent = '—';
+    if (!drawingManager) return;
+    clearDrawing();
     drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
-    updateQuote();
+    document.getElementById('drawBtn').classList.add('draw-active');
   }
 
   function clearDrawing() {
-    if (polygon) polygon.setMap(null);
-    polygon = null;
+    if (polygon) { polygon.setMap(null); polygon = null; }
     acreage = null;
-    document.getElementById('acreageVal').textContent = '—';
-    updateQuote();
+    document.getElementById('acreageBadge').classList.remove('visible');
+    document.getElementById('drawBtn').classList.remove('draw-active');
+    checkShowQuoteBtn();
   }
 
   function updateAcreage() {
     if (!polygon) return;
-    const areaSqMeters = google.maps.geometry.spherical.computeArea(polygon.getPath());
-    const areaAcres = areaSqMeters / 4046.856;
-    acreage = Math.round(areaAcres * 100) / 100;
+    const sq = google.maps.geometry.spherical.computeArea(polygon.getPath());
+    acreage = Math.round((sq / 4046.856) * 100) / 100;
+    const badge = document.getElementById('acreageBadge');
     document.getElementById('acreageVal').textContent = acreage.toFixed(2);
-    updateQuote();
+    badge.classList.add('visible');
+    checkShowQuoteBtn();
   }
 
-  // ── Selectors ────────────────────────────────────────────────
-
+  // ── Selectors ───────────────────────────────────────────────────
   function selectDensity(val) {
     density = val;
-    ['light','medium','dense'].forEach(d => {
-      document.getElementById('opt-' + d).classList.toggle('selected', d === val);
-    });
-    updateQuote();
+    ['light','medium','dense'].forEach(d =>
+      document.getElementById('pill-' + d).classList.toggle('selected', d === val)
+    );
+    checkShowQuoteBtn();
   }
 
   function selectTerrain(val) {
     terrain = val;
-    ['smooth','difficult'].forEach(t => {
-      document.getElementById('opt-' + t).classList.toggle('selected', t === val);
-    });
-    updateQuote();
+    document.getElementById('pill-smooth').classList.toggle('selected', val === 'smooth');
+    document.getElementById('pill-difficult').classList.toggle('selected-warn', val === 'difficult');
+    document.getElementById('pill-difficult').classList.toggle('selected', false);
+    checkShowQuoteBtn();
   }
 
-  // ── Quote ────────────────────────────────────────────────────
+  function checkShowQuoteBtn() {
+    const show = acreage && density && terrain;
+    const btn = document.getElementById('quoteBtn');
+    btn.style.display = show ? 'block' : 'none';
+  }
 
-  function updateQuote() {
-    if (!acreage || !density || !terrain) {
-      document.getElementById('quoteEmpty').style.display = 'block';
-      document.getElementById('quoteBreakdown').style.display = 'none';
-      document.getElementById('copyBtn').style.display = 'none';
-      return;
-    }
+  // ── Panel ───────────────────────────────────────────────────────
+  function openPanel() {
+    renderQuote();
+    document.getElementById('sidePanel').classList.add('open');
+    document.getElementById('backdrop').classList.add('open');
+  }
 
-    const rate = RATES[density];
-    const base = acreage * rate;
-    const terrainAdd = terrain === 'difficult' ? TERRAIN_UPCHARGE : 0;
-    const total = base + terrainAdd;
+  function closePanel() {
+    document.getElementById('sidePanel').classList.remove('open');
+    document.getElementById('backdrop').classList.remove('open');
+  }
 
-    document.getElementById('qAcreage').textContent = acreage.toFixed(2) + ' acres';
-    document.getElementById('qRate').textContent = '$' + rate.toLocaleString() + '/acre';
-    document.getElementById('qBase').textContent = '$' + Math.round(base).toLocaleString();
-    document.getElementById('qTerrainRow').style.display = terrain === 'difficult' ? 'flex' : 'none';
-    document.getElementById('qTotal').textContent = '$' + Math.round(total).toLocaleString();
+  function renderQuote() {
+    const rate     = RATES[density];
+    const base     = acreage * rate;
+    const prodRate = PROD_DAY[density];
+    let   days     = Math.ceil(acreage / prodRate);
+    let   terrainCost = 0;
 
-    const badge = document.getElementById('qDaysBadge');
     if (terrain === 'difficult') {
-      badge.innerHTML = '<span class="badge-days">⚠️ Estimated 1–2 Day Project</span>';
-    } else {
-      badge.innerHTML = '<span class="badge-days" style="background:#4a7c4a;">✅ Estimated 1 Day Project</span>';
+      terrainCost = TERRAIN_UPCHARGE * days; // upcharge per extra day
+      days = Math.ceil(days * 1.4); // 40% longer on difficult terrain
     }
 
-    document.getElementById('quoteEmpty').style.display = 'none';
-    document.getElementById('quoteBreakdown').style.display = 'block';
-    document.getElementById('copyBtn').style.display = 'block';
+    const total = base + terrainCost;
+
+    const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
+    const terrainLabel = terrain === 'difficult' ? 'Difficult' : 'Smooth';
+
+    let html = `
+      <div class="summary-chips">
+        <div class="chip green">${acreage.toFixed(2)} acres</div>
+        <div class="chip green">${densityLabel}</div>
+        <div class="chip ${terrain === 'difficult' ? 'orange' : 'green'}">${terrainLabel} Terrain</div>
+      </div>
+
+      <div class="q-section">
+        <div class="q-label">Pricing Breakdown</div>
+        <div class="q-row"><span class="lbl">Acreage</span><span class="val">${acreage.toFixed(2)} ac</span></div>
+        <div class="q-row"><span class="lbl">Rate (${densityLabel})</span><span class="val">$${rate.toLocaleString()}/ac</span></div>
+        <div class="q-row"><span class="lbl">Base Price</span><span class="val">$${Math.round(base).toLocaleString()}</span></div>
+        ${terrain === 'difficult' ? `
+        <div class="q-row"><span class="lbl">Terrain Upcharge</span><span class="val" style="color:#f0c060;">+$${Math.round(terrainCost).toLocaleString()}</span></div>
+        ` : ''}
+        <div class="divider"></div>
+      </div>
+
+      <div class="q-total">
+        <span class="lbl">Total Estimate</span>
+        <span class="val">$${Math.round(total).toLocaleString()}</span>
+      </div>
+
+      <div class="timeline-box">
+        <div class="tl-title">Estimated Timeline</div>
+        <div class="timeline-days">${days === 1 ? '1' : `${days}`}<span>${days === 1 ? 'day' : 'days'}</span></div>
+        <div class="timeline-note">Based on ${prodRate} acres/day production rate for ${densityLabel.toLowerCase()} vegetation${terrain === 'difficult' ? ', adjusted for difficult terrain' : ''}.</div>
+      </div>
+
+      ${terrain === 'difficult' ? `
+      <div class="terrain-warning">⚠️ Difficult terrain — rocky, steep, or heavy debris. Project duration extended and $2,200/day equipment rate applied.</div>
+      ` : ''}
+
+      <button class="copy-btn" onclick="copyQuote(${Math.round(total)}, ${days})">📋 Copy Estimate</button>
+    `;
+
+    document.getElementById('panelBody').innerHTML = html;
   }
 
-  function copyQuote() {
-    if (!acreage || !density || !terrain) return;
+  function copyQuote(total, days) {
+    const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
     const rate = RATES[density];
     const base = acreage * rate;
-    const terrainAdd = terrain === 'difficult' ? TERRAIN_UPCHARGE : 0;
-    const total = base + terrainAdd;
-    const days = terrain === 'difficult' ? '1–2 days' : '1 day';
 
-    const text =
+    let text =
       `Cornerstone Hardscape & Excavation\n` +
       `Forestry Mulching Estimate\n` +
-      `———————————————\n` +
+      `——————————————\n` +
       `Acreage: ${acreage.toFixed(2)} acres\n` +
-      `Density: ${density.charAt(0).toUpperCase() + density.slice(1)}\n` +
-      `Terrain: ${terrain.charAt(0).toUpperCase() + terrain.slice(1)}\n` +
-      `Base Price: $${Math.round(base).toLocaleString()}\n` +
-      (terrainAdd ? `Terrain Upcharge: +$${terrainAdd.toLocaleString()}\n` : '') +
-      `———————————————\n` +
-      `Total: $${Math.round(total).toLocaleString()}\n` +
-      `Est. Duration: ${days}`;
+      `Vegetation: ${densityLabel}\n` +
+      `Terrain: ${terrain === 'difficult' ? 'Difficult' : 'Smooth'}\n` +
+      `Base Price: $${Math.round(base).toLocaleString()}\n`;
+
+    if (terrain === 'difficult') {
+      const terrainCost = total - Math.round(base);
+      text += `Terrain Upcharge: +$${terrainCost.toLocaleString()}\n`;
+    }
+
+    text +=
+      `——————————————\n` +
+      `Total: $${total.toLocaleString()}\n` +
+      `Est. Timeline: ${days} ${days === 1 ? 'day' : 'days'}`;
 
     navigator.clipboard.writeText(text).then(() => {
-      const btn = document.getElementById('copyBtn');
+      const btn = document.querySelector('.copy-btn');
       btn.textContent = '✅ Copied!';
-      setTimeout(() => btn.textContent = '📋 Copy Quote', 2000);
+      setTimeout(() => btn.textContent = '📋 Copy Estimate', 2000);
     });
   }
 </script>
-
 </body>
 </html>
