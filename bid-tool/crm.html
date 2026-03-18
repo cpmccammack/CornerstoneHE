@@ -99,180 +99,250 @@
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       box-shadow: 0 1px 8px rgba(0,0,0,0.06);
-      padding: 14px 16px 0;
+      padding: 12px 16px;
     }
 
     .header-row {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 14px;
     }
 
-    .back-btn {
-      background: #FFFFFF;
-      border: 1px solid #E5E7EB;
+    .header-wordmark {
+      font-size: 17px;
+      font-weight: 800;
       color: #374151;
-      border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
+      letter-spacing: -0.3px;
       flex-shrink: 0;
+    }
+
+    .header-wordmark span { color: #22C55E; }
+
+    .header-search-wrap {
+      flex: 1;
+      position: relative;
+      min-width: 0;
+    }
+
+    .header-search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9CA3AF;
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .header-search {
+      width: 100%;
+      padding: 8px 10px 8px 32px;
+      border-radius: 10px;
+      border: 1px solid #E5E7EB;
+      background: #F9FAFB;
+      color: #374151;
+      font-size: 13px;
       font-family: inherit;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .header-search::placeholder { color: #9CA3AF; }
+    .header-search:focus { border-color: #22C55E; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(34,197,94,0.10); }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .new-lead-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 14px;
+      background: #22C55E;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
       transition: box-shadow 0.15s, transform 0.15s;
     }
 
-    .back-btn:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.08); transform: translateY(-1px); }
+    .new-lead-btn:hover { box-shadow: 0 2px 8px rgba(34,197,94,0.3); transform: translateY(-1px); }
+    .new-lead-btn:active { transform: scale(0.98); }
 
-    .header h1 {
-      flex: 1;
-      font-size: 17px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      color: #374151;
-    }
-
-    .header h1 span { color: #22C55E; }
-
-    .refresh-btn {
+    .refresh-icon-btn {
       background: transparent;
-      border: none;
-      color: #22C55E;
-      font-size: 18px;
-      cursor: pointer;
-      padding: 4px 6px;
-      border-radius: 6px;
-      -webkit-tap-highlight-color: transparent;
-      flex-shrink: 0;
-    }
-
-    /* Stage filter tabs */
-    .stage-tabs {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 12px;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .stage-tabs::-webkit-scrollbar { display: none; }
-
-    .stage-tab {
-      flex-shrink: 0;
-      padding: 5px 14px;
-      border-radius: 20px;
       border: 1px solid #E5E7EB;
-      background: #FFFFFF;
       color: #6B7280;
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 16px;
       cursor: pointer;
+      padding: 7px 9px;
+      border-radius: 10px;
       -webkit-tap-highlight-color: transparent;
-      white-space: nowrap;
-      font-family: inherit;
-      transition: box-shadow 0.15s, color 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+      line-height: 1;
+      transition: border-color 0.15s, color 0.15s;
     }
 
-    .stage-tab.active {
-      background: #FFFFFF;
-      border-left: 3px solid #22C55E;
-      color: #15803D;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
+    .refresh-icon-btn:hover { border-color: #22C55E; color: #22C55E; }
 
-    /* ── Main content ── */
-    .content {
-      padding: 14px 14px 80px;
-    }
-
-    /* Stats bar */
-    .stats-row {
+    /* ── Stats bar ── */
+    .stats-bar {
       display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
+      gap: 10px;
+      padding: 14px 16px 0;
     }
 
-    .stat-box {
+    .stat-card {
       flex: 1;
       background: #FFFFFF;
-      border-radius: 12px;
-      padding: 10px 12px;
-      text-align: center;
+      border-radius: 14px;
+      padding: 12px 14px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 20px rgba(0,0,0,0.06);
     }
 
-    .stat-box .sv { font-size: 20px; font-weight: 800; color: #22C55E; }
-    .stat-box .sl { font-size: 10px; color: #9CA3AF; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+    .stat-card .sv {
+      font-size: 18px;
+      font-weight: 800;
+      color: #22C55E;
+      line-height: 1.1;
+      margin-bottom: 3px;
+    }
 
-    .stat-box.amber .sv { color: #F59E0B; }
+    .stat-card .sl {
+      font-size: 10px;
+      color: #9CA3AF;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
 
-    /* Lead cards */
+    /* ── Kanban board ── */
+    .board-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding: 14px 16px 60px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .board-wrap::-webkit-scrollbar { display: none; }
+
+    /* ── Kanban column ── */
+    .kanban-col {
+      min-width: 280px;
+      max-width: 280px;
+      background: #F3F4F6;
+      border-radius: 16px;
+      padding: 0 0 12px;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .col-header {
+      position: sticky;
+      top: 62px;
+      z-index: 10;
+      background: #F3F4F6;
+      border-radius: 16px 16px 0 0;
+      padding: 14px 14px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .col-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+      flex: 1;
+    }
+
+    .col-count {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .col-total {
+      font-size: 11px;
+      color: #9CA3AF;
+      font-weight: 500;
+    }
+
+    .col-cards {
+      padding: 0 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* ── Lead card ── */
     .lead-card {
       background: #FFFFFF;
-      border-radius: 20px;
-      margin-bottom: 10px;
-      overflow: hidden;
+      border-radius: 14px;
+      padding: 13px 14px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 20px rgba(0,0,0,0.06);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
       will-change: transform;
-      transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
     .lead-card:hover {
-      transform: translateY(-3px);
+      transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.10);
     }
 
     .lead-card.overdue {
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 20px rgba(194,65,12,0.10);
+      border-left: 3px solid #F97316;
     }
 
-    .lead-card-head {
-      padding: 14px 16px;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
+    .card-top {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 10px;
+      gap: 8px;
+      margin-bottom: 8px;
     }
 
-    .lead-name {
-      font-size: 15px;
+    .card-name {
+      font-size: 14px;
       font-weight: 700;
       color: #374151;
-      margin-bottom: 3px;
+      line-height: 1.3;
     }
 
-    .lead-meta {
-      font-size: 12px;
-      color: #9CA3AF;
-      line-height: 1.4;
-    }
-
-    .lead-right {
-      text-align: right;
+    .card-value {
+      font-size: 15px;
+      font-weight: 800;
+      color: #22C55E;
+      white-space: nowrap;
       flex-shrink: 0;
     }
 
-    .lead-value {
-      font-size: 17px;
-      font-weight: 800;
-      color: #22C55E;
-      margin-bottom: 4px;
+    .card-address {
+      font-size: 11px;
+      color: #9CA3AF;
+      margin-bottom: 8px;
+      line-height: 1.4;
     }
 
-    .lead-badges {
+    .card-badges {
       display: flex;
       gap: 4px;
       flex-wrap: wrap;
-      justify-content: flex-end;
     }
 
     .badge {
@@ -282,52 +352,143 @@
       font-weight: 700;
       letter-spacing: 0.3px;
       white-space: nowrap;
+      border: 1px solid transparent;
     }
 
-    /* Default stage badge (e.g. Contacted, Quote Sent, Follow-Up) */
-    .badge-stage {
-      background: #FFFBEB;
-      color: #B45309;
-      border: 1px solid #FDE68A;
-    }
+    .badge-new       { background: #EEF2FF; color: #4F46E5; border-color: #C7D2FE; }
+    .badge-contacted { background: #EFF6FF; color: #2563EB; border-color: #BFDBFE; }
+    .badge-quote     { background: #FFFBEB; color: #B45309; border-color: #FDE68A; }
+    .badge-followup  { background: #FFF7ED; color: #C2410C; border-color: #FED7AA; }
+    .badge-won       { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
+    .badge-lost      { background: #F9FAFB; color: #6B7280; border-color: #E5E7EB; }
+    .badge-overdue   { background: #FFF7ED; color: #C2410C; border-color: #FED7AA; }
+    .badge-days      { background: #F9FAFB; color: #9CA3AF; border-color: #E5E7EB; }
 
-    .badge-stage.won { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
-    .badge-stage.lost { background: #F9FAFB; color: #6B7280; border-color: #E5E7EB; }
-    .badge-stage.new { background: #EEF2FF; color: #4F46E5; border-color: #C7D2FE; }
-    .badge-stage.contacted { background: #EFF6FF; color: #2563EB; border-color: #BFDBFE; }
-    .badge-stage.followup { background: #FFF7ED; color: #C2410C; border-color: #FED7AA; }
+    /* Column count badge colors */
+    .col-count.badge-new       { background: #EEF2FF; color: #4F46E5; }
+    .col-count.badge-contacted { background: #EFF6FF; color: #2563EB; }
+    .col-count.badge-quote     { background: #FFFBEB; color: #B45309; }
+    .col-count.badge-followup  { background: #FFF7ED; color: #C2410C; }
+    .col-count.badge-won       { background: #F0FDF4; color: #15803D; }
+    .col-count.badge-lost      { background: #F9FAFB; color: #6B7280; border: 1px solid #E5E7EB; }
 
-    .badge-overdue {
-      background: #FFF7ED;
-      color: #C2410C;
-      border: 1px solid #FED7AA;
-    }
-
-    .badge-days {
-      background: #F9FAFB;
+    .col-empty {
+      font-size: 12px;
       color: #9CA3AF;
-      border: 1px solid #E5E7EB;
+      text-align: center;
+      padding: 20px 10px;
     }
 
-    /* Expand detail */
-    .lead-detail {
-      display: none;
-      border-top: 1px solid #F3F4F6;
-      padding: 14px 16px 16px;
+    /* ── Spinner ── */
+    .spinner {
+      width: 28px; height: 28px;
+      border: 2.5px solid rgba(34,197,94,0.2);
+      border-top-color: #22C55E;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 60px auto;
     }
 
-    .lead-detail.open { display: block; }
+    .board-spinner-wrap {
+      width: 100%;
+      padding: 60px 0;
+      display: flex;
+      justify-content: center;
+    }
 
-    .detail-contact {
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Lead Panel (slide-over) ── */
+    .panel-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .panel-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .lead-panel {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 400px;
+      max-width: 100%;
+      background: #FFFFFF;
+      z-index: 201;
+      box-shadow: -4px 0 32px rgba(0,0,0,0.12);
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .lead-panel.open {
+      transform: translateX(0);
+    }
+
+    .panel-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid #F3F4F6;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .panel-header-info { flex: 1; min-width: 0; }
+
+    .panel-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: #374151;
+      margin-bottom: 5px;
+      line-height: 1.2;
+    }
+
+    .panel-close {
+      background: #F3F4F6;
+      border: none;
+      border-radius: 8px;
+      width: 32px; height: 32px;
+      font-size: 18px;
+      color: #6B7280;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+      font-family: inherit;
+      line-height: 1;
+    }
+
+    .panel-close:hover { background: #E5E7EB; color: #374151; }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 18px 32px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Contact row */
+    .panel-contact-row {
       display: flex;
       gap: 8px;
-      margin-bottom: 14px;
+      margin-bottom: 18px;
     }
 
-    .contact-btn {
+    .panel-contact-btn {
       flex: 1;
-      padding: 9px;
-      border-radius: 8px;
+      padding: 10px;
+      border-radius: 10px;
       border: 1px solid #E5E7EB;
       background: #FFFFFF;
       color: #374151;
@@ -342,43 +503,56 @@
       transition: box-shadow 0.15s, transform 0.15s;
     }
 
-    .contact-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
-    .contact-btn:active { background: #F9FAFB; }
+    .panel-contact-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
+    .panel-contact-btn:active { background: #F9FAFB; }
 
-    .detail-label {
+    /* Section label */
+    .panel-label {
       font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.8px;
       color: #9CA3AF;
       margin-bottom: 8px;
-      margin-top: 14px;
+      margin-top: 18px;
     }
 
-    .detail-label:first-of-type { margin-top: 0; }
+    .panel-label:first-of-type { margin-top: 0; }
 
-    .next-action-box {
+    /* Details */
+    .panel-detail-box {
       background: #F9FAFB;
       border: 1px solid #E5E7EB;
-      border-radius: 8px;
-      padding: 10px 12px;
+      border-radius: 10px;
+      padding: 10px 13px;
       font-size: 13px;
       color: #374151;
-      margin-bottom: 14px;
-      line-height: 1.4;
+      line-height: 1.5;
     }
 
-    /* Stage selector */
+    .panel-detail-box .drow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-detail-box .drow + .drow { margin-top: 6px; padding-top: 6px; border-top: 1px solid #E5E7EB; }
+
+    .panel-detail-box .dlabel { font-size: 11px; color: #9CA3AF; }
+    .panel-detail-box .dval { font-weight: 600; color: #374151; text-align: right; }
+    .panel-detail-box .dval.green { color: #22C55E; }
+
+    /* Stage pills */
     .stage-pills {
       display: flex;
       gap: 5px;
       flex-wrap: wrap;
-      margin-bottom: 14px;
     }
 
     .stage-pill {
-      padding: 5px 10px;
-      border-radius: 6px;
+      padding: 5px 11px;
+      border-radius: 8px;
       border: 1px solid #E5E7EB;
       background: #FFFFFF;
       color: #6B7280;
@@ -391,83 +565,222 @@
       transition: background 0.15s, border-color 0.15s, color 0.15s;
     }
 
-    .stage-pill.current {
+    .stage-pill.active-stage {
       background: #F0FDF4;
       border-color: #22C55E;
       color: #15803D;
     }
 
-    /* Note / follow-up */
-    .detail-textarea {
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 20px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 6px; top: 6px; bottom: 6px;
+      width: 1.5px;
+      background: #E5E7EB;
+    }
+
+    .tl-entry {
+      position: relative;
+      margin-bottom: 14px;
+    }
+
+    .tl-entry::before {
+      content: '';
+      position: absolute;
+      left: -17px;
+      top: 5px;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #22C55E;
+      border: 1.5px solid #FFFFFF;
+      box-shadow: 0 0 0 1.5px #22C55E;
+    }
+
+    .tl-date {
+      font-size: 10px;
+      font-weight: 700;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .tl-text {
+      font-size: 12px;
+      color: #6B7280;
+      line-height: 1.45;
+    }
+
+    /* Textarea */
+    .panel-textarea {
       width: 100%;
       padding: 10px 12px;
-      border-radius: 8px;
+      border-radius: 10px;
       border: 1px solid #E5E7EB;
       background: #FFFFFF;
       color: #374151;
       font-size: 13px;
       outline: none;
       resize: none;
-      min-height: 70px;
+      min-height: 72px;
       font-family: inherit;
       margin-bottom: 8px;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
 
-    .detail-textarea::placeholder { color: #9CA3AF; }
-    .detail-textarea:focus { border-color: #22C55E; box-shadow: 0 0 0 3px rgba(34,197,94,0.12); }
+    .panel-textarea::placeholder { color: #9CA3AF; }
+    .panel-textarea:focus { border-color: #22C55E; box-shadow: 0 0 0 3px rgba(34,197,94,0.12); }
 
-    .detail-actions {
-      display: flex;
-      gap: 7px;
-    }
-
-    .detail-btn {
-      flex: 1;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 12px;
+    /* Action buttons */
+    .panel-btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: 10px;
+      font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      border: none;
-      background: #22C55E;
-      color: #FFFFFF;
-      letter-spacing: 0.2px;
       font-family: inherit;
       transition: box-shadow 0.15s, transform 0.15s;
+      margin-bottom: 8px;
+      display: block;
+      text-align: center;
     }
 
-    .detail-btn:active { box-shadow: 0 0 0 3px rgba(34,197,94,0.25); }
+    .panel-btn.green {
+      background: #22C55E;
+      border: none;
+      color: #FFFFFF;
+    }
 
-    .detail-btn.outline {
+    .panel-btn.green:hover { box-shadow: 0 2px 8px rgba(34,197,94,0.3); transform: translateY(-1px); }
+
+    .panel-btn.outline {
       background: #FFFFFF;
       border: 1px solid #E5E7EB;
       color: #374151;
     }
 
-    .detail-btn.outline:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.08); transform: translateY(-1px); }
+    .panel-btn.outline:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.08); transform: translateY(-1px); }
 
-    .detail-status {
+    .panel-status {
       font-size: 12px;
       color: #22C55E;
       min-height: 16px;
-      margin-top: 6px;
       font-weight: 600;
+      margin-bottom: 4px;
     }
 
-    .detail-status.err { color: #EF4444; }
+    .panel-status.err { color: #EF4444; }
 
-    .notes-text {
-      font-size: 12px;
-      color: #6B7280;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      word-break: break-word;
-      padding: 8px 0;
+    /* ── Add Lead Modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 300;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
 
-    /* Loading / empty */
+    .modal-overlay.open { display: flex; }
+
+    .modal-box {
+      background: #1a1a1a;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 28px;
+      width: 100%;
+      max-width: 400px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-bottom: 20px;
+    }
+
+    .modal-label {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .modal-input, .modal-select, .modal-textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #FFFFFF;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      margin-bottom: 14px;
+      box-sizing: border-box;
+      transition: border-color 0.15s;
+    }
+
+    .modal-input::placeholder, .modal-textarea::placeholder { color: #666; }
+    .modal-input:focus, .modal-select:focus, .modal-textarea:focus { border-color: #22C55E; }
+
+    .modal-select { appearance: none; cursor: pointer; }
+    .modal-select option { background: #1a1a1a; color: #FFFFFF; }
+
+    .modal-textarea { resize: none; min-height: 70px; }
+
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.15s;
+    }
+
+    .modal-btn.cancel {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #aaa;
+    }
+
+    .modal-btn.submit {
+      flex: 2;
+      background: #22C55E;
+      border: none;
+      color: #0a0a0a;
+    }
+
+    .modal-status {
+      font-size: 13px;
+      color: #6fcf6f;
+      min-height: 18px;
+      margin-bottom: 10px;
+    }
+
+    /* ── Empty state ── */
     .empty-state {
       text-align: center;
       padding: 60px 20px;
@@ -476,16 +789,17 @@
       line-height: 1.8;
     }
 
-    .spinner {
-      width: 24px; height: 24px;
-      border: 2px solid rgba(34,197,94,0.2);
-      border-top-color: #22C55E;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      margin: 40px auto;
+    /* Mobile adjustments */
+    @media (max-width: 600px) {
+      .header-wordmark { font-size: 15px; }
+      .new-lead-btn span { display: none; }
+      .new-lead-btn { padding: 8px 10px; }
+      .stats-bar { gap: 7px; padding: 12px 12px 0; }
+      .stat-card { padding: 10px 10px; }
+      .stat-card .sv { font-size: 15px; }
+      .board-wrap { padding: 12px 10px 60px; gap: 10px; }
+      .kanban-col { min-width: 250px; max-width: 250px; }
     }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -503,413 +817,100 @@
 <!-- Header -->
 <div class="header">
   <div class="header-row">
-    <a class="back-btn" href="index.html">← Bid</a>
-    <h1>Pipeline <span>CRM</span></h1>
-    <button class="refresh-btn" onclick="loadLeads()" title="Refresh">↻</button>
-  </div>
-  <div class="stage-tabs" id="stageTabs">
-    <div class="stage-tab active" data-stage="All" onclick="filterStage('All', this)">All</div>
-    <div class="stage-tab" data-stage="New Lead" onclick="filterStage('New Lead', this)">New</div>
-    <div class="stage-tab" data-stage="Contacted" onclick="filterStage('Contacted', this)">Contacted</div>
-    <div class="stage-tab" data-stage="Quote Sent" onclick="filterStage('Quote Sent', this)">Quote Sent</div>
-    <div class="stage-tab" data-stage="Follow-Up" onclick="filterStage('Follow-Up', this)">Follow-Up</div>
-    <div class="stage-tab" data-stage="Won" onclick="filterStage('Won', this)">Won</div>
-    <div class="stage-tab" data-stage="Lost" onclick="filterStage('Lost', this)">Lost</div>
+    <div class="header-wordmark">Cornerstone <span>CRM</span></div>
+    <div class="header-search-wrap">
+      <span class="header-search-icon">🔍</span>
+      <input class="header-search" id="searchInput" type="text" placeholder="Search leads…" oninput="onSearch()">
+    </div>
+    <div class="header-actions">
+      <button class="new-lead-btn" onclick="openAddLead()">
+        <span style="font-size:16px;line-height:1;">+</span>
+        <span>New Lead</span>
+      </button>
+      <button class="refresh-icon-btn" onclick="loadLeads()" title="Refresh">↻</button>
+    </div>
   </div>
 </div>
 
-<!-- Main content -->
-<div class="content" id="content">
-  <div class="spinner" id="spinner"></div>
+<!-- Stats bar -->
+<div class="stats-bar" id="statsBar" style="display:none;">
+  <div class="stat-card">
+    <div class="sv" id="statPipeline">—</div>
+    <div class="sl">Pipeline</div>
+  </div>
+  <div class="stat-card">
+    <div class="sv" id="statWon">—</div>
+    <div class="sl">Won / Mo</div>
+  </div>
+  <div class="stat-card">
+    <div class="sv" id="statWinRate">—</div>
+    <div class="sl">Win Rate</div>
+  </div>
+  <div class="stat-card">
+    <div class="sv" id="statActive">—</div>
+    <div class="sl">Active</div>
+  </div>
 </div>
 
-<script>
-  const STAGES = ['New Lead','Contacted','Quote Sent','Follow-Up','Won','Lost'];
-  let allLeads = [];
-  let currentFilter = 'All';
-  let expandedId = null;
+<!-- Kanban board -->
+<div class="board-wrap" id="boardWrap">
+  <div class="board-spinner-wrap"><div class="spinner"></div></div>
+</div>
 
-  // ── Setup ─────────────────────────────────────────────────────
-  function getCRMUrl() { return localStorage.getItem('crm_url') || ''; }
+<!-- Panel overlay -->
+<div class="panel-overlay" id="panelOverlay" onclick="closePanel()"></div>
 
-  function saveSetup() {
-    const url = document.getElementById('setupUrl').value.trim();
-    if (!url.startsWith('https://')) {
-      alert('Please enter a valid https:// URL');
-      return;
-    }
-    localStorage.setItem('crm_url', url);
-    document.getElementById('setupScreen').style.display = 'none';
-    loadLeads();
-  }
+<!-- Lead Panel -->
+<div class="lead-panel" id="leadPanel">
+  <div class="panel-header">
+    <div class="panel-header-info">
+      <div class="panel-name" id="panelName">—</div>
+      <div id="panelStageBadge"></div>
+    </div>
+    <button class="panel-close" onclick="closePanel()">×</button>
+  </div>
+  <div class="panel-body" id="panelBody"></div>
+</div>
 
-  window.addEventListener('load', () => {
-    if (!getCRMUrl()) {
-      document.getElementById('spinner').style.display = 'none';
-      return; // setup screen shows
-    }
-    document.getElementById('setupScreen').style.display = 'none';
-    loadLeads();
-  });
+<!-- Add Lead Modal -->
+<div class="modal-overlay" id="addLeadModal">
+  <div class="modal-box">
+    <div class="modal-title">New Lead</div>
 
-  // ── Fetch ─────────────────────────────────────────────────────
-  function jsonp(url, params) {
-    return new Promise((resolve, reject) => {
-      const cbName = 'cb_' + Date.now();
-      window[cbName] = (data) => { delete window[cbName]; script.remove(); resolve(data); };
-      const script = document.createElement('script');
-      params.callback = cbName;
-      script.src = url + '?' + new URLSearchParams(params);
-      script.onerror = () => { delete window[cbName]; script.remove(); reject(new Error('Failed to reach CRM')); };
-      document.head.appendChild(script);
-    });
-  }
+    <label class="modal-label">Full Name *</label>
+    <input class="modal-input" id="newName" type="text" placeholder="Jane Smith">
 
-  async function loadLeads() {
-    const url = getCRMUrl();
-    if (!url) return;
-    showSpinner();
-    try {
-      const data = await jsonp(url, { action: 'getLeads' });
-      allLeads = data.leads || [];
-      renderLeads();
-    } catch (e) {
-      showEmpty('Could not connect to CRM.<br>' + e.message);
-    }
-  }
+    <label class="modal-label">Phone</label>
+    <input class="modal-input" id="newPhone" type="tel" placeholder="(555) 000-0000">
 
-  async function postCRM(payload) {
-    const url = getCRMUrl();
-    const { action, ...rest } = payload;
-    return await jsonp(url, { action, data: JSON.stringify(rest) });
-  }
+    <label class="modal-label">Email</label>
+    <input class="modal-input" id="newEmail" type="email" placeholder="jane@example.com">
 
-  // ── Filter ────────────────────────────────────────────────────
-  function filterStage(stage, el) {
-    currentFilter = stage;
-    document.querySelectorAll('.stage-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    renderLeads();
-  }
+    <label class="modal-label">Address</label>
+    <input class="modal-input" id="newAddress" type="text" placeholder="123 Main St, City, ST">
 
-  // ── Render ────────────────────────────────────────────────────
-  function renderLeads() {
-    const filtered = currentFilter === 'All'
-      ? allLeads
-      : allLeads.filter(l => l.stage === currentFilter);
+    <label class="modal-label">Source</label>
+    <select class="modal-select" id="newSource">
+      <option value="">— Select source —</option>
+      <option value="Referral">Referral</option>
+      <option value="Website">Website</option>
+      <option value="Job Site">Job Site</option>
+      <option value="Cold Call">Cold Call</option>
+      <option value="Social Media">Social Media</option>
+      <option value="Walk-in">Walk-in</option>
+    </select>
 
-    const active = filtered.filter(l => l.stage !== 'Won' && l.stage !== 'Lost');
-    const pipeline = active.reduce((s, l) => s + (Number(l.dealValue) || 0), 0);
-    const overdue  = filtered.filter(l => l.overdue).length;
+    <label class="modal-label">Notes</label>
+    <textarea class="modal-textarea" id="newNotes" placeholder="Any details…"></textarea>
 
-    const content = document.getElementById('content');
+    <div class="modal-status" id="addLeadStatus"></div>
 
-    let html = `
-      <div class="stats-row">
-        <div class="stat-box">
-          <div class="sv">${filtered.length}</div>
-          <div class="sl">Leads</div>
-        </div>
-        <div class="stat-box">
-          <div class="sv">$${pipeline >= 1000 ? (pipeline/1000).toFixed(1) + 'k' : pipeline.toLocaleString()}</div>
-          <div class="sl">Pipeline</div>
-        </div>
-        <div class="stat-box amber">
-          <div class="sv">${overdue}</div>
-          <div class="sl">Overdue</div>
-        </div>
-      </div>
-    `;
-
-    if (filtered.length === 0) {
-      html += `<div class="empty-state">No leads here yet.</div>`;
-    } else {
-      filtered.forEach(lead => {
-        html += renderCard(lead);
-      });
-    }
-
-    content.innerHTML = html;
-
-    // Re-expand previously open card
-    if (expandedId) {
-      const detail = document.getElementById('detail-' + expandedId);
-      if (detail) detail.classList.add('open');
-    }
-  }
-
-  function renderCard(lead) {
-    const stageCls = {
-      'Won': 'won', 'Lost': 'lost', 'New Lead': 'new'
-    }[lead.stage] || '';
-
-    const daysAgo = lead.daysSinceTouch != null
-      ? (lead.daysSinceTouch === 0 ? 'Today' : `${lead.daysSinceTouch}d ago`)
-      : '';
-
-    const stageNotes = lead.notes
-      ? `<div class="notes-text">${esc(lead.notes).substring(0, 180)}${lead.notes.length > 180 ? '…' : ''}</div>`
-      : '';
-
-    const stagePills = STAGES.map(s =>
-      `<div class="stage-pill ${s === lead.stage ? 'current' : ''}" onclick="changeStage('${esc(lead.id)}', '${s}', this)">${s}</div>`
-    ).join('');
-
-    const phoneHref = lead.phone ? `tel:${String(lead.phone).replace(/\D/g,'')}` : '#';
-    const emailHref = lead.email ? `mailto:${lead.email}` : '#';
-
-    return `
-      <div class="lead-card ${lead.overdue ? 'overdue' : ''}" id="card-${esc(lead.id)}">
-        <div class="lead-card-head" onclick="toggleCard('${esc(lead.id)}')">
-          <div>
-            <div class="lead-name">${esc(lead.name || 'Unnamed')}</div>
-            <div class="lead-meta">${esc(lead.address || '')}${lead.acreage ? '<br>' + lead.acreage + ' ac · ' + cap(lead.density) : ''}</div>
-          </div>
-          <div class="lead-right">
-            <div class="lead-value">${lead.dealValue ? '$' + Number(lead.dealValue).toLocaleString() : '—'}</div>
-            <div class="lead-badges">
-              <span class="badge badge-stage ${stageCls}">${lead.stage}</span>
-              ${lead.overdue ? `<span class="badge badge-overdue">Overdue</span>` : ''}
-              ${daysAgo ? `<span class="badge badge-days">${daysAgo}</span>` : ''}
-            </div>
-          </div>
-        </div>
-
-        <div class="lead-detail" id="detail-${esc(lead.id)}">
-          <div class="detail-contact">
-            <a class="contact-btn" href="${phoneHref}">${lead.phone ? '📞 ' + esc(lead.phone) : 'No phone'}</a>
-            <a class="contact-btn" href="${emailHref}">${lead.email ? '✉️ ' + esc(lead.email) : 'No email'}</a>
-          </div>
-
-          ${lead.nextBestAction ? `
-            <div class="detail-label">Next Action</div>
-            <div class="next-action-box">${esc(lead.nextBestAction)}</div>
-          ` : ''}
-
-          <div class="detail-label">Update Stage</div>
-          <div class="stage-pills">${stagePills}</div>
-
-          ${lead.notes ? `
-            <div class="detail-label">Notes</div>
-            ${stageNotes}
-          ` : ''}
-
-          <div class="detail-label">Note</div>
-          <textarea class="detail-textarea" id="note-${esc(lead.id)}" placeholder="Add a note…"></textarea>
-
-          <div class="detail-actions">
-            <button class="detail-btn outline" onclick="addNote('${esc(lead.id)}')">Save Note</button>
-            <button class="detail-btn outline" onclick="sendFollowUp('${esc(lead.id)}', '${esc(lead.email)}', '${esc(lead.name)}')">✉️ Follow-Up</button>
-            <button class="detail-btn" onclick="openSchedule('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">📅 Schedule Job</button>
-            <button class="detail-btn outline" onclick="openConfirm('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">✅ Send Confirmation</button>
-          </div>
-          <div class="detail-status" id="status-${esc(lead.id)}"></div>
-        </div>
-      </div>
-    `;
-  }
-
-  // ── Interactions ──────────────────────────────────────────────
-  function toggleCard(id) {
-    const detail = document.getElementById('detail-' + id);
-    if (!detail) return;
-    const isOpen = detail.classList.contains('open');
-    // Close all
-    document.querySelectorAll('.lead-detail').forEach(d => d.classList.remove('open'));
-    expandedId = null;
-    if (!isOpen) {
-      detail.classList.add('open');
-      expandedId = id;
-    }
-  }
-
-  async function changeStage(id, stage, el) {
-    const pills = el.closest('.stage-pills').querySelectorAll('.stage-pill');
-    pills.forEach(p => p.classList.remove('current'));
-    el.classList.add('current');
-    setStatus(id, 'Updating…', false);
-    try {
-      const r = await postCRM({ action: 'updateLead', id, stage });
-      if (r.success) {
-        setStatus(id, `Stage → ${stage}`, false);
-        const lead = allLeads.find(l => l.id === id);
-        if (lead) lead.stage = stage;
-        setTimeout(() => {
-          if (currentFilter !== 'All' && currentFilter !== stage) loadLeads();
-        }, 1200);
-      } else {
-        setStatus(id, r.error || 'Error', true);
-      }
-    } catch (e) {
-      setStatus(id, 'Network error', true);
-    }
-  }
-
-  async function addNote(id) {
-    const ta = document.getElementById('note-' + id);
-    const note = ta?.value.trim();
-    if (!note) return;
-    setStatus(id, 'Saving…', false);
-    try {
-      const r = await postCRM({ action: 'addNote', id, note });
-      if (r.success) {
-        setStatus(id, 'Note saved', false);
-        ta.value = '';
-      } else {
-        setStatus(id, r.error || 'Error', true);
-      }
-    } catch (e) {
-      setStatus(id, 'Network error', true);
-    }
-  }
-
-  async function sendFollowUp(id, email, name) {
-    if (!email) { setStatus(id, 'No email on file', true); return; }
-    const ta = document.getElementById('fu-' + id);
-    const message = ta?.value.trim() || '';
-    setStatus(id, 'Sending…', false);
-    try {
-      const r = await postCRM({ action: 'sendFollowUp', leadId: id, email, name, message: message || undefined });
-      if (r.success) {
-        setStatus(id, 'Follow-up sent!', false);
-        if (ta) ta.value = '';
-      } else {
-        setStatus(id, r.error || 'Error', true);
-      }
-    } catch (e) {
-      setStatus(id, 'Network error', true);
-    }
-  }
-
-  // ── Send Job Confirmation ──────────────────────────────────────
-  let _confirmData = {};
-
-  function openConfirm(id, name, email, phone, address, total) {
-    _confirmData = { id, name, email, phone, address, total };
-    document.getElementById('confirmLeadName').textContent = name;
-    document.getElementById('confirmCustomerEmail').value = email || '';
-    // Default to next week
-    const d = new Date(); d.setDate(d.getDate() + 7);
-    document.getElementById('confirmDate').value = d.toISOString().split('T')[0];
-    document.getElementById('confirmStatus').textContent = '';
-    document.getElementById('confirmModal').style.display = 'flex';
-  }
-
-  function closeConfirm() {
-    document.getElementById('confirmModal').style.display = 'none';
-  }
-
-  async function submitConfirm() {
-    const date  = document.getElementById('confirmDate').value;
-    const email = document.getElementById('confirmCustomerEmail').value.trim();
-    if (!date)  { document.getElementById('confirmStatus').textContent = 'Pick a date'; return; }
-    if (!email) { document.getElementById('confirmStatus').textContent = 'Email required'; return; }
-    document.getElementById('confirmStatus').textContent = 'Sending…';
-    try {
-      const r = await postCRM({
-        action: 'sendJobConfirmation',
-        leadId: _confirmData.id,
-        name: _confirmData.name,
-        email,
-        phone: _confirmData.phone,
-        address: _confirmData.address,
-        total: _confirmData.total,
-        scheduledDate: date,
-      });
-      if (r.success) {
-        document.getElementById('confirmStatus').textContent = 'Confirmation sent!';
-        setTimeout(closeConfirm, 1500);
-        loadLeads();
-      } else {
-        document.getElementById('confirmStatus').textContent = r.error || 'Error sending';
-      }
-    } catch(e) {
-      document.getElementById('confirmStatus').textContent = 'Failed to send';
-    }
-  }
-
-  // ── Schedule Job ──────────────────────────────────────────────
-  let _schedData = {};
-  function openSchedule(id, name, email, phone, address, total) {
-    _schedData = { id, name, email, phone, address, total };
-    document.getElementById('schedName').textContent = name;
-    document.getElementById('schedModal').style.display = 'flex';
-    // Default to tomorrow
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    document.getElementById('schedStart').value = tomorrow.toISOString().split('T')[0];
-    document.getElementById('schedEnd').value = tomorrow.toISOString().split('T')[0];
-    document.getElementById('schedCustomerEmail').value = email || '';
-    document.getElementById('schedStatus').textContent = '';
-  }
-
-  function closeSchedule() {
-    document.getElementById('schedModal').style.display = 'none';
-  }
-
-  async function confirmSchedule() {
-    const startDate = document.getElementById('schedStart').value;
-    const endDate   = document.getElementById('schedEnd').value;
-    const customerEmail = document.getElementById('schedCustomerEmail').value.trim();
-    const sendEmail = document.getElementById('schedSendEmail').checked;
-    if (!startDate) { document.getElementById('schedStatus').textContent = 'Pick a start date'; return; }
-    document.getElementById('schedStatus').textContent = 'Scheduling…';
-    try {
-      const r = await postCRM({
-        action: 'scheduleJob',
-        leadId: _schedData.id,
-        name: _schedData.name,
-        phone: _schedData.phone,
-        email: _schedData.email,
-        address: _schedData.address,
-        total: _schedData.total,
-        startDate,
-        endDate: endDate || startDate,
-        customerEmail: sendEmail ? customerEmail : '',
-      });
-      if (r.success) {
-        document.getElementById('schedStatus').textContent = 'Job scheduled!';
-        setTimeout(closeSchedule, 1500);
-        loadLeads();
-      } else {
-        document.getElementById('schedStatus').textContent = r.error || 'Error scheduling';
-      }
-    } catch(e) {
-      document.getElementById('schedStatus').textContent = 'Network error';
-    }
-  }
-
-  function setStatus(id, msg, isErr) {
-    const el = document.getElementById('status-' + id);
-    if (!el) return;
-    el.textContent = msg;
-    el.className = 'detail-status' + (isErr ? ' err' : '');
-  }
-
-  // ── Util ──────────────────────────────────────────────────────
-  function showSpinner() {
-    document.getElementById('content').innerHTML = '<div class="spinner"></div>';
-  }
-
-  function showEmpty(msg) {
-    document.getElementById('content').innerHTML = `<div class="empty-state">${msg}</div>`;
-  }
-
-  function esc(str) {
-    if (!str) return '';
-    return String(str)
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;')
-      .replace(/'/g,'&#39;');
-  }
-
-  function cap(str) {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-</script>
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeAddLead()">Cancel</button>
+      <button class="modal-btn submit" onclick="submitAddLead()">Create Lead</button>
+    </div>
+  </div>
+</div>
 
 <!-- Schedule Modal -->
 <div id="schedModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;padding:20px;">
@@ -961,5 +962,590 @@
   </div>
 </div>
 
+<script>
+  // ── Constants ──────────────────────────────────────────────────
+  const STAGES = ['New Lead', 'Contacted', 'Quote Sent', 'Follow-Up', 'Won', 'Lost'];
+
+  const STAGE_BADGE_CLASS = {
+    'New Lead':   'badge-new',
+    'Contacted':  'badge-contacted',
+    'Quote Sent': 'badge-quote',
+    'Follow-Up':  'badge-followup',
+    'Won':        'badge-won',
+    'Lost':       'badge-lost',
+  };
+
+  const COL_COUNT_CLASS = {
+    'New Lead':   'badge-new',
+    'Contacted':  'badge-contacted',
+    'Quote Sent': 'badge-quote',
+    'Follow-Up':  'badge-followup',
+    'Won':        'badge-won',
+    'Lost':       'badge-lost',
+  };
+
+  // ── State ──────────────────────────────────────────────────────
+  let allLeads = [];
+  let activePanelId = null;
+  let searchQuery = '';
+
+  // ── Setup ──────────────────────────────────────────────────────
+  function getCRMUrl() { return localStorage.getItem('crm_url') || ''; }
+
+  function saveSetup() {
+    const url = document.getElementById('setupUrl').value.trim();
+    if (!url.startsWith('https://')) {
+      alert('Please enter a valid https:// URL');
+      return;
+    }
+    localStorage.setItem('crm_url', url);
+    document.getElementById('setupScreen').style.display = 'none';
+    loadLeads();
+  }
+
+  window.addEventListener('load', () => {
+    if (!getCRMUrl()) return; // setup screen shows
+    document.getElementById('setupScreen').style.display = 'none';
+    loadLeads();
+  });
+
+  // ── JSONP / Network ────────────────────────────────────────────
+  function jsonp(url, params) {
+    return new Promise((resolve, reject) => {
+      const cbName = 'cb_' + Date.now();
+      window[cbName] = (data) => { delete window[cbName]; script.remove(); resolve(data); };
+      const script = document.createElement('script');
+      params.callback = cbName;
+      script.src = url + '?' + new URLSearchParams(params);
+      script.onerror = () => { delete window[cbName]; script.remove(); reject(new Error('Failed to reach CRM')); };
+      document.head.appendChild(script);
+    });
+  }
+
+  async function postCRM(payload) {
+    const url = getCRMUrl();
+    const { action, ...rest } = payload;
+    return await jsonp(url, { action, data: JSON.stringify(rest) });
+  }
+
+  // ── Load ───────────────────────────────────────────────────────
+  async function loadLeads() {
+    const url = getCRMUrl();
+    if (!url) return;
+    showSpinner();
+    try {
+      const data = await jsonp(url, { action: 'getLeads' });
+      allLeads = data.leads || [];
+      renderAll();
+    } catch (e) {
+      document.getElementById('boardWrap').innerHTML =
+        `<div style="padding:60px 20px;color:#9CA3AF;font-size:14px;text-align:center;">Could not connect to CRM.<br>${esc(e.message)}</div>`;
+    }
+  }
+
+  // ── Spinner ────────────────────────────────────────────────────
+  function showSpinner() {
+    document.getElementById('boardWrap').innerHTML =
+      '<div class="board-spinner-wrap"><div class="spinner"></div></div>';
+    document.getElementById('statsBar').style.display = 'none';
+  }
+
+  function hideSpinner() {
+    document.getElementById('statsBar').style.display = 'flex';
+  }
+
+  // ── Search ─────────────────────────────────────────────────────
+  function onSearch() {
+    searchQuery = document.getElementById('searchInput').value.trim().toLowerCase();
+    renderAll();
+  }
+
+  function getFilteredLeads() {
+    if (!searchQuery) return allLeads;
+    return allLeads.filter(l =>
+      (l.name   || '').toLowerCase().includes(searchQuery) ||
+      (l.address || '').toLowerCase().includes(searchQuery) ||
+      (String(l.phone || '')).toLowerCase().includes(searchQuery)
+    );
+  }
+
+  // ── Stats ──────────────────────────────────────────────────────
+  function computeStats(leads) {
+    const active = leads.filter(l => l.stage !== 'Lost');
+    const won    = leads.filter(l => l.stage === 'Won');
+    const lost   = leads.filter(l => l.stage === 'Lost');
+    const now    = new Date();
+    const wonMonth = won.filter(l => {
+      const d = new Date(l.lastTouch);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    });
+    return {
+      pipeline:    active.reduce((s, l) => s + (Number(l.estimateTotal) || 0), 0),
+      wonRevenue:  wonMonth.reduce((s, l) => s + (Number(l.estimateTotal) || 0), 0),
+      winRate:     (won.length + lost.length) > 0
+                     ? Math.round(won.length / (won.length + lost.length) * 100)
+                     : 0,
+      activeCount: active.length,
+    };
+  }
+
+  function fmtMoney(n) {
+    if (n >= 1000000) return '$' + (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000)    return '$' + (n / 1000).toFixed(1) + 'k';
+    return '$' + n.toLocaleString();
+  }
+
+  function updateStats(leads) {
+    const s = computeStats(leads);
+    document.getElementById('statPipeline').textContent = fmtMoney(s.pipeline);
+    document.getElementById('statWon').textContent      = fmtMoney(s.wonRevenue);
+    document.getElementById('statWinRate').textContent  = s.winRate + '%';
+    document.getElementById('statActive').textContent   = s.activeCount;
+  }
+
+  // ── Render all ─────────────────────────────────────────────────
+  function renderAll() {
+    const filtered = getFilteredLeads();
+    updateStats(filtered);
+    hideSpinner();
+    renderBoard(filtered);
+  }
+
+  // ── Kanban board ───────────────────────────────────────────────
+  function renderBoard(leads) {
+    const board = document.getElementById('boardWrap');
+    let html = '';
+
+    STAGES.forEach(stage => {
+      const stageLeads = leads.filter(l => l.stage === stage);
+      const total = stageLeads.reduce((s, l) => s + (Number(l.estimateTotal) || 0), 0);
+      const countCls = COL_COUNT_CLASS[stage] || '';
+
+      let cardsHtml = '';
+      if (stageLeads.length === 0) {
+        cardsHtml = `<div class="col-empty">No leads</div>`;
+      } else {
+        stageLeads.forEach(lead => {
+          cardsHtml += renderLeadCard(lead);
+        });
+      }
+
+      html += `
+        <div class="kanban-col">
+          <div class="col-header">
+            <div class="col-title">${esc(stage)}</div>
+            <div class="col-count ${countCls}">${stageLeads.length}</div>
+            ${total > 0 ? `<div class="col-total">${fmtMoney(total)}</div>` : ''}
+          </div>
+          <div class="col-cards">${cardsHtml}</div>
+        </div>
+      `;
+    });
+
+    board.innerHTML = html;
+  }
+
+  function renderLeadCard(lead) {
+    const stageCls = STAGE_BADGE_CLASS[lead.stage] || 'badge-lost';
+    const value    = lead.estimateTotal ? fmtMoney(Number(lead.estimateTotal)) : '—';
+
+    let daysAgo = '';
+    if (lead.lastTouch) {
+      const diff = Math.floor((Date.now() - new Date(lead.lastTouch).getTime()) / 86400000);
+      daysAgo = diff === 0 ? 'Today' : `${diff}d ago`;
+    } else if (lead.daysSinceTouch != null) {
+      daysAgo = lead.daysSinceTouch === 0 ? 'Today' : `${lead.daysSinceTouch}d ago`;
+    }
+
+    const overdueCls = lead.overdue ? ' overdue' : '';
+
+    return `
+      <div class="lead-card${overdueCls}" onclick="openPanel('${esc(lead.id)}')">
+        <div class="card-top">
+          <div class="card-name">${esc(lead.name || 'Unnamed')}</div>
+          <div class="card-value">${esc(value)}</div>
+        </div>
+        ${lead.address ? `<div class="card-address">${esc(lead.address)}</div>` : ''}
+        <div class="card-badges">
+          <span class="badge ${stageCls}">${esc(lead.stage)}</span>
+          ${lead.overdue ? `<span class="badge badge-overdue">Overdue</span>` : ''}
+          ${daysAgo ? `<span class="badge badge-days">${esc(daysAgo)}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  // ── Lead Panel ─────────────────────────────────────────────────
+  function openPanel(id) {
+    const lead = allLeads.find(l => String(l.id) === String(id));
+    if (!lead) return;
+    activePanelId = id;
+    renderPanel(lead);
+    document.getElementById('leadPanel').classList.add('open');
+    document.getElementById('panelOverlay').classList.add('open');
+  }
+
+  function closePanel() {
+    activePanelId = null;
+    document.getElementById('leadPanel').classList.remove('open');
+    document.getElementById('panelOverlay').classList.remove('open');
+  }
+
+  function renderPanel(lead) {
+    const stageCls = STAGE_BADGE_CLASS[lead.stage] || 'badge-lost';
+
+    document.getElementById('panelName').textContent = lead.name || 'Unnamed';
+    document.getElementById('panelStageBadge').innerHTML =
+      `<span class="badge ${stageCls}">${esc(lead.stage)}</span>`;
+
+    const phoneHref = lead.phone ? `tel:${String(lead.phone).replace(/\D/g, '')}` : '#';
+    const emailHref = lead.email ? `mailto:${lead.email}` : '#';
+
+    // Stage pills
+    const stagePillsHtml = STAGES.map(s => {
+      const activeCls = s === lead.stage ? ' active-stage' : '';
+      return `<button class="stage-pill${activeCls}" onclick="updateStage('${esc(lead.id)}', '${esc(s)}')">${esc(s)}</button>`;
+    }).join('');
+
+    // Timeline from notes
+    let timelineHtml = '';
+    if (lead.notes) {
+      const lines = lead.notes.split('\n').filter(Boolean);
+      const entries = [];
+      const dated = /^\[(\d{1,2}\/\d{1,2}\/\d{2,4})\]\s*(.*)/;
+      lines.forEach(line => {
+        const m = line.match(dated);
+        if (m) entries.push({ date: m[1], text: m[2] });
+      });
+      if (entries.length > 0) {
+        entries.reverse(); // newest first
+        timelineHtml = '<div class="timeline">';
+        entries.forEach(e => {
+          timelineHtml += `
+            <div class="tl-entry">
+              <div class="tl-date">${esc(e.date)}</div>
+              <div class="tl-text">${esc(e.text)}</div>
+            </div>
+          `;
+        });
+        timelineHtml += '</div>';
+      } else {
+        timelineHtml = `<div style="font-size:12px;color:#9CA3AF;line-height:1.5;white-space:pre-wrap;word-break:break-word;">${esc(lead.notes)}</div>`;
+      }
+    }
+
+    // Details box rows
+    const detailRows = [];
+    if (lead.address) detailRows.push({ label: 'Address', val: lead.address, green: false });
+    if (lead.acreage) detailRows.push({ label: 'Acreage', val: lead.acreage + ' ac', green: false });
+    if (lead.density) detailRows.push({ label: 'Density', val: cap(lead.density), green: false });
+    if (lead.estimateTotal) detailRows.push({ label: 'Quote Total', val: fmtMoney(Number(lead.estimateTotal)), green: true });
+    if (lead.source) detailRows.push({ label: 'Source', val: lead.source, green: false });
+
+    let detailBoxHtml = '';
+    if (detailRows.length > 0) {
+      detailBoxHtml = '<div class="panel-detail-box">';
+      detailRows.forEach(row => {
+        detailBoxHtml += `
+          <div class="drow">
+            <span class="dlabel">${esc(row.label)}</span>
+            <span class="dval${row.green ? ' green' : ''}">${esc(String(row.val))}</span>
+          </div>
+        `;
+      });
+      detailBoxHtml += '</div>';
+    }
+
+    document.getElementById('panelBody').innerHTML = `
+      <div class="panel-contact-row">
+        <a class="panel-contact-btn" href="${phoneHref}">${lead.phone ? '📞 ' + esc(lead.phone) : 'No phone'}</a>
+        <a class="panel-contact-btn" href="${emailHref}">${lead.email ? '✉️ ' + esc(lead.email) : 'No email'}</a>
+      </div>
+
+      ${detailBoxHtml ? `<div class="panel-label">Details</div>${detailBoxHtml}` : ''}
+
+      <div class="panel-label">Change Stage</div>
+      <div class="stage-pills" id="panelStagePills">${stagePillsHtml}</div>
+
+      ${timelineHtml ? `<div class="panel-label">Activity</div>${timelineHtml}` : ''}
+
+      <div class="panel-label">Add Note</div>
+      <textarea class="panel-textarea" id="panelNoteTA" placeholder="Add a note…"></textarea>
+      <div class="panel-status" id="panelStatus"></div>
+      <button class="panel-btn green" onclick="savePanelNote()">Save Note</button>
+
+      <div class="panel-label">Actions</div>
+      <button class="panel-btn outline" onclick="panelSendFollowUp()">✉️ Send Follow-Up</button>
+      <button class="panel-btn outline" onclick="openSchedule('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">📅 Schedule Job</button>
+      <button class="panel-btn outline" onclick="openConfirm('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">✅ Send Confirmation</button>
+    `;
+  }
+
+  // ── Update Stage ───────────────────────────────────────────────
+  async function updateStage(leadId, newStage) {
+    // Optimistic local update
+    const lead = allLeads.find(l => String(l.id) === String(leadId));
+    if (lead) {
+      lead.stage = newStage;
+      renderBoard(getFilteredLeads());
+      // Update panel stage badge + pills
+      const stageCls = STAGE_BADGE_CLASS[newStage] || 'badge-lost';
+      document.getElementById('panelStageBadge').innerHTML =
+        `<span class="badge ${stageCls}">${esc(newStage)}</span>`;
+      const pills = document.querySelectorAll('#panelStagePills .stage-pill');
+      pills.forEach(p => {
+        p.classList.toggle('active-stage', p.textContent === newStage);
+      });
+    }
+    setPanelStatus('Updating…', false);
+    try {
+      const r = await postCRM({ action: 'updateLead', id: leadId, stage: newStage });
+      if (r.success) {
+        setPanelStatus(`Stage → ${newStage}`, false);
+      } else {
+        setPanelStatus(r.error || 'Error updating', true);
+      }
+    } catch (e) {
+      setPanelStatus('Network error', true);
+    }
+  }
+
+  // ── Panel note ─────────────────────────────────────────────────
+  async function savePanelNote() {
+    const ta   = document.getElementById('panelNoteTA');
+    const note = ta ? ta.value.trim() : '';
+    if (!note || !activePanelId) return;
+    setPanelStatus('Saving…', false);
+    try {
+      const r = await postCRM({ action: 'addNote', id: activePanelId, note });
+      if (r.success) {
+        setPanelStatus('Note saved', false);
+        ta.value = '';
+        // Reload to get updated notes in timeline
+        await loadLeads();
+        const updated = allLeads.find(l => String(l.id) === String(activePanelId));
+        if (updated) renderPanel(updated);
+      } else {
+        setPanelStatus(r.error || 'Error', true);
+      }
+    } catch (e) {
+      setPanelStatus('Network error', true);
+    }
+  }
+
+  // preserved signature: addNote(id) reads from #note-{id}
+  async function addNote(id) {
+    const ta   = document.getElementById('note-' + id);
+    const note = ta ? ta.value.trim() : '';
+    if (!note) return;
+    try {
+      const r = await postCRM({ action: 'addNote', id, note });
+      if (r.success && ta) ta.value = '';
+    } catch (e) { /* silent */ }
+  }
+
+  // ── Panel follow-up ────────────────────────────────────────────
+  async function panelSendFollowUp() {
+    const lead = allLeads.find(l => String(l.id) === String(activePanelId));
+    if (!lead) return;
+    if (!lead.email) { setPanelStatus('No email on file', true); return; }
+    await sendFollowUp(lead.id, lead.email, lead.name);
+  }
+
+  async function sendFollowUp(id, email, name) {
+    if (!email) return;
+    setPanelStatus('Sending…', false);
+    try {
+      const r = await postCRM({ action: 'sendFollowUp', leadId: id, email, name });
+      if (r.success) {
+        setPanelStatus('Follow-up sent!', false);
+      } else {
+        setPanelStatus(r.error || 'Error', true);
+      }
+    } catch (e) {
+      setPanelStatus('Network error', true);
+    }
+  }
+
+  function setPanelStatus(msg, isErr) {
+    const el = document.getElementById('panelStatus');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'panel-status' + (isErr ? ' err' : '');
+  }
+
+  // ── Add Lead Modal ─────────────────────────────────────────────
+  function openAddLead() {
+    document.getElementById('newName').value    = '';
+    document.getElementById('newPhone').value   = '';
+    document.getElementById('newEmail').value   = '';
+    document.getElementById('newAddress').value = '';
+    document.getElementById('newSource').value  = '';
+    document.getElementById('newNotes').value   = '';
+    document.getElementById('addLeadStatus').textContent = '';
+    document.getElementById('addLeadModal').classList.add('open');
+  }
+
+  function closeAddLead() {
+    document.getElementById('addLeadModal').classList.remove('open');
+  }
+
+  async function submitAddLead() {
+    const name = document.getElementById('newName').value.trim();
+    if (!name) {
+      document.getElementById('addLeadStatus').textContent = 'Full name is required';
+      return;
+    }
+    document.getElementById('addLeadStatus').textContent = 'Creating…';
+    try {
+      const r = await postCRM({
+        action:  'createLead',
+        name,
+        phone:   document.getElementById('newPhone').value.trim(),
+        email:   document.getElementById('newEmail').value.trim(),
+        address: document.getElementById('newAddress').value.trim(),
+        source:  document.getElementById('newSource').value,
+        notes:   document.getElementById('newNotes').value.trim(),
+      });
+      if (r.success) {
+        document.getElementById('addLeadStatus').textContent = 'Lead created!';
+        setTimeout(() => {
+          closeAddLead();
+          loadLeads();
+        }, 800);
+      } else {
+        document.getElementById('addLeadStatus').textContent = r.error || 'Error creating lead';
+      }
+    } catch (e) {
+      document.getElementById('addLeadStatus').textContent = 'Network error';
+    }
+  }
+
+  // ── Schedule Modal ─────────────────────────────────────────────
+  let _schedData = {};
+
+  function openSchedule(id, name, email, phone, address, total) {
+    _schedData = { id, name, email, phone, address, total };
+    document.getElementById('schedName').textContent = name;
+    document.getElementById('schedModal').style.display = 'flex';
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('schedStart').value = tomorrow.toISOString().split('T')[0];
+    document.getElementById('schedEnd').value   = tomorrow.toISOString().split('T')[0];
+    document.getElementById('schedCustomerEmail').value = email || '';
+    document.getElementById('schedStatus').textContent  = '';
+  }
+
+  function closeSchedule() {
+    document.getElementById('schedModal').style.display = 'none';
+  }
+
+  async function confirmSchedule() {
+    const startDate     = document.getElementById('schedStart').value;
+    const endDate       = document.getElementById('schedEnd').value;
+    const customerEmail = document.getElementById('schedCustomerEmail').value.trim();
+    const sendEmail     = document.getElementById('schedSendEmail').checked;
+    if (!startDate) { document.getElementById('schedStatus').textContent = 'Pick a start date'; return; }
+    document.getElementById('schedStatus').textContent = 'Scheduling…';
+    try {
+      const r = await postCRM({
+        action:        'scheduleJob',
+        leadId:        _schedData.id,
+        name:          _schedData.name,
+        phone:         _schedData.phone,
+        email:         _schedData.email,
+        address:       _schedData.address,
+        total:         _schedData.total,
+        startDate,
+        endDate:       endDate || startDate,
+        customerEmail: sendEmail ? customerEmail : '',
+      });
+      if (r.success) {
+        document.getElementById('schedStatus').textContent = 'Job scheduled!';
+        setTimeout(closeSchedule, 1500);
+        loadLeads();
+      } else {
+        document.getElementById('schedStatus').textContent = r.error || 'Error scheduling';
+      }
+    } catch (e) {
+      document.getElementById('schedStatus').textContent = 'Network error';
+    }
+  }
+
+  // ── Confirm Modal ──────────────────────────────────────────────
+  let _confirmData = {};
+
+  function openConfirm(id, name, email, phone, address, total) {
+    _confirmData = { id, name, email, phone, address, total };
+    document.getElementById('confirmLeadName').textContent = name;
+    document.getElementById('confirmCustomerEmail').value  = email || '';
+    const d = new Date(); d.setDate(d.getDate() + 7);
+    document.getElementById('confirmDate').value   = d.toISOString().split('T')[0];
+    document.getElementById('confirmStatus').textContent = '';
+    document.getElementById('confirmModal').style.display = 'flex';
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirmModal').style.display = 'none';
+  }
+
+  async function submitConfirm() {
+    const date  = document.getElementById('confirmDate').value;
+    const email = document.getElementById('confirmCustomerEmail').value.trim();
+    if (!date)  { document.getElementById('confirmStatus').textContent = 'Pick a date'; return; }
+    if (!email) { document.getElementById('confirmStatus').textContent = 'Email required'; return; }
+    document.getElementById('confirmStatus').textContent = 'Sending…';
+    try {
+      const r = await postCRM({
+        action:        'sendJobConfirmation',
+        leadId:        _confirmData.id,
+        name:          _confirmData.name,
+        email,
+        phone:         _confirmData.phone,
+        address:       _confirmData.address,
+        total:         _confirmData.total,
+        scheduledDate: date,
+      });
+      if (r.success) {
+        document.getElementById('confirmStatus').textContent = 'Confirmation sent!';
+        setTimeout(closeConfirm, 1500);
+        loadLeads();
+      } else {
+        document.getElementById('confirmStatus').textContent = r.error || 'Error sending';
+      }
+    } catch (e) {
+      document.getElementById('confirmStatus').textContent = 'Failed to send';
+    }
+  }
+
+  // preserved alias
+  function sendJobConfirmation(id, name, email, phone, address, total) {
+    openConfirm(id, name, email, phone, address, total);
+  }
+
+  // ── Utils ──────────────────────────────────────────────────────
+  function esc(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g,  '&amp;')
+      .replace(/</g,  '&lt;')
+      .replace(/>/g,  '&gt;')
+      .replace(/"/g,  '&quot;')
+      .replace(/'/g,  '&#39;');
+  }
+
+  function cap(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  // close panel on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closePanel();
+      closeAddLead();
+    }
+  });
+</script>
 </body>
 </html>
