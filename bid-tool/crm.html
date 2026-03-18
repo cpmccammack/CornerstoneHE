@@ -518,8 +518,9 @@
     if (!url) return;
     showSpinner();
     try {
-      const r = await fetch(`${url}?action=getLeads`);
-      const data = await r.json();
+      const r = await fetch(`${url}?action=getLeads`, { redirect: 'follow' });
+      const text = await r.text();
+      const data = JSON.parse(text);
       allLeads = data.leads || [];
       renderLeads();
     } catch (e) {
@@ -529,8 +530,13 @@
 
   async function postCRM(payload) {
     const url = getCRMUrl();
-    const r = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
-    return await r.json();
+    const r = await fetch(url, {
+      method: 'POST',
+      redirect: 'follow',
+      body: JSON.stringify(payload),
+    });
+    const text = await r.text();
+    return JSON.parse(text);
   }
 
   // ── Filter ────────────────────────────────────────────────────

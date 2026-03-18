@@ -940,8 +940,9 @@
       return null;
     }
     try {
-      const r = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
-      return await r.json();
+      const r = await fetch(url, { method: 'POST', redirect: 'follow', body: JSON.stringify(payload) });
+      const text = await r.text();
+      return JSON.parse(text);
     } catch (e) {
       setCRMStatus('Network error: ' + e.message, 'err');
       return null;
