@@ -115,7 +115,8 @@ function doGet(e) {
     if (action === 'sendQuote')    return corsResponse(sendQuoteEmail(data), cb);
     if (action === 'sendFollowUp') return corsResponse(sendFollowUpEmail(data), cb);
     if (action === 'addNote')      return corsResponse(addNote(data), cb);
-    if (action === 'scheduleJob')  return corsResponse(scheduleJob(data), cb);
+    if (action === 'scheduleJob')          return corsResponse(scheduleJob(data), cb);
+    if (action === 'sendJobConfirmation')  return corsResponse(sendJobConfirmation(data), cb);
 
     return corsResponse({ error: 'Unknown action' }, cb);
   } catch (err) {
@@ -268,6 +269,7 @@ function updateLead(data) {
 
 function markFinancing(id, wantsFinancing) {
   const s = getSheet();
+  if (s.getLastRow() < 2) return;
   const rows = s.getRange(2, 1, s.getLastRow() - 1, 1).getValues();
   const rowIndex = rows.findIndex(r => r[0] === id);
   if (rowIndex === -1) return;
@@ -277,6 +279,7 @@ function markFinancing(id, wantsFinancing) {
 // ── Add note ──────────────────────────────────────────────────
 function addNote(data) {
   const s = getSheet();
+  if (s.getLastRow() < 2) return { error: 'No leads found' };
   const rows = s.getRange(2, 1, s.getLastRow() - 1, 1).getValues();
   const rowIndex = rows.findIndex(r => r[0] === data.id);
   if (rowIndex === -1) return { error: 'Lead not found' };
@@ -311,11 +314,13 @@ function sendQuoteEmail(data) {
   const todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
 
   const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[data.density] || data.density || '';
-  const rates = { light: 3500, medium: 4500, dense: 6500 };
-  const base = data.acreage && data.density ? (data.acreage * rates[data.density]) : 0;
-  const diffCost = Math.round(base * ((data.difficulty || 0) / 100));
-  const total = Math.round((base || data.estimateTotal || 0) + diffCost);
-  const days = data.timeline || 1;
+  const RATES    = { light: 3500, medium: 4500, dense: 6500 };
+  const PROD_DAY = { light: 2, medium: 1, dense: 0.5 };
+  const days = data.timeline || (data.acreage && data.density ? Math.ceil(data.acreage / PROD_DAY[data.density]) : 1);
+  const calcBase = data.acreage && data.density ? (days * RATES[data.density]) : 0;
+  const calcTotal = Math.round(calcBase * (1 + ((data.difficulty || 0) / 100)));
+  // Prefer the custom price from the bid tool; fall back to calculated
+  const total = Math.round(data.estimateTotal || calcTotal || 0);
 
   const scopeLines = [
     `Cornerstone Hardscape & Excavation will perform forestry mulching services at ${data.address || 'the property'}.`,
@@ -392,8 +397,8 @@ function sendQuoteEmail(data) {
   <!-- Header -->
   <table width="100%" bgcolor="#000000" cellpadding="0" cellspacing="0" style="background:#000000;">
     <tr>
-      <td style="padding:24px 36px;">
-        <img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="Cornerstone" height="52" style="display:block;height:52px;border:0;">
+      <td style="padding:0;">
+        <img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="Cornerstone" width="100%" style="display:block;width:100%;border:0;">
       </td>
     </tr>
   </table>
@@ -505,15 +510,52 @@ function sendFollowUpEmail(data) {
   return { success: true };
 }
 
+// ── Send Job Confirmation Email (no calendar) ─────────────────
+function sendJobConfirmation(data) {
+  if (!data.email) return { error: 'No email address' };
+  const firstName = (data.name || 'there').split(' ')[0];
+  GmailApp.sendEmail(
+    data.email,
+    `Cornerstone — Your Project is Confirmed`,
+    `Hi ${firstName},\n\nWe're confirming your forestry mulching project with Cornerstone Hardscape & Excavation.\n\nAddress: ${data.address || ''}\n${data.total ? 'Quote Total: $' + Number(data.total).toLocaleString() : ''}\n\nWe'll be in touch with your exact start date shortly. Questions? Call ${COMPANY.phone}.\n\n${COMPANY.rep}\n${COMPANY.name}`,
+    {
+      name: COMPANY.name,
+      replyTo: COMPANY.email,
+      htmlBody: `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#222;max-width:520px;margin:0 auto;padding:20px;">
+        <table width="100%" bgcolor="#000000" cellpadding="0" cellspacing="0"><tr><td style="padding:0;">
+          <img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="Cornerstone" width="100%" style="display:block;width:100%;border:0;">
+        </td></tr></table>
+        <div style="background:white;border:1px solid #eee;border-top:none;padding:28px 32px;">
+          <h2 style="margin:0 0 6px;font-size:20px;">Your Project is Confirmed</h2>
+          <p style="color:#666;margin:0 0 24px;font-size:13px;">Hi ${firstName}, we're looking forward to getting started on your project.</p>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            ${data.address ? `<tr><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;color:#888;width:120px;">Address</td><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;">${data.address}</td></tr>` : ''}
+            ${data.total ? `<tr><td style="padding:8px 0;color:#888;">Quote Total</td><td style="padding:8px 0;font-weight:700;font-size:16px;">$${Number(data.total).toLocaleString()}</td></tr>` : ''}
+          </table>
+          <p style="margin:20px 0 0;font-size:13px;color:#666;">We'll reach out shortly to confirm your start date. In the meantime, feel free to call us at <strong>${COMPANY.phone}</strong> with any questions.</p>
+          <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+          <p style="margin:0;font-size:13px;color:#444;">${COMPANY.rep}<br><span style="color:#888;">${COMPANY.name} · ${COMPANY.phone}</span></p>
+        </div>
+      </body></html>`
+    }
+  );
+  if (data.leadId) addNote({ id: data.leadId, note: 'Job confirmation email sent to customer' });
+  return { success: true };
+}
+
 // ── Schedule Job on Google Calendar ──────────────────────────
 function scheduleJob(data) {
-  // data: { leadId, name, phone, email, address, acreage, density, total, startDate, endDate, customerEmail }
   const calendar = CalendarApp.getDefaultCalendar();
   const start = new Date(data.startDate);
   const end   = new Date(data.endDate || data.startDate);
-  if (start.getTime() === end.getTime()) end.setDate(end.getDate() + 1); // all-day fallback
+  if (start.getTime() === end.getTime()) end.setDate(end.getDate() + 1);
 
   const title = `Cornerstone — ${data.name || 'Job'} (${data.address || ''})`;
+
+  // Generate PDF and get its Drive URL
+  const pdf = createQuotePDF(data);
+  const pdfUrl = pdf ? pdf.fileUrl : null;
+
   const desc = [
     `Customer: ${data.name || ''}`,
     `Phone: ${data.phone || ''}`,
@@ -522,20 +564,181 @@ function scheduleJob(data) {
     data.acreage ? `Area: ${data.acreage} acres (${data.density || ''} density)` : '',
     data.total ? `Quote Total: $${Number(data.total).toLocaleString()}` : '',
     data.leadId ? `Lead ID: ${data.leadId}` : '',
+    pdfUrl ? `\nQuote PDF: ${pdfUrl}` : '',
     '',
     'Scope: Forestry mulching — clear, chip, and spread all vegetation on site. No hauling required.',
   ].filter(Boolean).join('\n');
 
   const opts = { description: desc, location: data.address || '' };
-  if (data.customerEmail) opts.guests = data.customerEmail;
 
   const event = calendar.createAllDayEvent(title, start, end, opts);
 
-  if (data.leadId) {
-    addNote({ id: data.leadId, note: `Job scheduled: ${Utilities.formatDate(start, Session.getScriptTimeZone(), 'MM/dd/yyyy')}` });
+  // Send customer email invite via Gmail (more reliable than addGuest)
+  if (data.customerEmail) {
+    try {
+      const startFmt = Utilities.formatDate(start, Session.getScriptTimeZone(), 'EEEE, MMMM d, yyyy');
+      const endFmt   = Utilities.formatDate(end, Session.getScriptTimeZone(), 'EEEE, MMMM d, yyyy');
+      GmailApp.sendEmail(
+        data.customerEmail,
+        `Cornerstone — Job Scheduled: ${startFmt}`,
+        `Hi ${(data.name || 'there').split(' ')[0]},\n\nYour forestry mulching project has been scheduled.\n\nStart: ${startFmt}\nEnd: ${endFmt}\nAddress: ${data.address || ''}\n${data.total ? 'Quote Total: $' + Number(data.total).toLocaleString() : ''}\n\nWe'll see you then! If you have any questions, call us at ${COMPANY.phone}.\n\n${COMPANY.rep}\n${COMPANY.name}\n${COMPANY.phone}`,
+        {
+          name: COMPANY.name,
+          replyTo: COMPANY.email,
+          htmlBody: `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#222;max-width:520px;margin:0 auto;padding:20px;">
+            <table width="100%" bgcolor="#000000" cellpadding="0" cellspacing="0"><tr><td style="padding:0;">
+              <img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="Cornerstone" width="100%" style="display:block;width:100%;border:0;">
+            </td></tr></table>
+            <div style="background:white;border:1px solid #eee;border-top:none;padding:28px 32px;">
+              <h2 style="margin:0 0 6px;font-size:20px;">Your Job Has Been Scheduled</h2>
+              <p style="color:#666;margin:0 0 24px;font-size:13px;">Hi ${(data.name || 'there').split(' ')[0]}, here are your project details.</p>
+              <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <tr><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;color:#888;width:120px;">Start Date</td><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-weight:700;">${startFmt}</td></tr>
+                <tr><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;color:#888;">End Date</td><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-weight:700;">${endFmt}</td></tr>
+                ${data.address ? `<tr><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;color:#888;">Address</td><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;">${data.address}</td></tr>` : ''}
+                ${data.total ? `<tr><td style="padding:8px 0;color:#888;">Quote Total</td><td style="padding:8px 0;font-weight:700;font-size:16px;">$${Number(data.total).toLocaleString()}</td></tr>` : ''}
+              </table>
+              ${pdfUrl ? `<p style="margin:20px 0 0;font-size:12px;color:#888;">Quote PDF: <a href="${pdfUrl}" style="color:#1a6b1a;">${data.name || 'Customer'} Quote</a></p>` : ''}
+              <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
+              <p style="margin:0;font-size:13px;color:#444;">${COMPANY.rep}<br><span style="color:#888;">${COMPANY.name} · ${COMPANY.phone}</span></p>
+            </div>
+          </body></html>`
+        }
+      );
+    } catch(e) { /* email send failed silently */ }
   }
 
-  return { success: true, eventId: event.getId() };
+  // Attach PDF to calendar event via Calendar API
+  if (pdf) {
+    try {
+      const token = ScriptApp.getOAuthToken();
+      const calId  = encodeURIComponent(calendar.getId());
+      const evtId  = event.getId().replace('@google.com', '');
+      UrlFetchApp.fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${calId}/events/${evtId}?supportsAttachments=true`,
+        {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          payload: JSON.stringify({ attachments: [{ fileId: pdf.fileId, title: pdf.fileName, mimeType: 'application/pdf' }] }),
+          muteHttpExceptions: true,
+        }
+      );
+    } catch(e) { /* attachment failed silently — event still created */ }
+  }
+
+  if (data.leadId) {
+    addNote({ id: data.leadId, note: `Job scheduled: ${Utilities.formatDate(start, Session.getScriptTimeZone(), 'MM/dd/yyyy')}${pdfUrl ? ' · PDF saved to Drive' : ''}` });
+  }
+
+  return { success: true, eventId: event.getId(), pdfUrl };
+}
+
+// ── Generate Quote PDF → save to Drive ───────────────────────
+function createQuotePDF(data) {
+  try {
+    const leadId = data.leadId || 'DRAFT';
+    const name   = data.name || 'Customer';
+    const total  = data.total ? `$${Number(data.total).toLocaleString()}` : 'See quote';
+    const dateStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
+    const offerDate = new Date(); offerDate.setDate(offerDate.getDate() + 7);
+    const offerStr  = Utilities.formatDate(offerDate, Session.getScriptTimeZone(), 'MM/dd/yyyy');
+
+    // Build a clean Google Doc
+    const doc  = DocumentApp.create(`Cornerstone Quote — ${leadId}`);
+    const body = doc.getBody();
+    body.setMarginTop(36).setMarginBottom(36).setMarginLeft(54).setMarginRight(54);
+
+    const titlePara = body.appendParagraph('CORNERSTONE HARDSCAPE & EXCAVATION');
+    titlePara.setHeading(DocumentApp.ParagraphHeading.HEADING1);
+    titlePara.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+
+    const subPara = body.appendParagraph('651 Reed Lane, Simpsonville, KY 40067  ·  502-396-7887  ·  isaacmosko@cornerstonehe.net');
+    subPara.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    subPara.setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 9, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
+
+    body.appendParagraph('').setSpacingAfter(6);
+
+    body.appendParagraph(`Quote ${leadId}  ·  ${dateStr}`).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
+
+    body.appendParagraph('').setSpacingAfter(4);
+
+    const prep = body.appendParagraph(`Prepared for: ${name}`);
+    prep.setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 12 });
+    if (data.phone)   body.appendParagraph(String(data.phone)).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
+    if (data.email)   body.appendParagraph(data.email).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
+    if (data.address) body.appendParagraph(data.address).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
+    body.appendParagraph(`Offer good until: ${offerStr}`).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#cc4444' });
+
+    body.appendParagraph('').setSpacingAfter(8);
+
+    const sow = body.appendParagraph('SCOPE OF WORK');
+    sow.setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
+
+    const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[data.density] || data.density || '';
+    const scopeText = [
+      `Cornerstone Hardscape & Excavation will perform forestry mulching services at ${data.address || 'the specified property'}.`,
+      data.acreage ? `The area to be cleared is approximately ${data.acreage} acres of ${densityLabel.toLowerCase()} vegetation density.` : '',
+      `Our crew will use a professional forestry mulcher to clear, chip, and spread all vegetation on site — leaving a clean, mulched surface with no hauling required.`,
+    ].filter(Boolean).join(' ');
+    body.appendParagraph(scopeText).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
+
+    body.appendParagraph('').setSpacingAfter(8);
+
+    const svc = body.appendParagraph('SERVICES');
+    svc.setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
+
+    const svcLine = body.appendParagraph(`Forestry Mulching${densityLabel ? ' — ' + densityLabel + ' Density' : ''}${data.acreage ? '  (' + data.acreage + ' acres)' : ''}`);
+    svcLine.setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 12 });
+
+    body.appendParagraph('').setSpacingAfter(4);
+
+    const totalLine = body.appendParagraph(`Total: ${total}`);
+    totalLine.setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 16 });
+
+    body.appendParagraph('').setSpacingAfter(12);
+    body.appendParagraph('Thank you for choosing Cornerstone. Questions? Call 502-396-7887')
+      .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888', [DocumentApp.Attribute.ITALIC]: true });
+
+    doc.saveAndClose();
+
+    // Export as PDF
+    const docId   = doc.getId();
+    const pdfBlob = UrlFetchApp.fetch(
+      `https://docs.google.com/document/d/${docId}/export?format=pdf`,
+      { headers: { Authorization: `Bearer ${ScriptApp.getOAuthToken()}` } }
+    ).getBlob();
+
+    const fileName = `Cornerstone-Quote-${leadId}-${name.replace(/\s+/g, '-')}.pdf`;
+    pdfBlob.setName(fileName);
+
+    // Save to Drive folder
+    const folders = DriveApp.getFoldersByName('Cornerstone Quotes');
+    const folder  = folders.hasNext() ? folders.next() : DriveApp.createFolder('Cornerstone Quotes');
+    const pdfFile = folder.createFile(pdfBlob);
+    pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    // Delete temp Doc
+    DriveApp.getFileById(docId).setTrashed(true);
+
+    return { fileId: pdfFile.getId(), fileUrl: pdfFile.getUrl(), fileName };
+  } catch(e) {
+    return null;
+  }
+}
+
+// ── Auth triggers: run once each to grant permissions ────────
+function testDriveAccess() {
+  const folders = DriveApp.getFoldersByName('Cornerstone Quotes');
+  const folder = folders.hasNext() ? folders.next() : DriveApp.createFolder('Cornerstone Quotes');
+  Logger.log('Drive OK: ' + folder.getName());
+}
+
+function testDocumentCreate() {
+  const doc = DocumentApp.create('Cornerstone Test Doc — DELETE ME');
+  doc.getBody().appendParagraph('Test');
+  doc.saveAndClose();
+  DriveApp.getFileById(doc.getId()).setTrashed(true);
+  Logger.log('DocumentApp OK');
 }
 
 // ── Setup: run once ───────────────────────────────────────────

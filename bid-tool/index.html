@@ -841,9 +841,9 @@
 
   function renderPanel() {
     const rate     = RATES[density];
-    const base     = acreage * rate;
     const prod     = PROD_DAY[density];
     const days     = Math.ceil(acreage / prod);
+    const base     = days * rate;
     const diffCost = Math.round(base * (difficulty / 100));
     const total    = base + diffCost;
     const dLabel   = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
@@ -858,19 +858,21 @@
 
       <div class="section-label">Breakdown</div>
       <div class="row"><span class="l">Acreage</span><span class="v">${acreage.toFixed(2)} ac</span></div>
-      <div class="row"><span class="l">Rate</span><span class="v">$${rate.toLocaleString()}/ac</span></div>
+      <div class="row"><span class="l">Timeline</span><span class="v">${days} ${days === 1 ? 'day' : 'days'}</span></div>
+      <div class="row"><span class="l">Daily Rate</span><span class="v">$${rate.toLocaleString()}/day</span></div>
       <div class="row"><span class="l">Base Price</span><span class="v">$${Math.round(base).toLocaleString()}</span></div>
       ${difficulty > 0 ? `<div class="row"><span class="l">Difficulty (${difficulty}%)</span><span class="v" style="color:#f0a028">+$${diffCost.toLocaleString()}</span></div>` : ''}
 
       <div class="total-box">
-        <span class="l">Total</span>
-        <span class="v">$${Math.round(total).toLocaleString()}</span>
-      </div>
-
-      <div class="tl-box">
-        <div class="section-label">Timeline</div>
-        <div class="tl-days">${days}<span>${days === 1 ? 'day' : 'days'}</span></div>
-        <div class="tl-note">${prod} ac/day · ${dLabel.toLowerCase()} density</div>
+        <span class="l">Quote Price</span>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+          <span style="color:#6fcf6f;font-size:22px;font-weight:800;">$</span>
+          <input id="customPrice" type="number" value="${Math.round(total)}"
+            style="background:transparent;border:none;border-bottom:2px solid rgba(111,207,111,0.5);
+            color:#6fcf6f;font-size:26px;font-weight:800;width:100%;outline:none;padding:2px 0;"
+            oninput="this.style.borderBottomColor='rgba(240,160,40,0.7)'">
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:6px;">Edit to override calculated price</div>
       </div>
 
       ${difficulty >= 50 ? `<div class="warn-box">High difficulty — complex terrain will impact crew productivity and equipment usage.</div>` : ''}
@@ -891,23 +893,24 @@
 
       <div class="crm-status" id="crmStatus"></div>
 
-      <button class="action-btn" onclick="sendQuote(${Math.round(total)}, ${days})">Send Quote Email</button>
-      <button class="action-btn secondary" onclick="saveLead(${Math.round(total)}, ${days})">Save Lead Only</button>
+      <button class="action-btn" onclick="sendQuote(${days})">Send Quote Email</button>
+      <button class="action-btn secondary" onclick="saveLead(${days})">Save Lead Only</button>
     `;
   }
 
-  function copyQuote(total, days) {
+  function copyQuote(calcTotal, days) {
+    const total    = parseInt(document.getElementById('customPrice')?.value) || calcTotal;
     const rate     = RATES[density];
-    const base     = acreage * rate;
+    const base     = days * rate;
     const dLabel   = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
-    const diffCost = total - Math.round(base);
+    const diffCost = Math.round(base * (difficulty / 100));
     let text =
       `Cornerstone Hardscape & Excavation\nForestry Mulching Estimate\n` +
       `——————————————\n` +
       `Acreage: ${acreage.toFixed(2)} acres\nVegetation: ${dLabel}\n` +
-      `Base: $${Math.round(base).toLocaleString()}\n`;
+      `Timeline: ${days} ${days === 1 ? 'day' : 'days'} @ $${rate.toLocaleString()}/day\n`;
     if (difficulty > 0) text += `Difficulty (${difficulty}%): +$${diffCost.toLocaleString()}\n`;
-    text += `——————————————\nTotal: $${total.toLocaleString()}\nTimeline: ${days} ${days === 1 ? 'day' : 'days'}`;
+    text += `——————————————\nTotal: $${total.toLocaleString()}`;
 
     navigator.clipboard.writeText(text).then(() => {
       const btn = document.getElementById('copyBtn');
@@ -973,8 +976,9 @@
     return `https://maps.googleapis.com/maps/api/staticmap?center=${clat},${clng}&size=600x300&maptype=satellite&path=${encodeURIComponent(pathStr)}&key=${key}`;
   }
 
-  async function saveLead(total, days) {
+  async function saveLead(days) {
     const f = getCRMFields();
+    const total = parseInt(document.getElementById('customPrice')?.value) || 0;
     setCRMStatus('Saving…', 'ok');
     const result = await postCRM({
       action: 'createLead',
@@ -995,8 +999,9 @@
     }
   }
 
-  async function sendQuote(total, days) {
+  async function sendQuote(days) {
     const f = getCRMFields();
+    const total = parseInt(document.getElementById('customPrice')?.value) || 0;
     if (!f.email) { setCRMStatus('Email required to send quote', 'err'); return; }
     setCRMStatus('Sending…', 'ok');
     const result = await postCRM({

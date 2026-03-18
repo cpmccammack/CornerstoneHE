@@ -654,16 +654,13 @@
             ${stageNotes}
           ` : ''}
 
-          <div class="detail-label">Add Note</div>
+          <div class="detail-label">Note</div>
           <textarea class="detail-textarea" id="note-${esc(lead.id)}" placeholder="Add a note…"></textarea>
-
-          <div class="detail-label">Send Follow-Up Email</div>
-          <textarea class="detail-textarea" id="fu-${esc(lead.id)}" placeholder="Custom message (optional)…" style="min-height:55px"></textarea>
 
           <div class="detail-actions">
             <button class="detail-btn outline" onclick="addNote('${esc(lead.id)}')">Save Note</button>
-            <button class="detail-btn" onclick="sendFollowUp('${esc(lead.id)}', '${esc(lead.email)}', '${esc(lead.name)}')">Send Follow-Up</button>
-            <button class="detail-btn outline" onclick="openSchedule('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">📅 Schedule Job</button>
+            <button class="detail-btn outline" onclick="sendFollowUp('${esc(lead.id)}', '${esc(lead.email)}', '${esc(lead.name)}')">✉️ Follow-Up</button>
+            <button class="detail-btn" onclick="openSchedule('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">📅 Schedule Job</button>
           </div>
           <div class="detail-status" id="status-${esc(lead.id)}"></div>
         </div>
@@ -743,6 +740,23 @@
     }
   }
 
+  // ── Send Job Confirmation Email (no calendar scheduling) ─────
+  async function sendJobConfirmation(id, name, email, phone, address, total) {
+    if (!email) { alert('No email on file for this lead.'); return; }
+    const statusEl = document.getElementById(`status-${id}`);
+    if (statusEl) statusEl.textContent = 'Sending…';
+    try {
+      const r = await postCRM({
+        action: 'sendJobConfirmation',
+        leadId: id, name, email, phone, address, total,
+      });
+      if (statusEl) statusEl.textContent = r.success ? 'Confirmation sent!' : (r.error || 'Error');
+      setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 3000);
+    } catch(e) {
+      if (statusEl) statusEl.textContent = 'Failed to send';
+    }
+  }
+
   // ── Schedule Job ──────────────────────────────────────────────
   let _schedData = {};
   function openSchedule(id, name, email, phone, address, total) {
@@ -766,6 +780,7 @@
     const startDate = document.getElementById('schedStart').value;
     const endDate   = document.getElementById('schedEnd').value;
     const customerEmail = document.getElementById('schedCustomerEmail').value.trim();
+    const sendEmail = document.getElementById('schedSendEmail').checked;
     if (!startDate) { document.getElementById('schedStatus').textContent = 'Pick a start date'; return; }
     document.getElementById('schedStatus').textContent = 'Scheduling…';
     try {
@@ -779,7 +794,7 @@
         total: _schedData.total,
         startDate,
         endDate: endDate || startDate,
-        customerEmail,
+        customerEmail: sendEmail ? customerEmail : '',
       });
       if (r.success) {
         document.getElementById('schedStatus').textContent = 'Job scheduled!';
@@ -837,8 +852,13 @@
     <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">End Date</label>
     <input id="schedEnd" type="date" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
 
-    <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Send Invite To Customer Email</label>
-    <input id="schedCustomerEmail" type="email" placeholder="customer@email.com" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 20px;box-sizing:border-box;">
+    <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Customer Email</label>
+    <input id="schedCustomerEmail" type="email" placeholder="customer@email.com" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 12px;box-sizing:border-box;">
+
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:20px;">
+      <input id="schedSendEmail" type="checkbox" checked style="width:16px;height:16px;accent-color:#6fcf6f;cursor:pointer;">
+      <span style="font-size:13px;color:#ccc;">Send customer confirmation email</span>
+    </label>
 
     <div id="schedStatus" style="font-size:13px;color:#6fcf6f;min-height:18px;margin-bottom:12px;"></div>
 
