@@ -64,6 +64,9 @@
       white-space: nowrap;
       -webkit-tap-highlight-color: transparent;
       transition: background 0.15s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
     }
 
     .glass-btn:active { background: rgba(255,255,255,0.22); }
@@ -72,6 +75,11 @@
       background: rgba(111,207,111,0.25);
       border-color: rgba(111,207,111,0.5);
       color: #aeffae;
+    }
+
+    .glass-btn.crm-link {
+      border-color: rgba(111,207,111,0.3);
+      color: #9eff9e;
     }
 
     /* Search */
@@ -457,9 +465,56 @@
       cursor: pointer;
       letter-spacing: 0.3px;
       transition: background 0.15s;
+      margin-bottom: 8px;
     }
 
     .action-btn:active { background: rgba(40,100,40,0.9); }
+    .action-btn.secondary {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.7);
+      font-size: 13px;
+    }
+
+    /* ── CRM form ── */
+    .crm-divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      margin: 18px 0 16px;
+    }
+
+    .crm-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: white;
+      font-size: 13px;
+      outline: none;
+      margin-bottom: 8px;
+      -webkit-appearance: none;
+    }
+
+    .crm-input::placeholder { color: rgba(255,255,255,0.25); }
+    .crm-input:focus { border-color: rgba(111,207,111,0.35); background: rgba(255,255,255,0.07); }
+
+    .crm-row {
+      display: flex;
+      gap: 7px;
+      margin-bottom: 8px;
+    }
+
+    .crm-row .crm-input { margin-bottom: 0; flex: 1; }
+
+    .crm-status {
+      font-size: 12px;
+      text-align: center;
+      min-height: 18px;
+      margin-bottom: 4px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
 
     /* API screen */
     .api-screen {
@@ -563,6 +618,7 @@
     <h1>Cornerstone <span>Bid</span></h1>
     <button class="glass-btn" id="drawBtn" onclick="startDrawing()">Draw</button>
     <button class="glass-btn" onclick="clearDrawing()">Clear</button>
+    <a class="glass-btn crm-link" href="crm.html">CRM</a>
   </div>
   <div class="search-wrap">
     <input id="addressInput" type="text" placeholder="Search address…" onkeydown="if(event.key==='Enter') searchAddress()">
@@ -621,6 +677,10 @@
 </div>
 
 <script>
+  // ── Config ────────────────────────────────────────────────────
+  // Paste your deployed Apps Script URL here after deploying CRM.gs
+  const CRM_URL = localStorage.getItem('crm_url') || '';
+
   const RATES    = { light: 3500, medium: 4500, dense: 6500 };
   const PROD_DAY = { light: 2, medium: 1, dense: 0.5 };
 
@@ -780,13 +840,14 @@
   }
 
   function renderPanel() {
-    const rate  = RATES[density];
-    const base  = acreage * rate;
-    const prod  = PROD_DAY[density];
-    const days  = Math.ceil(acreage / prod);
+    const rate     = RATES[density];
+    const base     = acreage * rate;
+    const prod     = PROD_DAY[density];
+    const days     = Math.ceil(acreage / prod);
     const diffCost = Math.round(base * (difficulty / 100));
-    const total = base + diffCost;
-    const dLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
+    const total    = base + diffCost;
+    const dLabel   = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
+    const addrVal  = (document.getElementById('addressInput').value || '').trim();
 
     document.getElementById('panelBody').innerHTML = `
       <div class="tags">
@@ -814,14 +875,31 @@
 
       ${difficulty >= 50 ? `<div class="warn-box">High difficulty — complex terrain will impact crew productivity and equipment usage.</div>` : ''}
 
-      <button class="action-btn" onclick="copyQuote(${Math.round(total)}, ${days})" id="copyBtn">Copy Estimate</button>
+      <button class="action-btn secondary" onclick="copyQuote(${Math.round(total)}, ${days})" id="copyBtn">Copy Estimate</button>
+
+      <hr class="crm-divider">
+      <div class="section-label">Customer Info</div>
+
+      <div class="crm-row">
+        <input class="crm-input" id="ci-name" type="text" placeholder="Full name">
+      </div>
+      <div class="crm-row">
+        <input class="crm-input" id="ci-phone" type="tel" placeholder="Phone number">
+        <input class="crm-input" id="ci-email" type="email" placeholder="Email">
+      </div>
+      <input class="crm-input" id="ci-address" type="text" placeholder="Property address" value="${addrVal.replace(/"/g, '&quot;')}">
+
+      <div class="crm-status" id="crmStatus"></div>
+
+      <button class="action-btn" onclick="sendQuote(${Math.round(total)}, ${days})">Send Quote Email</button>
+      <button class="action-btn secondary" onclick="saveLead(${Math.round(total)}, ${days})">Save Lead Only</button>
     `;
   }
 
   function copyQuote(total, days) {
-    const rate  = RATES[density];
-    const base  = acreage * rate;
-    const dLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
+    const rate     = RATES[density];
+    const base     = acreage * rate;
+    const dLabel   = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
     const diffCost = total - Math.round(base);
     let text =
       `Cornerstone Hardscape & Excavation\nForestry Mulching Estimate\n` +
@@ -833,9 +911,84 @@
 
     navigator.clipboard.writeText(text).then(() => {
       const btn = document.getElementById('copyBtn');
-      btn.textContent = 'Copied';
+      btn.textContent = 'Copied!';
       setTimeout(() => btn.textContent = 'Copy Estimate', 2000);
     });
+  }
+
+  // ── CRM helpers ───────────────────────────────────────────────
+  function getCRMFields() {
+    return {
+      name:    (document.getElementById('ci-name')    || {}).value?.trim() || '',
+      phone:   (document.getElementById('ci-phone')   || {}).value?.trim() || '',
+      email:   (document.getElementById('ci-email')   || {}).value?.trim() || '',
+      address: (document.getElementById('ci-address') || {}).value?.trim() || '',
+    };
+  }
+
+  function setCRMStatus(msg, type) {
+    const el = document.getElementById('crmStatus');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = type === 'err' ? '#f0a028' : '#6fcf6f';
+  }
+
+  async function postCRM(payload) {
+    const url = localStorage.getItem('crm_url');
+    if (!url) {
+      setCRMStatus('No CRM URL — open CRM page to set up', 'err');
+      return null;
+    }
+    try {
+      const r = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
+      return await r.json();
+    } catch (e) {
+      setCRMStatus('Network error: ' + e.message, 'err');
+      return null;
+    }
+  }
+
+  async function saveLead(total, days) {
+    const f = getCRMFields();
+    setCRMStatus('Saving…', 'ok');
+    const result = await postCRM({
+      action: 'createLead',
+      ...f,
+      acreage: acreage.toFixed(2),
+      density,
+      difficulty,
+      estimateTotal: total,
+      dealValue: total,
+      timeline: days,
+      source: 'Bid Tool',
+    });
+    if (result?.success) {
+      setCRMStatus(`Saved as ${result.id}`, 'ok');
+    } else if (result?.error) {
+      setCRMStatus(result.error, 'err');
+    }
+  }
+
+  async function sendQuote(total, days) {
+    const f = getCRMFields();
+    if (!f.email) { setCRMStatus('Email required to send quote', 'err'); return; }
+    setCRMStatus('Sending…', 'ok');
+    const result = await postCRM({
+      action: 'sendQuote',
+      ...f,
+      acreage: acreage.toFixed(2),
+      density,
+      difficulty,
+      estimateTotal: total,
+      dealValue: total,
+      timeline: days,
+      source: 'Bid Tool',
+    });
+    if (result?.success) {
+      setCRMStatus(`Quote sent! Lead ${result.id || 'saved'}.`, 'ok');
+    } else if (result?.error) {
+      setCRMStatus(result.error, 'err');
+    }
   }
 </script>
 </body>

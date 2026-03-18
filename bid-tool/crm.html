@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cornerstone CRM</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: #060e06;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: white;
+      overflow-x: hidden;
+    }
+
+    /* ── Setup screen ── */
+    .setup-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 400;
+      background: rgba(6,14,6,0.98);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .setup-mark {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      background: rgba(111,207,111,0.1);
+      border: 1px solid rgba(111,207,111,0.25);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 22px;
+    }
+
+    .setup-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .setup-screen .sub {
+      font-size: 13px; color: rgba(255,255,255,0.4);
+      margin-bottom: 28px; line-height: 1.6; max-width: 280px;
+    }
+
+    .setup-label {
+      width: 100%; text-align: left;
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: rgba(111,207,111,0.6); margin-bottom: 6px;
+    }
+
+    .setup-input {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: white;
+      font-size: 13px;
+      outline: none;
+      margin-bottom: 12px;
+    }
+
+    .setup-input::placeholder { color: rgba(255,255,255,0.22); }
+    .setup-input:focus { border-color: rgba(111,207,111,0.4); }
+
+    .setup-go {
+      width: 100%;
+      padding: 14px;
+      background: rgba(30,80,30,0.85);
+      border: 1px solid rgba(111,207,111,0.3);
+      color: #c8ffc8;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Header ── */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(6,14,6,0.9);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 14px 16px 0;
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .back-btn {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.7);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      flex: 1;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .header h1 span { color: #6fcf6f; }
+
+    .refresh-btn {
+      background: transparent;
+      border: none;
+      color: rgba(111,207,111,0.7);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
+    }
+
+    /* Stage filter tabs */
+    .stage-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .stage-tabs::-webkit-scrollbar { display: none; }
+
+    .stage-tab {
+      flex-shrink: 0;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      white-space: nowrap;
+    }
+
+    .stage-tab.active {
+      background: rgba(111,207,111,0.15);
+      border-color: rgba(111,207,111,0.35);
+      color: #9eff9e;
+    }
+
+    /* ── Main content ── */
+    .content {
+      padding: 14px 14px 80px;
+    }
+
+    /* Stats bar */
+    .stats-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat-box {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .stat-box .sv { font-size: 20px; font-weight: 800; color: #6fcf6f; }
+    .stat-box .sl { font-size: 10px; color: rgba(255,255,255,0.35); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+    .stat-box.amber .sv { color: #f0a028; }
+
+    /* Lead cards */
+    .lead-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+
+    .lead-card.overdue {
+      border-color: rgba(240,160,40,0.3);
+    }
+
+    .lead-card-head {
+      padding: 14px 16px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .lead-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 3px;
+    }
+
+    .lead-meta {
+      font-size: 12px;
+      color: rgba(255,255,255,0.38);
+      line-height: 1.4;
+    }
+
+    .lead-right {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .lead-value {
+      font-size: 17px;
+      font-weight: 800;
+      color: #6fcf6f;
+      margin-bottom: 4px;
+    }
+
+    .lead-badges {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .badge {
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .badge-stage {
+      background: rgba(111,207,111,0.12);
+      color: #7fdf7f;
+      border: 1px solid rgba(111,207,111,0.2);
+    }
+
+    .badge-stage.won { background: rgba(111,207,111,0.22); color: #aeffa0; }
+    .badge-stage.lost { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.35); border-color: rgba(255,255,255,0.1); }
+    .badge-stage.new { background: rgba(100,160,255,0.12); color: #90c0ff; border-color: rgba(100,160,255,0.2); }
+
+    .badge-overdue {
+      background: rgba(240,160,40,0.15);
+      color: #f0a028;
+      border: 1px solid rgba(240,160,40,0.25);
+    }
+
+    .badge-days {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.4);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Expand detail */
+    .lead-detail {
+      display: none;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 14px 16px 16px;
+    }
+
+    .lead-detail.open { display: block; }
+
+    .detail-contact {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .contact-btn {
+      flex: 1;
+      padding: 9px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.7);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .contact-btn:active { background: rgba(255,255,255,0.1); }
+
+    .detail-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: rgba(111,207,111,0.55);
+      margin-bottom: 8px;
+      margin-top: 14px;
+    }
+
+    .detail-label:first-of-type { margin-top: 0; }
+
+    .next-action-box {
+      background: rgba(111,207,111,0.05);
+      border: 1px solid rgba(111,207,111,0.12);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.75);
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    /* Stage selector */
+    .stage-pills {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .stage-pill {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.5);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      white-space: nowrap;
+    }
+
+    .stage-pill.current {
+      background: rgba(111,207,111,0.18);
+      border-color: rgba(111,207,111,0.35);
+      color: #9eff9e;
+    }
+
+    /* Note / follow-up */
+    .detail-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: white;
+      font-size: 13px;
+      outline: none;
+      resize: none;
+      min-height: 70px;
+      font-family: inherit;
+      margin-bottom: 8px;
+    }
+
+    .detail-textarea::placeholder { color: rgba(255,255,255,0.22); }
+    .detail-textarea:focus { border-color: rgba(111,207,111,0.3); }
+
+    .detail-actions {
+      display: flex;
+      gap: 7px;
+    }
+
+    .detail-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      border: 1px solid rgba(111,207,111,0.25);
+      background: rgba(30,70,30,0.65);
+      color: #c8ffc8;
+      letter-spacing: 0.2px;
+    }
+
+    .detail-btn.outline {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.6);
+    }
+
+    .detail-status {
+      font-size: 12px;
+      color: #6fcf6f;
+      min-height: 16px;
+      margin-top: 6px;
+      font-weight: 600;
+    }
+
+    .detail-status.err { color: #f0a028; }
+
+    .notes-text {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 8px 0;
+    }
+
+    /* Loading / empty */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: rgba(255,255,255,0.25);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .spinner {
+      width: 24px; height: 24px;
+      border: 2px solid rgba(111,207,111,0.2);
+      border-top-color: #6fcf6f;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 40px auto;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- Setup screen (first load) -->
+<div class="setup-screen" id="setupScreen">
+  <div class="setup-mark">⚡</div>
+  <h2>Connect CRM</h2>
+  <div class="sub">Paste your deployed Apps Script web app URL. Deploy CRM.gs → Deploy → New Deployment → Web App.</div>
+  <div class="setup-label">Apps Script Web App URL</div>
+  <input class="setup-input" id="setupUrl" type="url" placeholder="https://script.google.com/macros/s/…">
+  <button class="setup-go" onclick="saveSetup()">Connect</button>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-row">
+    <a class="back-btn" href="index.html">← Bid</a>
+    <h1>Pipeline <span>CRM</span></h1>
+    <button class="refresh-btn" onclick="loadLeads()" title="Refresh">↻</button>
+  </div>
+  <div class="stage-tabs" id="stageTabs">
+    <div class="stage-tab active" data-stage="All" onclick="filterStage('All', this)">All</div>
+    <div class="stage-tab" data-stage="New Lead" onclick="filterStage('New Lead', this)">New</div>
+    <div class="stage-tab" data-stage="Contacted" onclick="filterStage('Contacted', this)">Contacted</div>
+    <div class="stage-tab" data-stage="Quote Sent" onclick="filterStage('Quote Sent', this)">Quote Sent</div>
+    <div class="stage-tab" data-stage="Follow-Up" onclick="filterStage('Follow-Up', this)">Follow-Up</div>
+    <div class="stage-tab" data-stage="Won" onclick="filterStage('Won', this)">Won</div>
+    <div class="stage-tab" data-stage="Lost" onclick="filterStage('Lost', this)">Lost</div>
+  </div>
+</div>
+
+<!-- Main content -->
+<div class="content" id="content">
+  <div class="spinner" id="spinner"></div>
+</div>
+
+<script>
+  const STAGES = ['New Lead','Contacted','Quote Sent','Follow-Up','Won','Lost'];
+  let allLeads = [];
+  let currentFilter = 'All';
+  let expandedId = null;
+
+  // ── Setup ─────────────────────────────────────────────────────
+  function getCRMUrl() { return localStorage.getItem('crm_url') || ''; }
+
+  function saveSetup() {
+    const url = document.getElementById('setupUrl').value.trim();
+    if (!url.startsWith('https://')) {
+      alert('Please enter a valid https:// URL');
+      return;
+    }
+    localStorage.setItem('crm_url', url);
+    document.getElementById('setupScreen').style.display = 'none';
+    loadLeads();
+  }
+
+  window.addEventListener('load', () => {
+    if (!getCRMUrl()) {
+      document.getElementById('spinner').style.display = 'none';
+      return; // setup screen shows
+    }
+    document.getElementById('setupScreen').style.display = 'none';
+    loadLeads();
+  });
+
+  // ── Fetch ─────────────────────────────────────────────────────
+  async function loadLeads() {
+    const url = getCRMUrl();
+    if (!url) return;
+    showSpinner();
+    try {
+      const r = await fetch(`${url}?action=getLeads`);
+      const data = await r.json();
+      allLeads = data.leads || [];
+      renderLeads();
+    } catch (e) {
+      showEmpty('Could not connect to CRM.<br>' + e.message);
+    }
+  }
+
+  async function postCRM(payload) {
+    const url = getCRMUrl();
+    const r = await fetch(url, { method: 'POST', body: JSON.stringify(payload) });
+    return await r.json();
+  }
+
+  // ── Filter ────────────────────────────────────────────────────
+  function filterStage(stage, el) {
+    currentFilter = stage;
+    document.querySelectorAll('.stage-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderLeads();
+  }
+
+  // ── Render ────────────────────────────────────────────────────
+  function renderLeads() {
+    const filtered = currentFilter === 'All'
+      ? allLeads
+      : allLeads.filter(l => l.stage === currentFilter);
+
+    const active = filtered.filter(l => l.stage !== 'Won' && l.stage !== 'Lost');
+    const pipeline = active.reduce((s, l) => s + (Number(l.dealValue) || 0), 0);
+    const overdue  = filtered.filter(l => l.overdue).length;
+
+    const content = document.getElementById('content');
+
+    let html = `
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="sv">${filtered.length}</div>
+          <div class="sl">Leads</div>
+        </div>
+        <div class="stat-box">
+          <div class="sv">$${pipeline >= 1000 ? (pipeline/1000).toFixed(1) + 'k' : pipeline.toLocaleString()}</div>
+          <div class="sl">Pipeline</div>
+        </div>
+        <div class="stat-box amber">
+          <div class="sv">${overdue}</div>
+          <div class="sl">Overdue</div>
+        </div>
+      </div>
+    `;
+
+    if (filtered.length === 0) {
+      html += `<div class="empty-state">No leads here yet.</div>`;
+    } else {
+      filtered.forEach(lead => {
+        html += renderCard(lead);
+      });
+    }
+
+    content.innerHTML = html;
+
+    // Re-expand previously open card
+    if (expandedId) {
+      const detail = document.getElementById('detail-' + expandedId);
+      if (detail) detail.classList.add('open');
+    }
+  }
+
+  function renderCard(lead) {
+    const stageCls = {
+      'Won': 'won', 'Lost': 'lost', 'New Lead': 'new'
+    }[lead.stage] || '';
+
+    const daysAgo = lead.daysSinceTouch != null
+      ? (lead.daysSinceTouch === 0 ? 'Today' : `${lead.daysSinceTouch}d ago`)
+      : '';
+
+    const stageNotes = lead.notes
+      ? `<div class="notes-text">${esc(lead.notes).substring(0, 180)}${lead.notes.length > 180 ? '…' : ''}</div>`
+      : '';
+
+    const stagePills = STAGES.map(s =>
+      `<div class="stage-pill ${s === lead.stage ? 'current' : ''}" onclick="changeStage('${esc(lead.id)}', '${s}', this)">${s}</div>`
+    ).join('');
+
+    const phoneHref = lead.phone ? `tel:${lead.phone.replace(/\D/g,'')}` : '#';
+    const emailHref = lead.email ? `mailto:${lead.email}` : '#';
+
+    return `
+      <div class="lead-card ${lead.overdue ? 'overdue' : ''}" id="card-${esc(lead.id)}">
+        <div class="lead-card-head" onclick="toggleCard('${esc(lead.id)}')">
+          <div>
+            <div class="lead-name">${esc(lead.name || 'Unnamed')}</div>
+            <div class="lead-meta">${esc(lead.address || '')}${lead.acreage ? '<br>' + lead.acreage + ' ac · ' + cap(lead.density) : ''}</div>
+          </div>
+          <div class="lead-right">
+            <div class="lead-value">${lead.dealValue ? '$' + Number(lead.dealValue).toLocaleString() : '—'}</div>
+            <div class="lead-badges">
+              <span class="badge badge-stage ${stageCls}">${lead.stage}</span>
+              ${lead.overdue ? `<span class="badge badge-overdue">Overdue</span>` : ''}
+              ${daysAgo ? `<span class="badge badge-days">${daysAgo}</span>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <div class="lead-detail" id="detail-${esc(lead.id)}">
+          <div class="detail-contact">
+            <a class="contact-btn" href="${phoneHref}">${lead.phone ? '📞 ' + esc(lead.phone) : 'No phone'}</a>
+            <a class="contact-btn" href="${emailHref}">${lead.email ? '✉️ ' + esc(lead.email) : 'No email'}</a>
+          </div>
+
+          ${lead.nextBestAction ? `
+            <div class="detail-label">Next Action</div>
+            <div class="next-action-box">${esc(lead.nextBestAction)}</div>
+          ` : ''}
+
+          <div class="detail-label">Update Stage</div>
+          <div class="stage-pills">${stagePills}</div>
+
+          ${lead.notes ? `
+            <div class="detail-label">Notes</div>
+            ${stageNotes}
+          ` : ''}
+
+          <div class="detail-label">Add Note</div>
+          <textarea class="detail-textarea" id="note-${esc(lead.id)}" placeholder="Add a note…"></textarea>
+
+          <div class="detail-label">Send Follow-Up Email</div>
+          <textarea class="detail-textarea" id="fu-${esc(lead.id)}" placeholder="Custom message (optional)…" style="min-height:55px"></textarea>
+
+          <div class="detail-actions">
+            <button class="detail-btn outline" onclick="addNote('${esc(lead.id)}')">Save Note</button>
+            <button class="detail-btn" onclick="sendFollowUp('${esc(lead.id)}', '${esc(lead.email)}', '${esc(lead.name)}')">Send Follow-Up</button>
+          </div>
+          <div class="detail-status" id="status-${esc(lead.id)}"></div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ── Interactions ──────────────────────────────────────────────
+  function toggleCard(id) {
+    const detail = document.getElementById('detail-' + id);
+    if (!detail) return;
+    const isOpen = detail.classList.contains('open');
+    // Close all
+    document.querySelectorAll('.lead-detail').forEach(d => d.classList.remove('open'));
+    expandedId = null;
+    if (!isOpen) {
+      detail.classList.add('open');
+      expandedId = id;
+    }
+  }
+
+  async function changeStage(id, stage, el) {
+    const pills = el.closest('.stage-pills').querySelectorAll('.stage-pill');
+    pills.forEach(p => p.classList.remove('current'));
+    el.classList.add('current');
+    setStatus(id, 'Updating…', false);
+    try {
+      const r = await postCRM({ action: 'updateLead', id, stage });
+      if (r.success) {
+        setStatus(id, `Stage → ${stage}`, false);
+        const lead = allLeads.find(l => l.id === id);
+        if (lead) lead.stage = stage;
+        setTimeout(() => {
+          if (currentFilter !== 'All' && currentFilter !== stage) loadLeads();
+        }, 1200);
+      } else {
+        setStatus(id, r.error || 'Error', true);
+      }
+    } catch (e) {
+      setStatus(id, 'Network error', true);
+    }
+  }
+
+  async function addNote(id) {
+    const ta = document.getElementById('note-' + id);
+    const note = ta?.value.trim();
+    if (!note) return;
+    setStatus(id, 'Saving…', false);
+    try {
+      const r = await postCRM({ action: 'addNote', id, note });
+      if (r.success) {
+        setStatus(id, 'Note saved', false);
+        ta.value = '';
+      } else {
+        setStatus(id, r.error || 'Error', true);
+      }
+    } catch (e) {
+      setStatus(id, 'Network error', true);
+    }
+  }
+
+  async function sendFollowUp(id, email, name) {
+    if (!email) { setStatus(id, 'No email on file', true); return; }
+    const ta = document.getElementById('fu-' + id);
+    const message = ta?.value.trim() || '';
+    setStatus(id, 'Sending…', false);
+    try {
+      const r = await postCRM({ action: 'sendFollowUp', leadId: id, email, name, message: message || undefined });
+      if (r.success) {
+        setStatus(id, 'Follow-up sent!', false);
+        if (ta) ta.value = '';
+      } else {
+        setStatus(id, r.error || 'Error', true);
+      }
+    } catch (e) {
+      setStatus(id, 'Network error', true);
+    }
+  }
+
+  function setStatus(id, msg, isErr) {
+    const el = document.getElementById('status-' + id);
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'detail-status' + (isErr ? ' err' : '');
+  }
+
+  // ── Util ──────────────────────────────────────────────────────
+  function showSpinner() {
+    document.getElementById('content').innerHTML = '<div class="spinner"></div>';
+  }
+
+  function showEmpty(msg) {
+    document.getElementById('content').innerHTML = `<div class="empty-state">${msg}</div>`;
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
+  function cap(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+</script>
+</body>
+</html>
