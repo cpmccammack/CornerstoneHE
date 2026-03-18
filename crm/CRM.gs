@@ -1,335 +1,556 @@
 // ============================================================
-// Cornerstone HE — Elite CRM
-// Paste this entire file into Google Apps Script (script.google.com)
-// Then run: setupCRM()
+// Cornerstone HE — CRM Backend
+// 1. Create a new Google Sheet
+// 2. Go to Extensions → Apps Script
+// 3. Paste this entire file, replacing any existing code
+// 4. Run setupCRM() once to create the sheet structure
+// 5. Deploy as Web App: Deploy → New deployment → Web App
+//    - Execute as: Me
+//    - Who has access: Anyone
+// 6. Copy the Web App URL into the bid tool app
 // ============================================================
 
-// ── Config ────────────────────────────────────────────────────
 const STAGES = ['New Lead', 'Contacted', 'Quote Sent', 'Follow-Up', 'Won', 'Lost'];
-const SOURCES = ['Referral', 'Website', 'Job Site', 'Cold Call', 'Social Media', 'Other'];
-const STAGE_WEIGHTS = { 'New Lead': 0.1, 'Contacted': 0.25, 'Quote Sent': 0.6, 'Follow-Up': 0.45, 'Won': 1.0, 'Lost': 0 };
+const SOURCES = ['Referral', 'Website', 'Job Site', 'Cold Call', 'Social Media', 'Bid Tool'];
 const FOLLOWUP_DAYS = { 'New Lead': 1, 'Contacted': 2, 'Quote Sent': 4, 'Follow-Up': 3, 'Won': 7, 'Lost': 30 };
+
+const COMPANY = {
+  name: 'Cornerstone Hardscape & Excavation',
+  address: '651 Reed Lane, Simpsonville, KY 40067',
+  phone: '502-396-7887',
+  email: 'isaacmosko@cornerstonehe.net',
+  rep: 'Isaac Moskovich',
+};
+
+// ── Helpers ───────────────────────────────────────────────────
+function corsResponse(data, callback) {
+  const json = JSON.stringify(data);
+  if (callback) {
+    return ContentService
+      .createTextOutput(`${callback}(${json})`)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService
+    .createTextOutput(json)
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function htmlPage(body) {
+  return HtmlService.createHtmlOutput(`
+    <!DOCTYPE html><html><head><meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+        background:#f5f5f5;display:flex;align-items:center;justify-content:center;
+        min-height:100vh;margin:0;padding:20px;box-sizing:border-box;}
+      .card{background:white;border-radius:12px;padding:40px 36px;max-width:420px;
+        width:100%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.08);}
+      h2{margin:0 0 10px;font-size:22px;color:#1a1a1a;}
+      p{color:#666;font-size:14px;line-height:1.6;margin:0;}
+      .icon{font-size:48px;margin-bottom:16px;}
+      .co{font-size:12px;color:#aaa;margin-top:20px;}
+    </style></head><body><div class="card">${body}</div></body></html>
+  `);
+}
+
+// ── GET handler ───────────────────────────────────────────────
+function doGet(e) {
+  const action = e.parameter.action;
+  const cb = e.parameter.callback || null;
+  try {
+    // Data reads
+    if (action === 'getLeads')  return corsResponse(getLeads(), cb);
+    if (action === 'getLead')   return corsResponse(getLead(e.parameter.id), cb);
+    if (action === 'ping')      return corsResponse({ ok: true }, cb);
+
+    // Customer-facing approval links (return HTML pages — no JSONP needed)
+    if (action === 'approveQuote') {
+      const id = e.parameter.leadId;
+      if (id) {
+        updateLead({ id, stage: 'Won' });
+        addNote({ id, note: 'Customer approved quote via email link' });
+        markFinancing(id, e.parameter.financing === '1');
+      }
+      return htmlPage(`
+        <div class="icon">✅</div>
+        <h2>Quote Approved!</h2>
+        <p>Thanks for choosing Cornerstone. We'll be in touch shortly to get your project scheduled.</p>
+        <p class="co">Cornerstone Hardscape & Excavation · 502-396-7887</p>
+      `);
+    }
+
+    if (action === 'declineQuote') {
+      const id = e.parameter.leadId;
+      if (id) {
+        updateLead({ id, stage: 'Lost' });
+        addNote({ id, note: 'Customer declined quote via email link' });
+      }
+      return htmlPage(`
+        <div class="icon">👋</div>
+        <h2>Got it, no worries.</h2>
+        <p>Thanks for considering Cornerstone. If you change your mind or need anything in the future, we're always here.</p>
+        <p class="co">Cornerstone Hardscape & Excavation · 502-396-7887</p>
+      `);
+    }
+
+    if (action === 'requestFinancing') {
+      const id = e.parameter.leadId;
+      if (id) {
+        addNote({ id, note: 'Customer requested financing info via email link' });
+        updateLead({ id, stage: 'Follow-Up' });
+        markFinancing(id, true);
+      }
+      return htmlPage(`
+        <div class="icon">💰</div>
+        <h2>Financing Request Received</h2>
+        <p>We'll reach out with financing options shortly. Thanks for your interest!</p>
+        <p class="co">Cornerstone Hardscape & Excavation · 502-396-7887</p>
+      `);
+    }
+
+    // Write operations via GET + JSONP for CORS compatibility
+    const data = e.parameter.data ? JSON.parse(e.parameter.data) : {};
+    if (action === 'createLead')   return corsResponse(createLead(data), cb);
+    if (action === 'updateLead')   return corsResponse(updateLead(data), cb);
+    if (action === 'sendQuote')    return corsResponse(sendQuoteEmail(data), cb);
+    if (action === 'sendFollowUp') return corsResponse(sendFollowUpEmail(data), cb);
+    if (action === 'addNote')      return corsResponse(addNote(data), cb);
+    if (action === 'scheduleJob')  return corsResponse(scheduleJob(data), cb);
+
+    return corsResponse({ error: 'Unknown action' }, cb);
+  } catch (err) {
+    return corsResponse({ error: err.message }, cb);
+  }
+}
+
+// ── POST handler ──────────────────────────────────────────────
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const action = data.action;
+    if (action === 'createLead')   return corsResponse(createLead(data));
+    if (action === 'updateLead')   return corsResponse(updateLead(data));
+    if (action === 'sendQuote')    return corsResponse(sendQuoteEmail(data));
+    if (action === 'sendFollowUp') return corsResponse(sendFollowUpEmail(data));
+    if (action === 'addNote')      return corsResponse(addNote(data));
+    return corsResponse({ error: 'Unknown action' });
+  } catch (err) {
+    return corsResponse({ error: err.message });
+  }
+}
+
+// ── Sheet helpers ─────────────────────────────────────────────
+function getSheet() {
+  return SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Leads');
+}
+
+const COLS = {
+  id: 1, dateAdded: 2, name: 3, phone: 4, email: 5,
+  address: 6, dealValue: 7, source: 8, stage: 9,
+  lastTouch: 10, nextAction: 11, notes: 12,
+  acreage: 13, density: 14, difficulty: 15, estimateTotal: 16,
+  approved: 17, financing: 18
+};
+
+function rowToObj(row) {
+  return {
+    id:            row[COLS.id - 1],
+    dateAdded:     row[COLS.dateAdded - 1],
+    name:          row[COLS.name - 1],
+    phone:         row[COLS.phone - 1],
+    email:         row[COLS.email - 1],
+    address:       row[COLS.address - 1],
+    dealValue:     row[COLS.dealValue - 1],
+    source:        row[COLS.source - 1],
+    stage:         row[COLS.stage - 1],
+    lastTouch:     row[COLS.lastTouch - 1],
+    nextAction:    row[COLS.nextAction - 1],
+    notes:         row[COLS.notes - 1],
+    acreage:       row[COLS.acreage - 1],
+    density:       row[COLS.density - 1],
+    difficulty:    row[COLS.difficulty - 1],
+    estimateTotal: row[COLS.estimateTotal - 1],
+    approved:      row[COLS.approved - 1] || '',
+    financing:     row[COLS.financing - 1] || false,
+  };
+}
+
+// ── Read leads ────────────────────────────────────────────────
+function getLeads() {
+  const s = getSheet();
+  const lastRow = s.getLastRow();
+  if (lastRow < 2) return { leads: [] };
+  const rows = s.getRange(2, 1, lastRow - 1, 18).getValues();
+  const leads = rows
+    .filter(r => r[0])
+    .map(rowToObj)
+    .map(l => ({
+      ...l,
+      daysSinceTouch: l.lastTouch ? Math.floor((new Date() - new Date(l.lastTouch)) / 86400000) : null,
+      overdue: l.nextAction && new Date(l.nextAction) < new Date() && l.stage !== 'Won' && l.stage !== 'Lost',
+      nextBestAction: getNextAction(l),
+    }));
+  return { leads };
+}
+
+function getLead(id) {
+  const all = getLeads().leads;
+  const lead = all.find(l => l.id === id);
+  return lead ? { lead } : { error: 'Not found' };
+}
+
+function getNextAction(lead) {
+  const d = lead.daysSinceTouch || 0;
+  switch (lead.stage) {
+    case 'New Lead':    return 'Call to introduce';
+    case 'Contacted':   return d >= 2 ? 'Follow-up call' : 'Wait — reached out recently';
+    case 'Quote Sent':  return d >= 4 ? 'Follow up on quote' : 'Wait — quote is recent';
+    case 'Follow-Up':   return 'Check in — push for decision';
+    case 'Won':         return 'Collect deposit & schedule work';
+    case 'Lost':        return 'Check back in 30 days';
+    default:            return '—';
+  }
+}
+
+// ── Create lead ───────────────────────────────────────────────
+function createLead(data) {
+  const s = getSheet();
+  const lastRow = s.getLastRow();
+  const newRow = lastRow + 1;
+
+  const lastId = lastRow >= 2 ? s.getRange(lastRow, 1).getValue() : 'L-000';
+  const num = lastId ? parseInt(lastId.toString().replace('L-', '')) + 1 : 1;
+  const id = 'L-' + String(num).padStart(3, '0');
+
+  const today = new Date();
+  const nextDate = new Date(today);
+  nextDate.setDate(today.getDate() + (FOLLOWUP_DAYS['New Lead'] || 1));
+
+  s.getRange(newRow, 1, 1, 18).setValues([[
+    id, today,
+    data.name || '', data.phone || '', data.email || '',
+    data.address || '', data.dealValue || 0, data.source || 'Bid Tool',
+    'New Lead', today, nextDate, data.notes || '',
+    data.acreage || '', data.density || '', data.difficulty || 0, data.estimateTotal || 0,
+    '', false
+  ]]);
+
+  return { success: true, id };
+}
+
+// ── Update lead ───────────────────────────────────────────────
+function updateLead(data) {
+  const s = getSheet();
+  const lastRow = s.getLastRow();
+  if (lastRow < 2) return { error: 'No leads found' };
+  const rows = s.getRange(2, 1, lastRow - 1, 1).getValues();
+  const rowIndex = rows.findIndex(r => r[0] === data.id);
+  if (rowIndex === -1) return { error: 'Lead not found' };
+  const sheetRow = rowIndex + 2;
+
+  if (data.stage)     s.getRange(sheetRow, COLS.stage).setValue(data.stage);
+  if (data.notes)     s.getRange(sheetRow, COLS.notes).setValue(data.notes);
+  if (data.name)      s.getRange(sheetRow, COLS.name).setValue(data.name);
+  if (data.phone)     s.getRange(sheetRow, COLS.phone).setValue(data.phone);
+  if (data.email)     s.getRange(sheetRow, COLS.email).setValue(data.email);
+  if (data.dealValue) s.getRange(sheetRow, COLS.dealValue).setValue(data.dealValue);
+
+  if (data.stage) {
+    s.getRange(sheetRow, COLS.lastTouch).setValue(new Date());
+    const daysOut = FOLLOWUP_DAYS[data.stage] || 3;
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + daysOut);
+    s.getRange(sheetRow, COLS.nextAction).setValue(nextDate);
+  }
+
+  return { success: true };
+}
+
+function markFinancing(id, wantsFinancing) {
+  const s = getSheet();
+  const rows = s.getRange(2, 1, s.getLastRow() - 1, 1).getValues();
+  const rowIndex = rows.findIndex(r => r[0] === id);
+  if (rowIndex === -1) return;
+  s.getRange(rowIndex + 2, COLS.financing).setValue(wantsFinancing ? 'Yes' : 'No');
+}
+
+// ── Add note ──────────────────────────────────────────────────
+function addNote(data) {
+  const s = getSheet();
+  const rows = s.getRange(2, 1, s.getLastRow() - 1, 1).getValues();
+  const rowIndex = rows.findIndex(r => r[0] === data.id);
+  if (rowIndex === -1) return { error: 'Lead not found' };
+  const sheetRow = rowIndex + 2;
+  const existing = s.getRange(sheetRow, COLS.notes).getValue();
+  const timestamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yy');
+  const newNote = `[${timestamp}] ${data.note}${existing ? '\n' + existing : ''}`;
+  s.getRange(sheetRow, COLS.notes).setValue(newNote);
+  s.getRange(sheetRow, COLS.lastTouch).setValue(new Date());
+  return { success: true };
+}
+
+// ── Send Quote Email ──────────────────────────────────────────
+function sendQuoteEmail(data) {
+  if (!data.email) return { error: 'No email address provided' };
+
+  // Create lead first so we have an ID for the approval links
+  let leadId = data.leadId;
+  if (!leadId) {
+    const result = createLead({ ...data, source: 'Bid Tool' });
+    leadId = result.id;
+  }
+
+  const scriptUrl = ScriptApp.getService().getUrl();
+  const approveUrl  = `${scriptUrl}?action=approveQuote&leadId=${leadId}`;
+  const declineUrl  = `${scriptUrl}?action=declineQuote&leadId=${leadId}`;
+  const financeUrl  = `${scriptUrl}?action=requestFinancing&leadId=${leadId}`;
+
+  const offerDate = new Date();
+  offerDate.setDate(offerDate.getDate() + 7);
+  const offerStr = Utilities.formatDate(offerDate, Session.getScriptTimeZone(), 'MM/dd/yyyy');
+  const todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
+
+  const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[data.density] || data.density || '';
+  const rates = { light: 3500, medium: 4500, dense: 6500 };
+  const base = data.acreage && data.density ? (data.acreage * rates[data.density]) : 0;
+  const diffCost = Math.round(base * ((data.difficulty || 0) / 100));
+  const total = Math.round((base || data.estimateTotal || 0) + diffCost);
+  const days = data.timeline || 1;
+
+  const scopeLines = [
+    `Cornerstone Hardscape & Excavation will perform forestry mulching services at ${data.address || 'the property'}.`,
+    data.acreage ? `The area to be cleared is approximately ${data.acreage} acres of ${densityLabel.toLowerCase()} vegetation density.` : '',
+    `Estimated project duration: ${days} ${days == 1 ? 'day' : 'days'}.`,
+    `Our crew will use a professional forestry mulcher to clear, chip, and spread all vegetation on site — leaving a clean, mulched surface with no hauling required.`,
+  ].filter(Boolean).join(' ');
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px; background: #f0f0f0; font-family: Arial, sans-serif; color: #222; }
+  .page { max-width: 680px; margin: 0 auto; background: white; border-radius: 4px; overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.1); }
+
+  /* Header */
+  .hdr { background: #000000; padding: 28px 36px; display: flex; justify-content: space-between; align-items: center; }
+  .logo-block { color: white; }
+  .logo-name { font-size: 22px; font-weight: 900; letter-spacing: 1px; }
+  .logo-tag { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+  .quote-id { color: rgba(255,255,255,0.5); font-size: 12px; text-align: right; }
+  .quote-id strong { display: block; color: white; font-size: 18px; margin-top: 2px; }
+
+  /* Bill row */
+  .bill { display: flex; justify-content: space-between; padding: 24px 36px; border-bottom: 1px solid #eee; gap: 20px; }
+  .bill-col h4 { margin: 0 0 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #aaa; }
+  .bill-col p { margin: 2px 0; font-size: 13px; color: #444; }
+  .bill-col strong { color: #1a1a1a; font-size: 14px; }
+  .offer { font-size: 11px; color: #888; margin-top: 10px !important; }
+  .offer strong { color: #c84444; }
+
+  /* Body sections */
+  .section { padding: 20px 36px; border-bottom: 1px solid #eee; }
+  .section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #aaa; margin-bottom: 10px; }
+  .scope-text { font-size: 13px; line-height: 1.7; color: #444; }
+
+  /* Line items */
+  .line { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid #f5f5f5; gap: 16px; }
+  .line:last-child { border-bottom: none; }
+  .line-desc strong { font-size: 14px; display: block; margin-bottom: 3px; }
+  .line-desc span { font-size: 12px; color: #888; }
+  .line-price { font-size: 15px; font-weight: 700; color: #1a1a1a; white-space: nowrap; }
+
+  /* Total */
+  .total-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; color: #888; }
+  .total-row.grand { font-size: 18px; font-weight: 800; color: #1a1a1a; border-top: 2px solid #1a1a1a; margin-top: 8px; padding-top: 14px; }
+
+  /* Actions */
+  .actions { padding: 28px 36px; text-align: center; background: #fafafa; border-bottom: 1px solid #eee; }
+  .actions p { font-size: 13px; color: #666; margin: 0 0 18px; }
+  .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+  .btn { display: inline-block; padding: 13px 28px; border-radius: 6px; font-size: 14px; font-weight: 700;
+    text-decoration: none; letter-spacing: 0.3px; }
+  .btn-approve { background: #1a6b1a; color: white; }
+  .btn-decline { background: white; color: #888; border: 1px solid #ddd; }
+  .btn-finance { display: inline-block; font-size: 12px; color: #1a6b1a; text-decoration: underline; }
+
+  /* Signature */
+  .sig { padding: 20px 36px 24px; }
+  .sig-name { font-size: 15px; font-weight: 700; color: #1a1a1a; margin-bottom: 2px; }
+  .sig-title { font-size: 12px; color: #888; }
+  .sig-contact { font-size: 12px; color: #555; margin-top: 8px; }
+
+  /* Footer */
+  .footer { background: #000000; padding: 14px 36px; font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <table width="100%" bgcolor="#000000" cellpadding="0" cellspacing="0" style="background:#000000;">
+    <tr>
+      <td style="padding:24px 36px;">
+        <img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="Cornerstone" height="52" style="display:block;height:52px;border:0;">
+      </td>
+    </tr>
+  </table>
+
+  <!-- Quote ID -->
+  <div style="padding:14px 36px 0;font-size:12px;color:#aaa;">Quote <strong style="color:#333;">${leadId}</strong> &nbsp;·&nbsp; ${todayStr}</div>
+
+  <!-- Bill to / from -->
+  <div class="bill">
+    <div class="bill-col">
+      <h4>Prepared For</h4>
+      <strong>${data.name || 'Customer'}</strong>
+      <p>${data.phone || ''}</p>
+      <p>${data.email || ''}</p>
+      <p>${data.address || ''}</p>
+      <p class="offer">Offer good until: <strong>${offerStr}</strong></p>
+    </div>
+    <div class="bill-col" style="text-align:right">
+      <h4>From</h4>
+      <strong>${COMPANY.rep}</strong>
+      <p>${COMPANY.name}</p>
+      <p>${COMPANY.address}</p>
+      <p>${COMPANY.phone}</p>
+      <p>${COMPANY.email}</p>
+    </div>
+  </div>
+
+  <!-- Scope -->
+  <div class="section">
+    <div class="section-title">Scope of Work</div>
+    <div class="scope-text">${scopeLines}</div>
+  </div>
+
+  <!-- Line items -->
+  <div class="section">
+    <div class="section-title">Services</div>
+    <div class="line">
+      <div class="line-desc">
+        <strong>Forestry Mulching${densityLabel ? ' — ' + densityLabel + ' Density' : ''}</strong>
+        <span>${data.acreage ? data.acreage + ' acres · ' : ''}All vegetation cleared, chipped, and spread on site. No hauling required.</span>
+      </div>
+      <div class="line-price">$${total.toLocaleString()}</div>
+    </div>
+    <div style="padding-top:14px">
+      <div class="total-row grand"><span>Total</span><span>$${total.toLocaleString()}</span></div>
+    </div>
+  </div>
+
+  <!-- Approve / Decline / Financing -->
+  <div class="actions">
+    <p>Please review your quote and let us know how you'd like to proceed.</p>
+    <div class="btn-row">
+      <a class="btn btn-approve" href="${approveUrl}">✓ &nbsp;Approve Quote</a>
+      <a class="btn btn-decline" href="${declineUrl}">Decline</a>
+    </div>
+    <a class="btn-finance" href="${financeUrl}">Interested in financing options?</a>
+  </div>
+
+  <!-- Map Image -->
+  ${data.mapImageUrl ? `
+  <div class="section">
+    <div class="section-title">Project Area</div>
+    <img src="${data.mapImageUrl}" alt="Project area map" style="width:100%;border-radius:4px;display:block;">
+  </div>` : ''}
+
+  <!-- Signature -->
+  <div class="sig">
+    <div class="sig-name">${COMPANY.rep}</div>
+    <div class="sig-title">Cornerstone Hardscape &amp; Excavation</div>
+    <div class="sig-contact">${COMPANY.phone} &nbsp;·&nbsp; ${COMPANY.email}</div>
+  </div>
+
+  <div class="footer">Thank you for considering Cornerstone. We appreciate your business.</div>
+</div>
+</body>
+</html>`;
+
+  GmailApp.sendEmail(
+    data.email,
+    `Your Cornerstone Quote — $${total.toLocaleString()} (${leadId})`,
+    `Hi ${(data.name || 'there').split(' ')[0]},\n\nYour forestry mulching quote is ready.\n\nTotal: $${total.toLocaleString()}\nTimeline: ${days} ${days == 1 ? 'day' : 'days'}\nOffer good until: ${offerStr}\n\nApprove: ${approveUrl}\nDecline: ${declineUrl}\nFinancing: ${financeUrl}\n\n${COMPANY.rep}\n${COMPANY.phone}`,
+    { htmlBody: html, name: COMPANY.name, replyTo: COMPANY.email }
+  );
+
+  updateLead({ id: leadId, stage: 'Quote Sent' });
+  return { success: true, id: leadId };
+}
+
+// ── Send Follow-Up Email ──────────────────────────────────────
+function sendFollowUpEmail(data) {
+  if (!data.email) return { error: 'No email address' };
+
+  const firstName = (data.name || 'there').split(' ')[0];
+  const message = data.message ||
+    `Hi ${firstName},\n\nJust following up on the quote we sent over. We'd love to get started on your project!\n\nLet us know if you have any questions.\n\n${COMPANY.rep}\n${COMPANY.phone}`;
+
+  GmailApp.sendEmail(
+    data.email,
+    data.subject || `Following up — Cornerstone Quote`,
+    message,
+    { name: COMPANY.name, replyTo: COMPANY.email }
+  );
+
+  if (data.leadId) {
+    addNote({ id: data.leadId, note: 'Follow-up email sent' });
+    updateLead({ id: data.leadId, stage: 'Follow-Up' });
+  }
+
+  return { success: true };
+}
+
+// ── Schedule Job on Google Calendar ──────────────────────────
+function scheduleJob(data) {
+  // data: { leadId, name, phone, email, address, acreage, density, total, startDate, endDate, customerEmail }
+  const calendar = CalendarApp.getDefaultCalendar();
+  const start = new Date(data.startDate);
+  const end   = new Date(data.endDate || data.startDate);
+  if (start.getTime() === end.getTime()) end.setDate(end.getDate() + 1); // all-day fallback
+
+  const title = `Cornerstone — ${data.name || 'Job'} (${data.address || ''})`;
+  const desc = [
+    `Customer: ${data.name || ''}`,
+    `Phone: ${data.phone || ''}`,
+    `Email: ${data.email || ''}`,
+    `Address: ${data.address || ''}`,
+    data.acreage ? `Area: ${data.acreage} acres (${data.density || ''} density)` : '',
+    data.total ? `Quote Total: $${Number(data.total).toLocaleString()}` : '',
+    data.leadId ? `Lead ID: ${data.leadId}` : '',
+    '',
+    'Scope: Forestry mulching — clear, chip, and spread all vegetation on site. No hauling required.',
+  ].filter(Boolean).join('\n');
+
+  const opts = { description: desc, location: data.address || '' };
+  if (data.customerEmail) opts.guests = data.customerEmail;
+
+  const event = calendar.createAllDayEvent(title, start, end, opts);
+
+  if (data.leadId) {
+    addNote({ id: data.leadId, note: `Job scheduled: ${Utilities.formatDate(start, Session.getScriptTimeZone(), 'MM/dd/yyyy')}` });
+  }
+
+  return { success: true, eventId: event.getId() };
+}
 
 // ── Setup: run once ───────────────────────────────────────────
 function setupCRM() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  ['Leads'].forEach(name => { const s = ss.getSheetByName(name); if (s) ss.deleteSheet(s); });
 
-  // Delete existing sheets if re-running
-  ['Leads', 'Dashboard', 'Settings'].forEach(name => {
-    const s = ss.getSheetByName(name);
-    if (s) ss.deleteSheet(s);
-  });
-
-  setupSettings(ss);
-  setupLeads(ss);
-  setupDashboard(ss);
-
-  // Set Leads as active
-  ss.setActiveSheet(ss.getSheetByName('Leads'));
-
-  SpreadsheetApp.getUi().alert('✅ CRM setup complete!\n\nSheets created:\n• Leads\n• Dashboard\n• Settings\n\nRun installTriggers() next to enable automation.');
-}
-
-// ── Settings sheet ────────────────────────────────────────────
-function setupSettings(ss) {
-  const s = ss.insertSheet('Settings');
-  s.getRange('A1').setValue('STAGES').setFontWeight('bold');
-  s.getRange('B1').setValue('SOURCES').setFontWeight('bold');
-  STAGES.forEach((v, i) => s.getRange(i + 2, 1).setValue(v));
-  SOURCES.forEach((v, i) => s.getRange(i + 2, 2).setValue(v));
-  s.hideSheet();
-}
-
-// ── Leads sheet ───────────────────────────────────────────────
-function setupLeads(ss) {
   const s = ss.insertSheet('Leads');
-
-  const headers = [
-    'Lead ID', 'Date Added', 'Contact Name', 'Phone', 'Email',
-    'Address', 'Deal Value ($)', 'Source', 'Stage',
-    'Last Touch', 'Next Action Date', 'Notes',
-    'Days Since Touch', 'Overdue?', 'Priority Score', 'Next Best Action'
-  ];
-
-  // Header row
-  const headerRange = s.getRange(1, 1, 1, headers.length);
-  headerRange.setValues([headers]);
-  headerRange.setBackground('#1a3a1a').setFontColor('white').setFontWeight('bold').setFontSize(10);
+  const headers = ['Lead ID','Date Added','Name','Phone','Email','Address','Deal Value','Source','Stage','Last Touch','Next Action','Notes','Acreage','Density','Difficulty %','Estimate Total','Approved','Financing'];
+  s.getRange(1, 1, 1, headers.length).setValues([headers])
+    .setBackground('#1a3a1a').setFontColor('white').setFontWeight('bold');
   s.setFrozenRows(1);
 
-  // Column widths
-  const widths = [70, 90, 140, 110, 170, 200, 100, 100, 100, 90, 110, 200, 90, 75, 100, 200];
+  const widths = [70,100,140,110,180,200,90,90,100,100,110,220,70,80,80,100,80,80];
   widths.forEach((w, i) => s.setColumnWidth(i + 1, w));
 
-  // Stage dropdown validation
-  const stageRule = SpreadsheetApp.newDataValidation()
-    .requireValueInRange(ss.getSheetByName('Settings').getRange('A2:A7'), true)
-    .setAllowInvalid(false).build();
-  s.getRange('I2:I1000').setDataValidation(stageRule);
-
-  // Source dropdown validation
-  const sourceRule = SpreadsheetApp.newDataValidation()
-    .requireValueInRange(ss.getSheetByName('Settings').getRange('B2:B7'), true)
-    .setAllowInvalid(false).build();
-  s.getRange('H2:H1000').setDataValidation(sourceRule);
-
-  // Auto-formulas (cols M–P) — only apply to row 2 as template
-  // Days Since Touch (M)
-  s.getRange('M2').setFormula('=IF(J2="","",TODAY()-J2)');
-  // Overdue? (N)
-  s.getRange('N2').setFormula(
-    '=IF(OR(I2="Won",I2="Lost",K2=""),"—",IF(TODAY()>K2,"OVERDUE","OK"))'
-  );
-  // Priority Score (O) — 0-100
-  s.getRange('O2').setFormula(
-    '=IF(OR(I2="",G2=""),"",ROUND(MIN(100,' +
-    'IF(I2="New Lead",10,IF(I2="Contacted",25,IF(I2="Quote Sent",60,IF(I2="Follow-Up",45,IF(I2="Won",100,0)))))' +
-    '*MAX(0.1,1-(MAX(0,M2-3)/30))' +
-    '*(G2/5000)' +
-    '),0))'
-  );
-  // Next Best Action (P)
-  s.getRange('P2').setFormula(
-    '=IF(I2="New Lead","Call to introduce",IF(I2="Contacted",IF(M2>=2,"Follow-up call","Wait — reached out recently"),IF(I2="Quote Sent",IF(M2>=4,"Follow up on quote","Wait — quote is recent"),IF(I2="Follow-Up","Check in — push for decision",IF(I2="Won","Collect deposit & schedule work",IF(I2="Lost","Check back in 30 days","—"))))))'
-  );
-
-  // Conditional formatting — Overdue = red, OK = green
-  const overdueRule = SpreadsheetApp.newConditionalFormatRule()
-    .whenTextEqualTo('OVERDUE').setBackground('#ffcccc').setFontColor('#cc0000')
-    .setRanges([s.getRange('N2:N1000')]).build();
-  const okRule = SpreadsheetApp.newConditionalFormatRule()
-    .whenTextEqualTo('OK').setBackground('#d9ead3').setFontColor('#274e13')
-    .setRanges([s.getRange('N2:N1000')]).build();
-  s.setConditionalFormatRules([overdueRule, okRule]);
-
-  // Stage color coding
-  const stageColors = {
-    'New Lead': ['#fff2cc', '#7d6608'],
-    'Contacted': ['#cfe2f3', '#1c4587'],
-    'Quote Sent': ['#d9d2e9', '#4a235a'],
-    'Follow-Up': ['#fce5cd', '#7f4f24'],
-    'Won': ['#d9ead3', '#274e13'],
-    'Lost': ['#f4cccc', '#660000'],
-  };
-  const stageRules = Object.entries(stageColors).map(([stage, [bg, fg]]) =>
-    SpreadsheetApp.newConditionalFormatRule()
-      .whenTextEqualTo(stage).setBackground(bg).setFontColor(fg)
-      .setRanges([s.getRange('I2:I1000')]).build()
-  );
-  s.setConditionalFormatRules([overdueRule, okRule, ...stageRules]);
-
-  // Add one sample row
-  addSampleLead(s);
-}
-
-function addSampleLead(s) {
-  const today = new Date();
-  const nextAction = new Date(today); nextAction.setDate(today.getDate() + 2);
-  s.getRange(2, 1, 1, 12).setValues([[
-    'L-001', today, 'Joel Shine', '502-356-6420', 'joelshine@hotmail.com',
-    'Creekwood Dr, Mount Washington KY', 3500, 'Referral', 'Quote Sent',
-    today, nextAction, 'Forestry mulching — Lot 5, 1 acre, light density'
-  ]]);
-  // Apply formula row
-  ['M2','N2','O2','P2'].forEach(cell => {
-    const formula = s.getRange(cell).getFormula();
-    // formulas already set above
-  });
-}
-
-// ── Dashboard sheet ───────────────────────────────────────────
-function setupDashboard(ss) {
-  const s = ss.insertSheet('Dashboard');
-  s.setTabColor('#274e13');
-
-  const title = s.getRange('A1');
-  title.setValue('CORNERSTONE HE — PIPELINE DASHBOARD')
-    .setFontSize(14).setFontWeight('bold').setFontColor('#274e13');
-
-  s.getRange('A2').setValue('Auto-refreshes when you open the sheet').setFontColor('#999').setFontSize(9);
-
-  // Section headers
-  const sections = [
-    ['A4', 'PIPELINE OVERVIEW'],
-    ['A12', 'DEALS BY STAGE'],
-    ['D12', 'CONTACT TODAY'],
-  ];
-  sections.forEach(([cell, label]) => {
-    s.getRange(cell).setValue(label).setFontWeight('bold').setFontSize(10)
-      .setFontColor('#1a3a1a').setBorder(false, false, true, false, false, false, '#1a3a1a', SpreadsheetApp.BorderStyle.SOLID);
-  });
-
-  // Pipeline metrics (formulas referencing Leads sheet)
-  const metrics = [
-    ['A5', 'Total Pipeline Value', "=SUMIF(Leads!I:I,\"<>Lost\",Leads!G:G)"],
-    ['A6', 'Active Deals', "=COUNTIFS(Leads!I:I,\"<>Won\",Leads!I:I,\"<>Lost\",Leads!A:A,\"<>\")"],
-    ['A7', 'Overdue Follow-Ups', "=COUNTIF(Leads!N:N,\"OVERDUE\")"],
-    ['A8', 'Won This Month', "=COUNTIFS(Leads!I:I,\"Won\",Leads!J:J,\">=\"&DATE(YEAR(TODAY()),MONTH(TODAY()),1))"],
-    ['A9', 'Close Rate', "=IFERROR(COUNTIF(Leads!I:I,\"Won\")/(COUNTIF(Leads!I:I,\"Won\")+COUNTIF(Leads!I:I,\"Lost\")),0)"],
-    ['A10', 'Avg Deal Size', "=AVERAGEIF(Leads!G:G,\">0\",Leads!G:G)"],
-  ];
-
-  metrics.forEach(([cell, label, formula]) => {
-    const row = parseInt(cell.slice(1));
-    s.getRange('A' + row).setValue(label).setFontColor('#555').setFontSize(10);
-    s.getRange('B' + row).setFormula(formula).setFontWeight('bold').setFontSize(11);
-    if (cell === 'A5' || cell === 'A10') s.getRange('B' + row).setNumberFormat('$#,##0');
-    if (cell === 'A9') s.getRange('B' + row).setNumberFormat('0%');
-  });
-
-  // Deals by stage
-  STAGES.forEach((stage, i) => {
-    const row = 13 + i;
-    s.getRange('A' + row).setValue(stage).setFontSize(10);
-    s.getRange('B' + row).setFormula(`=COUNTIF(Leads!I:I,"${stage}")`).setFontSize(10);
-    s.getRange('C' + row).setFormula(`=SUMIF(Leads!I:I,"${stage}",Leads!G:G)`).setNumberFormat('$#,##0').setFontSize(10);
-  });
-
-  s.getRange('A13:A18').setBackground('#f3f3f3');
-
-  // Contact today list header
-  s.getRange('D13').setValue('Name').setFontWeight('bold').setFontSize(9);
-  s.getRange('E13').setValue('Deal $').setFontWeight('bold').setFontSize(9);
-  s.getRange('F13').setValue('Next Action').setFontWeight('bold').setFontSize(9);
-
-  // Array formula for who to contact today
-  s.getRange('D14').setFormula(
-    '=IFERROR(FILTER(Leads!C:C,Leads!K:K<=TODAY(),Leads!I:I<>"Won",Leads!I:I<>"Lost",Leads!C:C<>"Contact Name"),"")'
-  );
-  s.getRange('E14').setFormula(
-    '=IFERROR(FILTER(Leads!G:G,Leads!K:K<=TODAY(),Leads!I:I<>"Won",Leads!I:I<>"Lost",Leads!C:C<>"Contact Name"),"")'
-  );
-  s.getRange('F14').setFormula(
-    '=IFERROR(FILTER(Leads!P:P,Leads!K:K<=TODAY(),Leads!I:I<>"Won",Leads!I:I<>"Lost",Leads!C:C<>"Contact Name"),"")'
-  );
-
-  s.setColumnWidth(1, 180);
-  s.setColumnWidth(2, 120);
-  s.setColumnWidth(3, 120);
-  s.setColumnWidth(4, 160);
-  s.setColumnWidth(5, 90);
-  s.setColumnWidth(6, 200);
-}
-
-// ── onEdit trigger: auto-stamp dates, extend formulas ─────────
-function onEdit(e) {
-  const sheet = e.range.getSheet();
-  if (sheet.getName() !== 'Leads') return;
-
-  const row = e.range.getRow();
-  const col = e.range.getColumn();
-  if (row < 2) return;
-
-  // Auto-stamp Last Touch when Stage changes (col 9)
-  if (col === 9) {
-    sheet.getRange(row, 10).setValue(new Date()); // Last Touch = today
-    // Auto-set Next Action Date based on stage
-    const stage = e.value;
-    const daysOut = FOLLOWUP_DAYS[stage] || 3;
-    const nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + daysOut);
-    sheet.getRange(row, 11).setValue(nextDate);
-  }
-
-  // Auto-generate Lead ID if new row
-  if (col === 3 && !sheet.getRange(row, 1).getValue()) {
-    const lastId = sheet.getRange(row - 1, 1).getValue();
-    const num = lastId ? parseInt(lastId.toString().replace('L-', '')) + 1 : 1;
-    sheet.getRange(row, 1).setValue('L-' + String(num).padStart(3, '0'));
-    sheet.getRange(row, 2).setValue(new Date()); // Date Added
-  }
-
-  // Extend formulas to new rows
-  if (row > 2 && col <= 12) {
-    const formulaCells = ['M', 'N', 'O', 'P'];
-    formulaCells.forEach(col => {
-      const templateFormula = sheet.getRange(col + '2').getFormula();
-      if (templateFormula) {
-        const newFormula = templateFormula.replace(/2/g, row.toString());
-        sheet.getRange(col + row).setFormula(newFormula);
-      }
-    });
-  }
-}
-
-// ── Web App: receive leads from Bid Tool ──────────────────────
-function doPost(e) {
-  try {
-    const data = JSON.parse(e.postData.contents);
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName('Leads');
-    const lastRow = Math.max(sheet.getLastRow(), 1);
-    const newRow = lastRow + 1;
-
-    // Auto Lead ID
-    const lastId = sheet.getRange(lastRow, 1).getValue();
-    const num = lastId ? parseInt(lastId.toString().replace('L-', '')) + 1 : 1;
-    const leadId = 'L-' + String(num).padStart(3, '0');
-
-    const today = new Date();
-    const nextAction = new Date(today); nextAction.setDate(today.getDate() + 1);
-
-    sheet.getRange(newRow, 1, 1, 12).setValues([[
-      leadId,
-      today,
-      data.name || '',
-      data.phone || '',
-      data.email || '',
-      data.address || '',
-      data.dealValue || 0,
-      data.source || 'Website',
-      'New Lead',
-      today,
-      nextAction,
-      `Forestry mulching · ${data.acreage || '?'} ac · ${data.density || '?'} · ${data.difficulty || 0}% difficulty`
-    ]]);
-
-    // Extend formulas
-    ['M','N','O','P'].forEach(c => {
-      const tmpl = sheet.getRange(c + '2').getFormula();
-      if (tmpl) sheet.getRange(c + newRow).setFormula(tmpl.replace(/2/g, newRow));
-    });
-
-    return ContentService.createTextOutput(JSON.stringify({ success: true, leadId }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ success: false, error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-// ── Install triggers ──────────────────────────────────────────
-function installTriggers() {
-  // Remove existing
-  ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
-
-  // onEdit
-  ScriptApp.newTrigger('onEdit').forSpreadsheet(SpreadsheetApp.getActive()).onEdit().create();
-
-  // Daily overdue check at 8am
-  ScriptApp.newTrigger('sendOverdueDigest').timeBased().everyDays(1).atHour(8).create();
-
-  SpreadsheetApp.getUi().alert('✅ Triggers installed!\n• onEdit — auto-stamps dates and IDs\n• Daily 8am digest — overdue follow-up summary');
-}
-
-// ── Daily digest: email overdue leads ─────────────────────────
-function sendOverdueDigest() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Leads');
-  const data = sheet.getDataRange().getValues();
-  const headers = data[0];
-  const nameCol = headers.indexOf('Contact Name');
-  const overdueCol = headers.indexOf('Overdue?');
-  const actionCol = headers.indexOf('Next Best Action');
-  const dealCol = headers.indexOf('Deal Value ($)');
-
-  const overdue = data.slice(1).filter(r => r[overdueCol] === 'OVERDUE');
-  if (!overdue.length) return;
-
-  let body = `Good morning! You have ${overdue.length} overdue follow-up${overdue.length > 1 ? 's' : ''}:\n\n`;
-  overdue.forEach(r => {
-    body += `• ${r[nameCol]} — $${Number(r[dealCol]).toLocaleString()} — ${r[actionCol]}\n`;
-  });
-  body += `\nLog in to your CRM to take action today.`;
-
-  GmailApp.sendEmail(Session.getActiveUser().getEmail(), '🔔 Cornerstone CRM — Overdue Follow-Ups', body);
+  SpreadsheetApp.getUi().alert('✅ CRM ready!\n\nNext: Deploy as Web App\nDeploy → New deployment → Web App\nExecute as: Me | Access: Anyone\n\nCopy the URL into your bid tool app.');
 }

@@ -960,6 +960,19 @@
     }
   }
 
+  function getMapImageUrl() {
+    const key = localStorage.getItem('gmaps_key');
+    if (!polygon || !key) return '';
+    const coords = polygon.getPath().getArray();
+    const pathParts = coords.map(p => `${p.lat().toFixed(6)},${p.lng().toFixed(6)}`);
+    pathParts.push(pathParts[0]); // close polygon
+    const pathStr = 'color:0xff4400ff|weight:3|fillcolor:0xff44001a|' + pathParts.join('|');
+    const center = coords.reduce((acc, p) => ({ lat: acc.lat + p.lat(), lng: acc.lng + p.lng() }), { lat: 0, lng: 0 });
+    const clat = (center.lat / coords.length).toFixed(6);
+    const clng = (center.lng / coords.length).toFixed(6);
+    return `https://maps.googleapis.com/maps/api/staticmap?center=${clat},${clng}&size=600x300&maptype=satellite&path=${encodeURIComponent(pathStr)}&key=${key}`;
+  }
+
   async function saveLead(total, days) {
     const f = getCRMFields();
     setCRMStatus('Saving…', 'ok');
@@ -973,6 +986,7 @@
       dealValue: total,
       timeline: days,
       source: 'Bid Tool',
+      mapImageUrl: getMapImageUrl(),
     });
     if (result?.success) {
       setCRMStatus(`Saved as ${result.id}`, 'ok');
@@ -995,6 +1009,7 @@
       dealValue: total,
       timeline: days,
       source: 'Bid Tool',
+      mapImageUrl: getMapImageUrl(),
     });
     if (result?.success) {
       setCRMStatus(`Quote sent! Lead ${result.id || 'saved'}.`, 'ok');

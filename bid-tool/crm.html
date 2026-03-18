@@ -663,6 +663,7 @@
           <div class="detail-actions">
             <button class="detail-btn outline" onclick="addNote('${esc(lead.id)}')">Save Note</button>
             <button class="detail-btn" onclick="sendFollowUp('${esc(lead.id)}', '${esc(lead.email)}', '${esc(lead.name)}')">Send Follow-Up</button>
+            <button class="detail-btn outline" onclick="openSchedule('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">📅 Schedule Job</button>
           </div>
           <div class="detail-status" id="status-${esc(lead.id)}"></div>
         </div>
@@ -742,6 +743,56 @@
     }
   }
 
+  // ── Schedule Job ──────────────────────────────────────────────
+  let _schedData = {};
+  function openSchedule(id, name, email, phone, address, total) {
+    _schedData = { id, name, email, phone, address, total };
+    document.getElementById('schedName').textContent = name;
+    document.getElementById('schedModal').style.display = 'flex';
+    // Default to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('schedStart').value = tomorrow.toISOString().split('T')[0];
+    document.getElementById('schedEnd').value = tomorrow.toISOString().split('T')[0];
+    document.getElementById('schedCustomerEmail').value = email || '';
+    document.getElementById('schedStatus').textContent = '';
+  }
+
+  function closeSchedule() {
+    document.getElementById('schedModal').style.display = 'none';
+  }
+
+  async function confirmSchedule() {
+    const startDate = document.getElementById('schedStart').value;
+    const endDate   = document.getElementById('schedEnd').value;
+    const customerEmail = document.getElementById('schedCustomerEmail').value.trim();
+    if (!startDate) { document.getElementById('schedStatus').textContent = 'Pick a start date'; return; }
+    document.getElementById('schedStatus').textContent = 'Scheduling…';
+    try {
+      const r = await postCRM({
+        action: 'scheduleJob',
+        leadId: _schedData.id,
+        name: _schedData.name,
+        phone: _schedData.phone,
+        email: _schedData.email,
+        address: _schedData.address,
+        total: _schedData.total,
+        startDate,
+        endDate: endDate || startDate,
+        customerEmail,
+      });
+      if (r.success) {
+        document.getElementById('schedStatus').textContent = 'Job scheduled!';
+        setTimeout(closeSchedule, 1500);
+        loadLeads();
+      } else {
+        document.getElementById('schedStatus').textContent = r.error || 'Error scheduling';
+      }
+    } catch(e) {
+      document.getElementById('schedStatus').textContent = 'Network error';
+    }
+  }
+
   function setStatus(id, msg, isErr) {
     const el = document.getElementById('status-' + id);
     if (!el) return;
@@ -773,5 +824,30 @@
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 </script>
+
+<!-- Schedule Modal -->
+<div id="schedModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;width:100%;max-width:380px;">
+    <div style="font-size:16px;font-weight:700;color:white;margin-bottom:4px;">Schedule Job</div>
+    <div id="schedName" style="font-size:13px;color:#6fcf6f;margin-bottom:20px;"></div>
+
+    <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Start Date</label>
+    <input id="schedStart" type="date" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+
+    <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">End Date</label>
+    <input id="schedEnd" type="date" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+
+    <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Send Invite To Customer Email</label>
+    <input id="schedCustomerEmail" type="email" placeholder="customer@email.com" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 20px;box-sizing:border-box;">
+
+    <div id="schedStatus" style="font-size:13px;color:#6fcf6f;min-height:18px;margin-bottom:12px;"></div>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeSchedule()" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#aaa;font-size:14px;cursor:pointer;">Cancel</button>
+      <button onclick="confirmSchedule()" style="flex:2;padding:12px;background:#6fcf6f;border:none;border-radius:8px;color:#0a0a0a;font-size:14px;font-weight:700;cursor:pointer;">Add to Calendar</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
