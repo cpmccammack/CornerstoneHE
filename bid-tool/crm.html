@@ -530,11 +530,9 @@
 
   async function postCRM(payload) {
     const url = getCRMUrl();
-    const r = await fetch(url, {
-      method: 'POST',
-      redirect: 'follow',
-      body: JSON.stringify(payload),
-    });
+    const { action, ...rest } = payload;
+    const params = new URLSearchParams({ action, data: JSON.stringify(rest) });
+    const r = await fetch(`${url}?${params}`, { redirect: 'follow' });
     const text = await r.text();
     return JSON.parse(text);
   }
