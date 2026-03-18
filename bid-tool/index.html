@@ -193,6 +193,74 @@
 
     .sel-pill.on-amber .pill-price { color: rgba(255,232,160,0.5); }
 
+    /* Difficulty slider */
+    .diff-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(10,10,10,0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 8px;
+      padding: 7px 10px;
+    }
+
+    .diff-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .diff-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .diff-btn {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .diff-val {
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      min-width: 34px;
+      text-align: center;
+    }
+
+    .diff-val.has-diff { color: #f0a028; }
+
+    #diffSlider {
+      -webkit-appearance: none;
+      width: 80px;
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.15);
+      outline: none;
+    }
+
+    #diffSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #6fcf6f;
+      cursor: pointer;
+    }
+
     .estimate-btn {
       padding: 9px 18px;
       background: rgba(30,80,30,0.85);
@@ -523,14 +591,15 @@
       <span class="pill-price">$6,500/ac</span>
     </div>
   </div>
-  <div class="pill-row">
-    <div class="sel-pill" id="pill-smooth" onclick="selectTerrain('smooth')">
-      <span class="pill-label">Smooth</span>
-      <span class="pill-price">Standard</span>
-    </div>
-    <div class="sel-pill" id="pill-difficult" onclick="selectTerrain('difficult')">
-      <span class="pill-label">Difficult</span>
-      <span class="pill-price">+$2,200/day</span>
+  <div class="pill-row" id="diffRow">
+    <div class="diff-wrap">
+      <span class="diff-label">Difficulty</span>
+      <div class="diff-controls">
+        <button class="diff-btn" onclick="changeDiff(-5)">−</button>
+        <span class="diff-val" id="diffVal">0%</span>
+        <button class="diff-btn" onclick="changeDiff(5)">+</button>
+      </div>
+      <input type="range" id="diffSlider" min="0" max="100" step="5" value="0" oninput="setDiff(this.value)">
     </div>
   </div>
   <button class="estimate-btn" id="estimateBtn" onclick="openPanel()">View Estimate</button>
@@ -553,10 +622,9 @@
 
 <script>
   const RATES    = { light: 3500, medium: 4500, dense: 6500 };
-  const PROD_DAY = { light: 2.5,  medium: 1.5,  dense: 0.75 };
-  const TERRAIN_DAY = 2200;
+  const PROD_DAY = { light: 2, medium: 1, dense: 0.5 };
 
-  let acreage = null, density = null, terrain = null;
+  let acreage = null, density = null, difficulty = 0;
   let map, drawingManager, polygon;
 
   // ── API Key ──────────────────────────────────────────────────
@@ -669,26 +737,34 @@
   // ── Selectors ────────────────────────────────────────────────
   function selectDensity(val) {
     density = val;
-    ['light','medium','dense'].forEach(d => {
-      const el = document.getElementById('pill-' + d);
-      el.classList.toggle('on-green', d === val);
-    });
+    ['light','medium','dense'].forEach(d =>
+      document.getElementById('pill-' + d).classList.toggle('on-green', d === val)
+    );
     checkBtn();
   }
 
-  function selectTerrain(val) {
-    terrain = val;
-    const smooth = document.getElementById('pill-smooth');
-    const diff   = document.getElementById('pill-difficult');
-    smooth.classList.toggle('on-green', val === 'smooth');
-    diff.classList.remove('on-green');
-    diff.classList.toggle('on-amber', val === 'difficult');
+  function changeDiff(delta) {
+    difficulty = Math.max(0, Math.min(100, difficulty + delta));
+    document.getElementById('diffSlider').value = difficulty;
+    updateDiffDisplay();
     checkBtn();
+  }
+
+  function setDiff(val) {
+    difficulty = parseInt(val);
+    updateDiffDisplay();
+    checkBtn();
+  }
+
+  function updateDiffDisplay() {
+    const el = document.getElementById('diffVal');
+    el.textContent = difficulty + '%';
+    el.classList.toggle('has-diff', difficulty > 0);
   }
 
   function checkBtn() {
     document.getElementById('estimateBtn').style.display =
-      (acreage && density && terrain) ? 'block' : 'none';
+      (acreage && density) ? 'block' : 'none';
   }
 
   // ── Panel ────────────────────────────────────────────────────
@@ -704,33 +780,26 @@
   }
 
   function renderPanel() {
-    const rate = RATES[density];
-    const base = acreage * rate;
-    const prod = PROD_DAY[density];
-    let days = Math.ceil(acreage / prod);
-    let terrainCost = 0;
-
-    if (terrain === 'difficult') {
-      terrainCost = TERRAIN_DAY * days;
-      days = Math.ceil(days * 1.4);
-    }
-
-    const total = base + terrainCost;
+    const rate  = RATES[density];
+    const base  = acreage * rate;
+    const prod  = PROD_DAY[density];
+    const days  = Math.ceil(acreage / prod);
+    const diffCost = Math.round(base * (difficulty / 100));
+    const total = base + diffCost;
     const dLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
-    const tLabel = terrain === 'difficult' ? 'Difficult' : 'Smooth';
 
     document.getElementById('panelBody').innerHTML = `
       <div class="tags">
         <span class="tag tag-g">${acreage.toFixed(2)} ac</span>
         <span class="tag tag-g">${dLabel}</span>
-        <span class="tag ${terrain === 'difficult' ? 'tag-a' : 'tag-g'}">${tLabel}</span>
+        ${difficulty > 0 ? `<span class="tag tag-a">${difficulty}% Difficult</span>` : ''}
       </div>
 
       <div class="section-label">Breakdown</div>
       <div class="row"><span class="l">Acreage</span><span class="v">${acreage.toFixed(2)} ac</span></div>
       <div class="row"><span class="l">Rate</span><span class="v">$${rate.toLocaleString()}/ac</span></div>
-      <div class="row"><span class="l">Base</span><span class="v">$${Math.round(base).toLocaleString()}</span></div>
-      ${terrain === 'difficult' ? `<div class="row"><span class="l">Terrain</span><span class="v" style="color:#f0a028">+$${Math.round(terrainCost).toLocaleString()}</span></div>` : ''}
+      <div class="row"><span class="l">Base Price</span><span class="v">$${Math.round(base).toLocaleString()}</span></div>
+      ${difficulty > 0 ? `<div class="row"><span class="l">Difficulty (${difficulty}%)</span><span class="v" style="color:#f0a028">+$${diffCost.toLocaleString()}</span></div>` : ''}
 
       <div class="total-box">
         <span class="l">Total</span>
@@ -740,25 +809,26 @@
       <div class="tl-box">
         <div class="section-label">Timeline</div>
         <div class="tl-days">${days}<span>${days === 1 ? 'day' : 'days'}</span></div>
-        <div class="tl-note">${prod} ac/day · ${dLabel.toLowerCase()} density${terrain === 'difficult' ? ' · difficult terrain' : ''}</div>
+        <div class="tl-note">${prod} ac/day · ${dLabel.toLowerCase()} density</div>
       </div>
 
-      ${terrain === 'difficult' ? `<div class="warn-box">Difficult terrain — rocky, steep, or heavy debris. Duration extended, $2,200/day equipment rate applied.</div>` : ''}
+      ${difficulty >= 50 ? `<div class="warn-box">High difficulty — complex terrain will impact crew productivity and equipment usage.</div>` : ''}
 
       <button class="action-btn" onclick="copyQuote(${Math.round(total)}, ${days})" id="copyBtn">Copy Estimate</button>
     `;
   }
 
   function copyQuote(total, days) {
-    const rate = RATES[density];
-    const base = acreage * rate;
+    const rate  = RATES[density];
+    const base  = acreage * rate;
     const dLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
+    const diffCost = total - Math.round(base);
     let text =
       `Cornerstone Hardscape & Excavation\nForestry Mulching Estimate\n` +
       `——————————————\n` +
-      `Acreage: ${acreage.toFixed(2)} acres\nVegetation: ${dLabel}\nTerrain: ${terrain === 'difficult' ? 'Difficult' : 'Smooth'}\n` +
+      `Acreage: ${acreage.toFixed(2)} acres\nVegetation: ${dLabel}\n` +
       `Base: $${Math.round(base).toLocaleString()}\n`;
-    if (terrain === 'difficult') text += `Terrain Upcharge: +$${(total - Math.round(base)).toLocaleString()}\n`;
+    if (difficulty > 0) text += `Difficulty (${difficulty}%): +$${diffCost.toLocaleString()}\n`;
     text += `——————————————\nTotal: $${total.toLocaleString()}\nTimeline: ${days} ${days === 1 ? 'day' : 'days'}`;
 
     navigator.clipboard.writeText(text).then(() => {
