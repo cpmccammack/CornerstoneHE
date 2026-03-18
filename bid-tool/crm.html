@@ -6,16 +6,16 @@
   <title>Cornerstone CRM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
       width: 100%; height: 100%;
-      background: #F9FAFB;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      color: #374151;
-      letter-spacing: -0.01em;
+      background: #F5F5F0;
+      font-family: 'Figtree', 'Aptos Narrow', system-ui, sans-serif;
+      color: #111827;
+      letter-spacing: -0.02em;
       overflow-x: hidden;
     }
 
@@ -24,7 +24,7 @@
       position: fixed;
       inset: 0;
       z-index: 400;
-      background: #F9FAFB;
+      background: #F5F5F0;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -43,7 +43,7 @@
       font-size: 22px;
     }
 
-    .setup-screen h2 { font-size: 22px; font-weight: 700; color: #374151; margin-bottom: 8px; }
+    .setup-screen h2 { font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 8px; }
     .setup-screen .sub {
       font-size: 13px; color: #9CA3AF;
       margin-bottom: 28px; line-height: 1.6; max-width: 280px;
@@ -62,7 +62,7 @@
       border-radius: 10px;
       border: 1px solid #E5E7EB;
       background: #FFFFFF;
-      color: #374151;
+      color: #111827;
       font-size: 13px;
       font-family: inherit;
       outline: none;
@@ -95,10 +95,8 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(255,255,255,0.92);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+      background: #111827;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06);
       padding: 12px 16px;
     }
 
@@ -110,10 +108,11 @@
 
     .header-wordmark {
       font-size: 17px;
-      font-weight: 800;
-      color: #374151;
+      font-weight: 700;
+      color: #FFFFFF;
       letter-spacing: -0.3px;
       flex-shrink: 0;
+      font-family: 'Space Grotesk', sans-serif;
     }
 
     .header-wordmark span { color: #22C55E; }
@@ -129,7 +128,7 @@
       left: 10px;
       top: 50%;
       transform: translateY(-50%);
-      color: #9CA3AF;
+      color: rgba(255,255,255,0.35);
       font-size: 14px;
       pointer-events: none;
     }
@@ -138,17 +137,17 @@
       width: 100%;
       padding: 8px 10px 8px 32px;
       border-radius: 10px;
-      border: 1px solid #E5E7EB;
-      background: #F9FAFB;
-      color: #374151;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.08);
+      color: #FFFFFF;
       font-size: 13px;
       font-family: inherit;
       outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
     }
 
-    .header-search::placeholder { color: #9CA3AF; }
-    .header-search:focus { border-color: #22C55E; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(34,197,94,0.10); }
+    .header-search::placeholder { color: rgba(255,255,255,0.3); }
+    .header-search:focus { border-color: #22C55E; background: rgba(255,255,255,0.12); box-shadow: 0 0 0 3px rgba(34,197,94,0.15); }
 
     .header-actions {
       display: flex;
@@ -179,8 +178,8 @@
 
     .refresh-icon-btn {
       background: transparent;
-      border: 1px solid #E5E7EB;
-      color: #6B7280;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.55);
       font-size: 16px;
       cursor: pointer;
       padding: 7px 9px;
@@ -191,7 +190,7 @@
       transition: border-color 0.15s, color 0.15s;
     }
 
-    .refresh-icon-btn:hover { border-color: #22C55E; color: #22C55E; }
+    .refresh-icon-btn:hover { border-color: #22C55E; color: #22C55E; background: rgba(34,197,94,0.08); }
 
     /* ── Stats bar ── */
     .stats-bar {
@@ -210,10 +209,11 @@
 
     .stat-card .sv {
       font-size: 18px;
-      font-weight: 800;
+      font-weight: 700;
       color: #22C55E;
       line-height: 1.1;
       margin-bottom: 3px;
+      font-family: 'Space Grotesk', sans-serif;
     }
 
     .stat-card .sl {
@@ -223,6 +223,8 @@
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
+
+    #statWinRate, #statActive { color: #111827; }
 
     /* ── Kanban board ── */
     .board-wrap {
@@ -241,7 +243,7 @@
     .kanban-col {
       min-width: 280px;
       max-width: 280px;
-      background: #F3F4F6;
+      background: #ECEAE4;
       border-radius: 16px;
       padding: 0 0 12px;
       display: flex;
@@ -253,7 +255,7 @@
       position: sticky;
       top: 62px;
       z-index: 10;
-      background: #F3F4F6;
+      background: #ECEAE4;
       border-radius: 16px 16px 0 0;
       padding: 14px 14px 10px;
       display: flex;
@@ -264,7 +266,7 @@
     .col-title {
       font-size: 13px;
       font-weight: 700;
-      color: #374151;
+      color: #111827;
       flex: 1;
     }
 
@@ -319,15 +321,17 @@
 
     .card-name {
       font-size: 14px;
-      font-weight: 700;
-      color: #374151;
+      font-weight: 600;
+      color: #111827;
       line-height: 1.3;
+      font-family: 'Space Grotesk', sans-serif;
     }
 
     .card-value {
       font-size: 15px;
-      font-weight: 800;
+      font-weight: 700;
       color: #22C55E;
+      font-family: 'Space Grotesk', sans-serif;
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -355,22 +359,23 @@
       border: 1px solid transparent;
     }
 
-    .badge-new       { background: #EEF2FF; color: #4F46E5; border-color: #C7D2FE; }
-    .badge-contacted { background: #EFF6FF; color: #2563EB; border-color: #BFDBFE; }
-    .badge-quote     { background: #FFFBEB; color: #B45309; border-color: #FDE68A; }
-    .badge-followup  { background: #FFF7ED; color: #C2410C; border-color: #FED7AA; }
-    .badge-won       { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
-    .badge-lost      { background: #F9FAFB; color: #6B7280; border-color: #E5E7EB; }
+    /* 4-color badge system: green = active/won, gray = neutral/lost */
+    .badge-new       { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
+    .badge-contacted { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
+    .badge-quote     { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
+    .badge-followup  { background: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
+    .badge-won       { background: #22C55E; color: #FFFFFF; border-color: #22C55E; }
+    .badge-lost      { background: #F1F0EB; color: #6B7280; border-color: #E0DDD6; }
     .badge-overdue   { background: #FFF7ED; color: #C2410C; border-color: #FED7AA; }
-    .badge-days      { background: #F9FAFB; color: #9CA3AF; border-color: #E5E7EB; }
+    .badge-days      { background: #F1F0EB; color: #9CA3AF; border-color: #E0DDD6; }
 
-    /* Column count badge colors */
-    .col-count.badge-new       { background: #EEF2FF; color: #4F46E5; }
-    .col-count.badge-contacted { background: #EFF6FF; color: #2563EB; }
-    .col-count.badge-quote     { background: #FFFBEB; color: #B45309; }
-    .col-count.badge-followup  { background: #FFF7ED; color: #C2410C; }
-    .col-count.badge-won       { background: #F0FDF4; color: #15803D; }
-    .col-count.badge-lost      { background: #F9FAFB; color: #6B7280; border: 1px solid #E5E7EB; }
+    /* Column count badges */
+    .col-count.badge-new       { background: #F0FDF4; color: #15803D; }
+    .col-count.badge-contacted { background: #F0FDF4; color: #15803D; }
+    .col-count.badge-quote     { background: #F0FDF4; color: #15803D; }
+    .col-count.badge-followup  { background: #F0FDF4; color: #15803D; }
+    .col-count.badge-won       { background: #22C55E; color: #FFFFFF; }
+    .col-count.badge-lost      { background: #F1F0EB; color: #6B7280; border: 1px solid #E0DDD6; }
 
     .col-empty {
       font-size: 12px;
@@ -446,14 +451,15 @@
 
     .panel-name {
       font-size: 18px;
-      font-weight: 800;
-      color: #374151;
+      font-weight: 700;
+      color: #111827;
+      font-family: 'Space Grotesk', sans-serif;
       margin-bottom: 5px;
       line-height: 1.2;
     }
 
     .panel-close {
-      background: #F3F4F6;
+      background: #ECEAE4;
       border: none;
       border-radius: 8px;
       width: 32px; height: 32px;
@@ -469,7 +475,7 @@
       line-height: 1;
     }
 
-    .panel-close:hover { background: #E5E7EB; color: #374151; }
+    .panel-close:hover { background: #E5E7EB; color: #111827; }
 
     .panel-body {
       flex: 1;
@@ -491,7 +497,7 @@
       border-radius: 10px;
       border: 1px solid #E5E7EB;
       background: #FFFFFF;
-      color: #374151;
+      color: #111827;
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
@@ -504,7 +510,7 @@
     }
 
     .panel-contact-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
-    .panel-contact-btn:active { background: #F9FAFB; }
+    .panel-contact-btn:active { background: #F5F5F0; }
 
     /* Section label */
     .panel-label {
@@ -521,12 +527,12 @@
 
     /* Details */
     .panel-detail-box {
-      background: #F9FAFB;
-      border: 1px solid #E5E7EB;
+      background: #F5F5F0;
+      border: 1px solid #E0DDD6;
       border-radius: 10px;
       padding: 10px 13px;
       font-size: 13px;
-      color: #374151;
+      color: #111827;
       line-height: 1.5;
     }
 
@@ -540,7 +546,7 @@
     .panel-detail-box .drow + .drow { margin-top: 6px; padding-top: 6px; border-top: 1px solid #E5E7EB; }
 
     .panel-detail-box .dlabel { font-size: 11px; color: #9CA3AF; }
-    .panel-detail-box .dval { font-weight: 600; color: #374151; text-align: right; }
+    .panel-detail-box .dval { font-weight: 600; color: #111827; text-align: right; }
     .panel-detail-box .dval.green { color: #22C55E; }
 
     /* Stage pills */
@@ -566,9 +572,9 @@
     }
 
     .stage-pill.active-stage {
-      background: #F0FDF4;
+      background: #22C55E;
       border-color: #22C55E;
-      color: #15803D;
+      color: #FFFFFF;
     }
 
     /* Timeline */
@@ -624,7 +630,7 @@
       border-radius: 10px;
       border: 1px solid #E5E7EB;
       background: #FFFFFF;
-      color: #374151;
+      color: #111827;
       font-size: 13px;
       outline: none;
       resize: none;
@@ -664,7 +670,7 @@
     .panel-btn.outline {
       background: #FFFFFF;
       border: 1px solid #E5E7EB;
-      color: #374151;
+      color: #111827;
     }
 
     .panel-btn.outline:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.08); transform: translateY(-1px); }
