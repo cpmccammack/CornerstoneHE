@@ -13,13 +13,12 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
-    /* ── Full screen map ── */
     #map {
       position: fixed;
       inset: 0;
       width: 100vw;
       height: 100vh;
-      background: #1a1a1a;
+      background: #111;
     }
 
     /* ── Top bar ── */
@@ -29,30 +28,53 @@
       z-index: 100;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      padding: 12px 14px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+      gap: 7px;
+      padding: 14px 14px 0;
     }
 
     .top-bar-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .top-bar h1 {
-      font-size: 15px;
-      font-weight: 800;
+      font-size: 14px;
+      font-weight: 700;
       color: white;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
       flex: 1;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
     }
 
-    .top-bar h1 span {
-      color: #7dc87d;
+    .top-bar h1 span { color: #6fcf6f; }
+
+    .glass-btn {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: white;
+      border-radius: 8px;
+      padding: 7px 13px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
     }
 
-    /* Search bar */
+    .glass-btn:active { background: rgba(255,255,255,0.22); }
+
+    .glass-btn.active {
+      background: rgba(111,207,111,0.25);
+      border-color: rgba(111,207,111,0.5);
+      color: #aeffae;
+    }
+
+    /* Search */
     .search-wrap {
       display: flex;
       gap: 6px;
@@ -60,220 +82,194 @@
 
     #addressInput {
       flex: 1;
-      padding: 7px 12px;
+      padding: 8px 12px;
       border-radius: 8px;
-      border: 1.5px solid rgba(255,255,255,0.2);
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       color: white;
       font-size: 13px;
       outline: none;
     }
 
-    #addressInput::placeholder { color: rgba(255,255,255,0.4); }
+    #addressInput::placeholder { color: rgba(255,255,255,0.35); }
 
-    .search-btn {
-      padding: 7px 12px;
+    .search-go {
+      padding: 8px 13px;
       border-radius: 8px;
-      border: 1.5px solid rgba(255,255,255,0.2);
-      background: rgba(28,58,28,0.8);
-      backdrop-filter: blur(10px);
-      color: white;
-      font-size: 13px;
+      border: 1px solid rgba(111,207,111,0.3);
+      background: rgba(40,90,40,0.6);
+      backdrop-filter: blur(16px);
+      color: #aeffae;
+      font-size: 12px;
       font-weight: 700;
       cursor: pointer;
-      white-space: nowrap;
+      letter-spacing: 0.5px;
     }
 
-    /* Override Google autocomplete dropdown to match dark theme */
-    .pac-container {
-      background: rgba(15,31,15,0.97);
-      border: 1px solid rgba(125,200,125,0.3);
-      border-radius: 10px;
-      margin-top: 4px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
-    .pac-item {
-      color: #c5d9c5;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      padding: 8px 12px;
-      font-size: 13px;
-      cursor: pointer;
-    }
-    .pac-item:hover { background: rgba(74,124,74,0.3); }
-    .pac-item-query { color: white; font-weight: 600; }
-    .pac-icon { display: none; }
-
-    .icon-btn {
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: white;
-      border-radius: 10px;
-      padding: 8px 14px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      -webkit-tap-highlight-color: transparent;
-      transition: background 0.15s;
-    }
-
-    .icon-btn:active { background: rgba(255,255,255,0.3); }
-
-    .icon-btn.draw-active {
-      background: rgba(125,200,125,0.4);
-      border-color: #7dc87d;
-    }
-
-    /* ── Acreage badge ── */
-    .acreage-badge {
+    /* Acreage pill */
+    .acreage-pill {
       position: fixed;
-      top: 60px;
+      top: 90px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 100;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(125,200,125,0.4);
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(111,207,111,0.35);
       border-radius: 20px;
-      padding: 6px 16px;
-      color: white;
-      font-size: 14px;
-      font-weight: 700;
+      padding: 5px 16px;
+      color: rgba(255,255,255,0.9);
+      font-size: 13px;
+      font-weight: 600;
       display: none;
       white-space: nowrap;
+      letter-spacing: 0.2px;
     }
 
-    .acreage-badge.visible { display: block; }
-    .acreage-badge span { color: #7dc87d; }
+    .acreage-pill.visible { display: block; }
+    .acreage-pill b { color: #6fcf6f; }
 
     /* ── Bottom controls ── */
     .bottom-controls {
       position: fixed;
       bottom: 0; left: 0; right: 0;
       z-index: 100;
-      padding: 16px 14px 28px;
-      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+      padding: 0 12px 24px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-    }
-
-    .control-row {
-      display: flex;
       gap: 8px;
-      justify-content: center;
     }
 
-    .pill {
+    .pill-row {
+      display: flex;
+      gap: 7px;
+    }
+
+    .sel-pill {
       flex: 1;
-      max-width: 120px;
-      padding: 10px 8px;
-      border-radius: 12px;
-      border: 1.5px solid rgba(255,255,255,0.2);
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(10px);
+      padding: 11px 6px 9px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.13);
+      background: rgba(10,10,10,0.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       color: white;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 600;
       text-align: center;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       transition: all 0.15s;
+      letter-spacing: 0.2px;
     }
 
-    .pill .pill-icon { font-size: 18px; display: block; margin-bottom: 2px; }
-    .pill .pill-sub { font-size: 10px; color: rgba(255,255,255,0.55); font-weight: 500; margin-top: 1px; }
-
-    .pill.selected {
-      border-color: #7dc87d;
-      background: rgba(28,58,28,0.85);
+    .sel-pill .pill-label { display: block; margin-bottom: 1px; }
+    .sel-pill .pill-price {
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+      font-weight: 500;
+      letter-spacing: 0;
     }
 
-    .pill.selected-warn {
-      border-color: #f0a030;
-      background: rgba(80,40,0,0.85);
+    .sel-pill.on-green {
+      border-color: rgba(111,207,111,0.5);
+      background: rgba(30,70,30,0.75);
+      color: #c8ffc8;
     }
 
-    .quote-btn {
+    .sel-pill.on-green .pill-price { color: rgba(200,255,200,0.5); }
+
+    .sel-pill.on-amber {
+      border-color: rgba(240,160,40,0.5);
+      background: rgba(70,35,0,0.75);
+      color: #ffe8a0;
+    }
+
+    .sel-pill.on-amber .pill-price { color: rgba(255,232,160,0.5); }
+
+    .estimate-btn {
       width: 100%;
-      padding: 14px;
-      background: #2a6a2a;
-      color: white;
-      border: none;
-      border-radius: 14px;
-      font-size: 16px;
-      font-weight: 800;
+      padding: 13px;
+      background: rgba(30,80,30,0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(111,207,111,0.35);
+      color: #c8ffc8;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
       cursor: pointer;
       display: none;
+      letter-spacing: 0.3px;
       -webkit-tap-highlight-color: transparent;
-      transition: background 0.15s;
     }
 
-    .quote-btn:active { background: #3a8a3a; }
-
     /* ── Side panel ── */
-    .panel-backdrop {
+    .backdrop {
       position: fixed;
       inset: 0;
       z-index: 200;
-      background: rgba(0,0,0,0.3);
+      background: rgba(0,0,0,0.25);
+      backdrop-filter: blur(2px);
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.3s;
     }
 
-    .panel-backdrop.open {
-      opacity: 1;
-      pointer-events: all;
-    }
+    .backdrop.open { opacity: 1; pointer-events: all; }
 
-    .side-panel {
+    .panel {
       position: fixed;
       top: 0; right: 0;
-      width: min(360px, 88vw);
+      width: min(340px, 90vw);
       height: 100vh;
       z-index: 201;
-      background: #0f1f0f;
+      background: rgba(8,18,8,0.92);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-left: 1px solid rgba(255,255,255,0.08);
       transform: translateX(100%);
-      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+      transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
-    .side-panel.open {
-      transform: translateX(0);
-    }
+    .panel.open { transform: translateX(0); }
 
-    .panel-header {
-      background: #1c3a1c;
-      padding: 52px 20px 18px;
+    .panel-head {
+      padding: 52px 20px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
       display: flex;
       align-items: flex-end;
       justify-content: space-between;
     }
 
-    .panel-header h2 {
-      font-size: 20px;
-      font-weight: 800;
-      color: white;
-    }
-
-    .panel-header p {
-      font-size: 12px;
-      color: #7dc87d;
-      margin-top: 2px;
-    }
-
-    .close-btn {
-      background: rgba(255,255,255,0.1);
-      border: none;
-      color: white;
-      width: 32px; height: 32px;
-      border-radius: 50%;
+    .panel-head h2 {
       font-size: 18px;
+      font-weight: 700;
+      color: white;
+      letter-spacing: 0.3px;
+    }
+
+    .panel-head p {
+      font-size: 11px;
+      color: rgba(111,207,111,0.8);
+      margin-top: 2px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .x-btn {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: none;
+      color: rgba(255,255,255,0.6);
+      font-size: 14px;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -284,264 +280,284 @@
     .panel-body {
       flex: 1;
       overflow-y: auto;
-      padding: 20px;
+      padding: 18px 20px;
       -webkit-overflow-scrolling: touch;
     }
 
-    .summary-chips {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-    }
+    /* Tags */
+    .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
 
-    .chip {
-      padding: 5px 12px;
+    .tag {
+      padding: 4px 10px;
       border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      background: rgba(255,255,255,0.08);
-      color: #c5d9c5;
-    }
-
-    .chip.green { background: rgba(74,124,74,0.4); color: #7dc87d; }
-    .chip.orange { background: rgba(200,120,20,0.4); color: #f0c060; }
-
-    /* Quote rows */
-    .q-section {
-      margin-bottom: 20px;
-    }
-
-    .q-label {
       font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .tag-g { background: rgba(111,207,111,0.15); color: #6fcf6f; border: 1px solid rgba(111,207,111,0.2); }
+    .tag-a { background: rgba(240,160,40,0.15); color: #f0a028; border: 1px solid rgba(240,160,40,0.2); }
+
+    /* Rows */
+    .section-label {
+      font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #4a7c4a;
-      margin-bottom: 10px;
+      letter-spacing: 1px;
+      color: rgba(111,207,111,0.6);
+      margin-bottom: 8px;
     }
 
-    .q-row {
+    .row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      font-size: 14px;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 13px;
     }
 
-    .q-row .lbl { color: #8aaa8a; }
-    .q-row .val { color: white; font-weight: 600; }
+    .row .l { color: rgba(255,255,255,0.45); }
+    .row .v { color: white; font-weight: 600; }
 
-    .q-total {
-      background: rgba(74,124,74,0.2);
-      border: 1px solid rgba(125,200,125,0.3);
-      border-radius: 12px;
-      padding: 16px;
+    /* Total box */
+    .total-box {
+      background: rgba(111,207,111,0.08);
+      border: 1px solid rgba(111,207,111,0.2);
+      border-radius: 10px;
+      padding: 14px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin: 14px 0;
     }
 
-    .q-total .lbl { color: #a8c5a8; font-size: 14px; font-weight: 700; }
-    .q-total .val { font-size: 30px; font-weight: 900; color: #7dc87d; }
+    .total-box .l { color: rgba(255,255,255,0.5); font-size: 13px; font-weight: 600; }
+    .total-box .v { font-size: 28px; font-weight: 800; color: #6fcf6f; }
 
     /* Timeline */
-    .timeline-box {
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .timeline-box .tl-title {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #4a7c4a;
-      margin-bottom: 10px;
-    }
-
-    .timeline-days {
-      font-size: 28px;
-      font-weight: 900;
-      color: white;
-    }
-
-    .timeline-days span { font-size: 14px; color: #8aaa8a; font-weight: 500; margin-left: 4px; }
-
-    .timeline-note {
-      font-size: 12px;
-      color: #8aaa8a;
-      margin-top: 4px;
-      line-height: 1.4;
-    }
-
-    .terrain-warning {
-      background: rgba(200,120,20,0.15);
-      border: 1px solid rgba(200,120,20,0.3);
+    .tl-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
       border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 12px;
-      color: #f0c060;
-      margin-bottom: 16px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+
+    .tl-box .section-label { margin-bottom: 6px; }
+
+    .tl-days {
+      font-size: 26px;
+      font-weight: 800;
+      color: white;
+      line-height: 1;
+    }
+
+    .tl-days span { font-size: 13px; color: rgba(255,255,255,0.4); font-weight: 400; margin-left: 4px; }
+
+    .tl-note {
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      margin-top: 5px;
       line-height: 1.4;
     }
 
-    .copy-btn {
+    /* Warning */
+    .warn-box {
+      background: rgba(240,160,40,0.08);
+      border: 1px solid rgba(240,160,40,0.2);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 11px;
+      color: rgba(240,160,40,0.85);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    /* Action btn */
+    .action-btn {
       width: 100%;
-      padding: 14px;
-      background: #2a6a2a;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 15px;
+      padding: 13px;
+      background: rgba(30,80,30,0.7);
+      border: 1px solid rgba(111,207,111,0.3);
+      color: #c8ffc8;
+      border-radius: 10px;
+      font-size: 14px;
       font-weight: 700;
       cursor: pointer;
+      letter-spacing: 0.3px;
       transition: background 0.15s;
     }
 
-    .copy-btn:active { background: #3a8a3a; }
+    .action-btn:active { background: rgba(40,100,40,0.9); }
 
-    /* API key screen */
+    /* API screen */
     .api-screen {
       position: fixed;
       inset: 0;
       z-index: 300;
-      background: #0f1f0f;
+      background: rgba(6,14,6,0.97);
+      backdrop-filter: blur(20px);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 30px;
+      padding: 32px;
       text-align: center;
     }
 
-    .api-screen .logo { font-size: 48px; margin-bottom: 16px; }
-    .api-screen h2 { font-size: 22px; font-weight: 800; color: white; margin-bottom: 8px; }
-    .api-screen p { font-size: 14px; color: #7a9a7a; margin-bottom: 24px; line-height: 1.5; }
+    .api-mark {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      background: rgba(111,207,111,0.12);
+      border: 1px solid rgba(111,207,111,0.25);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 18px;
+    }
+
+    .api-mark svg { width: 24px; height: 24px; }
+
+    .api-screen h2 { font-size: 20px; font-weight: 700; color: white; margin-bottom: 6px; }
+    .api-screen p { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 24px; line-height: 1.5; }
 
     .api-input {
       width: 100%;
-      padding: 14px 16px;
-      border-radius: 12px;
-      border: 1.5px solid #2a5a2a;
-      background: rgba(255,255,255,0.07);
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
       color: white;
-      font-size: 14px;
-      margin-bottom: 12px;
+      font-size: 13px;
+      margin-bottom: 10px;
       outline: none;
     }
 
-    .api-input::placeholder { color: #4a6a4a; }
+    .api-input::placeholder { color: rgba(255,255,255,0.25); }
 
-    .api-save-btn {
+    .api-go {
       width: 100%;
-      padding: 14px;
-      background: #2a6a2a;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
+      padding: 13px;
+      background: rgba(30,80,30,0.8);
+      border: 1px solid rgba(111,207,111,0.3);
+      color: #c8ffc8;
+      border-radius: 10px;
+      font-size: 14px;
       font-weight: 700;
       cursor: pointer;
+      letter-spacing: 0.3px;
     }
 
-    .divider { height: 1px; background: rgba(255,255,255,0.06); margin: 4px 0; }
+    /* Google autocomplete */
+    .pac-container {
+      background: rgba(10,20,10,0.97) !important;
+      border: 1px solid rgba(255,255,255,0.1) !important;
+      border-radius: 10px !important;
+      margin-top: 4px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
+    }
+    .pac-item {
+      color: rgba(255,255,255,0.7) !important;
+      border-top: 1px solid rgba(255,255,255,0.05) !important;
+      padding: 9px 12px !important;
+      font-size: 13px !important;
+      cursor: pointer;
+    }
+    .pac-item:hover, .pac-item-selected { background: rgba(111,207,111,0.12) !important; }
+    .pac-item-query { color: white !important; font-weight: 600 !important; }
+    .pac-icon, .pac-item-logo, .hdpi.pac-logo::after { display: none !important; }
+    .pac-logo::after { display: none !important; }
   </style>
 </head>
 <body>
 
-<!-- API Key Screen -->
+<!-- API screen -->
 <div class="api-screen" id="apiScreen">
-  <div class="logo">🌲</div>
+  <div class="api-mark">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#6fcf6f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+    </svg>
+  </div>
   <h2>Cornerstone Bid Tool</h2>
-  <p>Enter your Google Maps API key to get started. You only need to do this once.</p>
+  <p>Enter your Google Maps API key.<br>You only need to do this once.</p>
   <input class="api-input" id="apiKeyInput" type="text" placeholder="Paste API key here…">
-  <button class="api-save-btn" onclick="saveApiKey()">Load Map →</button>
+  <button class="api-go" onclick="saveApiKey()">Continue</button>
 </div>
 
-<!-- Full screen map -->
+<!-- Map -->
 <div id="map"></div>
 
 <!-- Top bar -->
 <div class="top-bar">
   <div class="top-bar-row">
     <h1>Cornerstone <span>Bid</span></h1>
-    <button class="icon-btn" id="drawBtn" onclick="startDrawing()">✏️ Draw</button>
-    <button class="icon-btn" onclick="clearDrawing()">🗑 Clear</button>
+    <button class="glass-btn" id="drawBtn" onclick="startDrawing()">Draw</button>
+    <button class="glass-btn" onclick="clearDrawing()">Clear</button>
   </div>
   <div class="search-wrap">
-    <input id="addressInput" type="text" placeholder="Search address or location…" onkeydown="if(event.key==='Enter') searchAddress()">
-    <button class="search-btn" onclick="searchAddress()">Go</button>
+    <input id="addressInput" type="text" placeholder="Search address…" onkeydown="if(event.key==='Enter') searchAddress()">
+    <button class="search-go" onclick="searchAddress()">Go</button>
   </div>
 </div>
 
-<!-- Acreage badge -->
-<div class="acreage-badge" id="acreageBadge">
-  <span id="acreageVal">—</span> acres drawn
+<!-- Acreage pill -->
+<div class="acreage-pill" id="acreagePill">
+  <b id="acreageVal">—</b> acres
 </div>
 
 <!-- Bottom controls -->
 <div class="bottom-controls">
-  <div class="control-row" id="densityRow">
-    <div class="pill" id="pill-light" onclick="selectDensity('light')">
-      <span class="pill-icon">🌿</span>
-      Light
-      <div class="pill-sub">$3,500/ac</div>
+  <div class="pill-row" id="densityRow">
+    <div class="sel-pill" id="pill-light" onclick="selectDensity('light')">
+      <span class="pill-label">Light</span>
+      <span class="pill-price">$3,500/ac</span>
     </div>
-    <div class="pill" id="pill-medium" onclick="selectDensity('medium')">
-      <span class="pill-icon">🌳</span>
-      Medium
-      <div class="pill-sub">$4,500/ac</div>
+    <div class="sel-pill" id="pill-medium" onclick="selectDensity('medium')">
+      <span class="pill-label">Medium</span>
+      <span class="pill-price">$4,500/ac</span>
     </div>
-    <div class="pill" id="pill-dense" onclick="selectDensity('dense')">
-      <span class="pill-icon">🌲</span>
-      Dense
-      <div class="pill-sub">$6,500/ac</div>
+    <div class="sel-pill" id="pill-dense" onclick="selectDensity('dense')">
+      <span class="pill-label">Dense</span>
+      <span class="pill-price">$6,500/ac</span>
     </div>
   </div>
-  <div class="control-row" id="terrainRow">
-    <div class="pill" id="pill-smooth" onclick="selectTerrain('smooth')">
-      <span class="pill-icon">✅</span>
-      Smooth
-      <div class="pill-sub">Standard</div>
+  <div class="pill-row">
+    <div class="sel-pill" id="pill-smooth" onclick="selectTerrain('smooth')">
+      <span class="pill-label">Smooth</span>
+      <span class="pill-price">Standard</span>
     </div>
-    <div class="pill pill-warn" id="pill-difficult" onclick="selectTerrain('difficult')">
-      <span class="pill-icon">⚠️</span>
-      Difficult
-      <div class="pill-sub">+$2,200/day</div>
+    <div class="sel-pill" id="pill-difficult" onclick="selectTerrain('difficult')">
+      <span class="pill-label">Difficult</span>
+      <span class="pill-price">+$2,200/day</span>
     </div>
   </div>
-  <button class="quote-btn" id="quoteBtn" onclick="openPanel()">View Estimate →</button>
+  <button class="estimate-btn" id="estimateBtn" onclick="openPanel()">View Estimate</button>
 </div>
 
-<!-- Panel backdrop -->
-<div class="panel-backdrop" id="backdrop" onclick="closePanel()"></div>
+<!-- Backdrop -->
+<div class="backdrop" id="backdrop" onclick="closePanel()"></div>
 
-<!-- Side panel -->
-<div class="side-panel" id="sidePanel">
-  <div class="panel-header">
+<!-- Panel -->
+<div class="panel" id="panel">
+  <div class="panel-head">
     <div>
       <h2>Estimate</h2>
       <p>Forestry Mulching</p>
     </div>
-    <button class="close-btn" onclick="closePanel()">✕</button>
+    <button class="x-btn" onclick="closePanel()">✕</button>
   </div>
   <div class="panel-body" id="panelBody"></div>
 </div>
 
 <script>
   const RATES    = { light: 3500, medium: 4500, dense: 6500 };
-  const PROD_DAY = { light: 2.5,  medium: 1.5,  dense: 0.75 }; // acres/day
-  const TERRAIN_UPCHARGE = 2200;
+  const PROD_DAY = { light: 2.5,  medium: 1.5,  dense: 0.75 };
+  const TERRAIN_DAY = 2200;
 
   let acreage = null, density = null, terrain = null;
   let map, drawingManager, polygon;
 
-  // ── API Key ─────────────────────────────────────────────────────
+  // ── API Key ──────────────────────────────────────────────────
   function saveApiKey() {
     const key = document.getElementById('apiKeyInput').value.trim();
     if (!key) return;
@@ -565,7 +581,7 @@
     }
   });
 
-  // ── Map init ────────────────────────────────────────────────────
+  // ── Map ──────────────────────────────────────────────────────
   function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
       center: { lat: 38.2527, lng: -85.7585 },
@@ -580,10 +596,10 @@
       drawingMode: null,
       drawingControl: false,
       polygonOptions: {
-        fillColor: '#4a7c4a',
-        fillOpacity: 0.3,
-        strokeColor: '#7dc87d',
-        strokeWeight: 2.5,
+        fillColor: '#4a9a4a',
+        fillOpacity: 0.25,
+        strokeColor: '#6fcf6f',
+        strokeWeight: 2,
         editable: true,
         draggable: true,
       },
@@ -596,7 +612,7 @@
       if (polygon) polygon.setMap(null);
       polygon = poly;
       drawingManager.setDrawingMode(null);
-      document.getElementById('drawBtn').classList.remove('draw-active');
+      document.getElementById('drawBtn').classList.remove('active');
       updateAcreage();
       google.maps.event.addListener(poly.getPath(), 'set_at', updateAcreage);
       google.maps.event.addListener(poly.getPath(), 'insert_at', updateAcreage);
@@ -605,11 +621,9 @@
 
   function initAutocomplete() {
     const input = document.getElementById('addressInput');
-    const autocomplete = new google.maps.places.Autocomplete(input, {
-      fields: ['geometry'],
-    });
-    autocomplete.addListener('place_changed', () => {
-      const place = autocomplete.getPlace();
+    const ac = new google.maps.places.Autocomplete(input, { fields: ['geometry'] });
+    ac.addListener('place_changed', () => {
+      const place = ac.getPlace();
       if (place.geometry) {
         map.setCenter(place.geometry.location);
         map.setZoom(17);
@@ -619,15 +633,10 @@
   }
 
   function searchAddress() {
-    const input = document.getElementById('addressInput').value.trim();
-    if (!input || !map) return;
-    const geocoder = new google.maps.Geocoder();
-    geocoder.geocode({ address: input }, (results, status) => {
-      if (status === 'OK') {
-        map.setCenter(results[0].geometry.location);
-        map.setZoom(17);
-        document.getElementById('addressInput').blur();
-      }
+    const val = document.getElementById('addressInput').value.trim();
+    if (!val || !map) return;
+    new google.maps.Geocoder().geocode({ address: val }, (r, s) => {
+      if (s === 'OK') { map.setCenter(r[0].geometry.location); map.setZoom(17); }
     });
   }
 
@@ -635,146 +644,125 @@
     if (!drawingManager) return;
     clearDrawing();
     drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
-    document.getElementById('drawBtn').classList.add('draw-active');
+    document.getElementById('drawBtn').classList.add('active');
   }
 
   function clearDrawing() {
     if (polygon) { polygon.setMap(null); polygon = null; }
     acreage = null;
-    document.getElementById('acreageBadge').classList.remove('visible');
-    document.getElementById('drawBtn').classList.remove('draw-active');
-    checkShowQuoteBtn();
+    document.getElementById('acreagePill').classList.remove('visible');
+    document.getElementById('drawBtn').classList.remove('active');
+    checkBtn();
   }
 
   function updateAcreage() {
     if (!polygon) return;
     const sq = google.maps.geometry.spherical.computeArea(polygon.getPath());
     acreage = Math.round((sq / 4046.856) * 100) / 100;
-    const badge = document.getElementById('acreageBadge');
     document.getElementById('acreageVal').textContent = acreage.toFixed(2);
-    badge.classList.add('visible');
-    checkShowQuoteBtn();
+    document.getElementById('acreagePill').classList.add('visible');
+    checkBtn();
   }
 
-  // ── Selectors ───────────────────────────────────────────────────
+  // ── Selectors ────────────────────────────────────────────────
   function selectDensity(val) {
     density = val;
-    ['light','medium','dense'].forEach(d =>
-      document.getElementById('pill-' + d).classList.toggle('selected', d === val)
-    );
-    checkShowQuoteBtn();
+    ['light','medium','dense'].forEach(d => {
+      const el = document.getElementById('pill-' + d);
+      el.classList.toggle('on-green', d === val);
+    });
+    checkBtn();
   }
 
   function selectTerrain(val) {
     terrain = val;
-    document.getElementById('pill-smooth').classList.toggle('selected', val === 'smooth');
-    document.getElementById('pill-difficult').classList.toggle('selected-warn', val === 'difficult');
-    document.getElementById('pill-difficult').classList.toggle('selected', false);
-    checkShowQuoteBtn();
+    const smooth = document.getElementById('pill-smooth');
+    const diff   = document.getElementById('pill-difficult');
+    smooth.classList.toggle('on-green', val === 'smooth');
+    diff.classList.remove('on-green');
+    diff.classList.toggle('on-amber', val === 'difficult');
+    checkBtn();
   }
 
-  function checkShowQuoteBtn() {
-    const show = acreage && density && terrain;
-    const btn = document.getElementById('quoteBtn');
-    btn.style.display = show ? 'block' : 'none';
+  function checkBtn() {
+    document.getElementById('estimateBtn').style.display =
+      (acreage && density && terrain) ? 'block' : 'none';
   }
 
-  // ── Panel ───────────────────────────────────────────────────────
+  // ── Panel ────────────────────────────────────────────────────
   function openPanel() {
-    renderQuote();
-    document.getElementById('sidePanel').classList.add('open');
+    renderPanel();
+    document.getElementById('panel').classList.add('open');
     document.getElementById('backdrop').classList.add('open');
   }
 
   function closePanel() {
-    document.getElementById('sidePanel').classList.remove('open');
+    document.getElementById('panel').classList.remove('open');
     document.getElementById('backdrop').classList.remove('open');
   }
 
-  function renderQuote() {
-    const rate     = RATES[density];
-    const base     = acreage * rate;
-    const prodRate = PROD_DAY[density];
-    let   days     = Math.ceil(acreage / prodRate);
-    let   terrainCost = 0;
+  function renderPanel() {
+    const rate = RATES[density];
+    const base = acreage * rate;
+    const prod = PROD_DAY[density];
+    let days = Math.ceil(acreage / prod);
+    let terrainCost = 0;
 
     if (terrain === 'difficult') {
-      terrainCost = TERRAIN_UPCHARGE * days; // upcharge per extra day
-      days = Math.ceil(days * 1.4); // 40% longer on difficult terrain
+      terrainCost = TERRAIN_DAY * days;
+      days = Math.ceil(days * 1.4);
     }
 
     const total = base + terrainCost;
+    const dLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
+    const tLabel = terrain === 'difficult' ? 'Difficult' : 'Smooth';
 
-    const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
-    const terrainLabel = terrain === 'difficult' ? 'Difficult' : 'Smooth';
-
-    let html = `
-      <div class="summary-chips">
-        <div class="chip green">${acreage.toFixed(2)} acres</div>
-        <div class="chip green">${densityLabel}</div>
-        <div class="chip ${terrain === 'difficult' ? 'orange' : 'green'}">${terrainLabel} Terrain</div>
+    document.getElementById('panelBody').innerHTML = `
+      <div class="tags">
+        <span class="tag tag-g">${acreage.toFixed(2)} ac</span>
+        <span class="tag tag-g">${dLabel}</span>
+        <span class="tag ${terrain === 'difficult' ? 'tag-a' : 'tag-g'}">${tLabel}</span>
       </div>
 
-      <div class="q-section">
-        <div class="q-label">Pricing Breakdown</div>
-        <div class="q-row"><span class="lbl">Acreage</span><span class="val">${acreage.toFixed(2)} ac</span></div>
-        <div class="q-row"><span class="lbl">Rate (${densityLabel})</span><span class="val">$${rate.toLocaleString()}/ac</span></div>
-        <div class="q-row"><span class="lbl">Base Price</span><span class="val">$${Math.round(base).toLocaleString()}</span></div>
-        ${terrain === 'difficult' ? `
-        <div class="q-row"><span class="lbl">Terrain Upcharge</span><span class="val" style="color:#f0c060;">+$${Math.round(terrainCost).toLocaleString()}</span></div>
-        ` : ''}
-        <div class="divider"></div>
+      <div class="section-label">Breakdown</div>
+      <div class="row"><span class="l">Acreage</span><span class="v">${acreage.toFixed(2)} ac</span></div>
+      <div class="row"><span class="l">Rate</span><span class="v">$${rate.toLocaleString()}/ac</span></div>
+      <div class="row"><span class="l">Base</span><span class="v">$${Math.round(base).toLocaleString()}</span></div>
+      ${terrain === 'difficult' ? `<div class="row"><span class="l">Terrain</span><span class="v" style="color:#f0a028">+$${Math.round(terrainCost).toLocaleString()}</span></div>` : ''}
+
+      <div class="total-box">
+        <span class="l">Total</span>
+        <span class="v">$${Math.round(total).toLocaleString()}</span>
       </div>
 
-      <div class="q-total">
-        <span class="lbl">Total Estimate</span>
-        <span class="val">$${Math.round(total).toLocaleString()}</span>
+      <div class="tl-box">
+        <div class="section-label">Timeline</div>
+        <div class="tl-days">${days}<span>${days === 1 ? 'day' : 'days'}</span></div>
+        <div class="tl-note">${prod} ac/day · ${dLabel.toLowerCase()} density${terrain === 'difficult' ? ' · difficult terrain' : ''}</div>
       </div>
 
-      <div class="timeline-box">
-        <div class="tl-title">Estimated Timeline</div>
-        <div class="timeline-days">${days === 1 ? '1' : `${days}`}<span>${days === 1 ? 'day' : 'days'}</span></div>
-        <div class="timeline-note">Based on ${prodRate} acres/day production rate for ${densityLabel.toLowerCase()} vegetation${terrain === 'difficult' ? ', adjusted for difficult terrain' : ''}.</div>
-      </div>
+      ${terrain === 'difficult' ? `<div class="warn-box">Difficult terrain — rocky, steep, or heavy debris. Duration extended, $2,200/day equipment rate applied.</div>` : ''}
 
-      ${terrain === 'difficult' ? `
-      <div class="terrain-warning">⚠️ Difficult terrain — rocky, steep, or heavy debris. Project duration extended and $2,200/day equipment rate applied.</div>
-      ` : ''}
-
-      <button class="copy-btn" onclick="copyQuote(${Math.round(total)}, ${days})">📋 Copy Estimate</button>
+      <button class="action-btn" onclick="copyQuote(${Math.round(total)}, ${days})" id="copyBtn">Copy Estimate</button>
     `;
-
-    document.getElementById('panelBody').innerHTML = html;
   }
 
   function copyQuote(total, days) {
-    const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
     const rate = RATES[density];
     const base = acreage * rate;
-
+    const dLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
     let text =
-      `Cornerstone Hardscape & Excavation\n` +
-      `Forestry Mulching Estimate\n` +
+      `Cornerstone Hardscape & Excavation\nForestry Mulching Estimate\n` +
       `——————————————\n` +
-      `Acreage: ${acreage.toFixed(2)} acres\n` +
-      `Vegetation: ${densityLabel}\n` +
-      `Terrain: ${terrain === 'difficult' ? 'Difficult' : 'Smooth'}\n` +
-      `Base Price: $${Math.round(base).toLocaleString()}\n`;
-
-    if (terrain === 'difficult') {
-      const terrainCost = total - Math.round(base);
-      text += `Terrain Upcharge: +$${terrainCost.toLocaleString()}\n`;
-    }
-
-    text +=
-      `——————————————\n` +
-      `Total: $${total.toLocaleString()}\n` +
-      `Est. Timeline: ${days} ${days === 1 ? 'day' : 'days'}`;
+      `Acreage: ${acreage.toFixed(2)} acres\nVegetation: ${dLabel}\nTerrain: ${terrain === 'difficult' ? 'Difficult' : 'Smooth'}\n` +
+      `Base: $${Math.round(base).toLocaleString()}\n`;
+    if (terrain === 'difficult') text += `Terrain Upcharge: +$${(total - Math.round(base)).toLocaleString()}\n`;
+    text += `——————————————\nTotal: $${total.toLocaleString()}\nTimeline: ${days} ${days === 1 ? 'day' : 'days'}`;
 
     navigator.clipboard.writeText(text).then(() => {
-      const btn = document.querySelector('.copy-btn');
-      btn.textContent = '✅ Copied!';
-      setTimeout(() => btn.textContent = '📋 Copy Estimate', 2000);
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied';
+      setTimeout(() => btn.textContent = 'Copy Estimate', 2000);
     });
   }
 </script>
