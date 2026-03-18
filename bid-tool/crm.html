@@ -608,7 +608,7 @@
       `<div class="stage-pill ${s === lead.stage ? 'current' : ''}" onclick="changeStage('${esc(lead.id)}', '${s}', this)">${s}</div>`
     ).join('');
 
-    const phoneHref = lead.phone ? `tel:${lead.phone.replace(/\D/g,'')}` : '#';
+    const phoneHref = lead.phone ? `tel:${String(lead.phone).replace(/\D/g,'')}` : '#';
     const emailHref = lead.email ? `mailto:${lead.email}` : '#';
 
     return `
