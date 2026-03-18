@@ -661,6 +661,7 @@
             <button class="detail-btn outline" onclick="addNote('${esc(lead.id)}')">Save Note</button>
             <button class="detail-btn outline" onclick="sendFollowUp('${esc(lead.id)}', '${esc(lead.email)}', '${esc(lead.name)}')">✉️ Follow-Up</button>
             <button class="detail-btn" onclick="openSchedule('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">📅 Schedule Job</button>
+            <button class="detail-btn outline" onclick="openConfirm('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">✅ Send Confirmation</button>
           </div>
           <div class="detail-status" id="status-${esc(lead.id)}"></div>
         </div>
@@ -740,20 +741,50 @@
     }
   }
 
-  // ── Send Job Confirmation Email (no calendar scheduling) ─────
-  async function sendJobConfirmation(id, name, email, phone, address, total) {
-    if (!email) { alert('No email on file for this lead.'); return; }
-    const statusEl = document.getElementById(`status-${id}`);
-    if (statusEl) statusEl.textContent = 'Sending…';
+  // ── Send Job Confirmation ──────────────────────────────────────
+  let _confirmData = {};
+
+  function openConfirm(id, name, email, phone, address, total) {
+    _confirmData = { id, name, email, phone, address, total };
+    document.getElementById('confirmLeadName').textContent = name;
+    document.getElementById('confirmCustomerEmail').value = email || '';
+    // Default to next week
+    const d = new Date(); d.setDate(d.getDate() + 7);
+    document.getElementById('confirmDate').value = d.toISOString().split('T')[0];
+    document.getElementById('confirmStatus').textContent = '';
+    document.getElementById('confirmModal').style.display = 'flex';
+  }
+
+  function closeConfirm() {
+    document.getElementById('confirmModal').style.display = 'none';
+  }
+
+  async function submitConfirm() {
+    const date  = document.getElementById('confirmDate').value;
+    const email = document.getElementById('confirmCustomerEmail').value.trim();
+    if (!date)  { document.getElementById('confirmStatus').textContent = 'Pick a date'; return; }
+    if (!email) { document.getElementById('confirmStatus').textContent = 'Email required'; return; }
+    document.getElementById('confirmStatus').textContent = 'Sending…';
     try {
       const r = await postCRM({
         action: 'sendJobConfirmation',
-        leadId: id, name, email, phone, address, total,
+        leadId: _confirmData.id,
+        name: _confirmData.name,
+        email,
+        phone: _confirmData.phone,
+        address: _confirmData.address,
+        total: _confirmData.total,
+        scheduledDate: date,
       });
-      if (statusEl) statusEl.textContent = r.success ? 'Confirmation sent!' : (r.error || 'Error');
-      setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 3000);
+      if (r.success) {
+        document.getElementById('confirmStatus').textContent = 'Confirmation sent!';
+        setTimeout(closeConfirm, 1500);
+        loadLeads();
+      } else {
+        document.getElementById('confirmStatus').textContent = r.error || 'Error sending';
+      }
     } catch(e) {
-      if (statusEl) statusEl.textContent = 'Failed to send';
+      document.getElementById('confirmStatus').textContent = 'Failed to send';
     }
   }
 
@@ -856,8 +887,8 @@
     <input id="schedCustomerEmail" type="email" placeholder="customer@email.com" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 12px;box-sizing:border-box;">
 
     <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:20px;">
-      <input id="schedSendEmail" type="checkbox" checked style="width:16px;height:16px;accent-color:#6fcf6f;cursor:pointer;">
-      <span style="font-size:13px;color:#ccc;">Send customer confirmation email</span>
+      <input id="schedSendEmail" type="checkbox" style="width:16px;height:16px;accent-color:#6fcf6f;cursor:pointer;">
+      <span style="font-size:13px;color:#ccc;">Also email customer now</span>
     </label>
 
     <div id="schedStatus" style="font-size:13px;color:#6fcf6f;min-height:18px;margin-bottom:12px;"></div>
@@ -865,6 +896,27 @@
     <div style="display:flex;gap:10px;">
       <button onclick="closeSchedule()" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#aaa;font-size:14px;cursor:pointer;">Cancel</button>
       <button onclick="confirmSchedule()" style="flex:2;padding:12px;background:#6fcf6f;border:none;border-radius:8px;color:#0a0a0a;font-size:14px;font-weight:700;cursor:pointer;">Add to Calendar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;width:100%;max-width:380px;">
+    <div style="font-size:16px;font-weight:700;color:white;margin-bottom:2px;">Send Job Confirmation</div>
+    <div id="confirmLeadName" style="font-size:13px;color:#6fcf6f;margin-bottom:20px;"></div>
+
+    <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Scheduled Date</label>
+    <input id="confirmDate" type="date" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+
+    <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Customer Email</label>
+    <input id="confirmCustomerEmail" type="email" placeholder="customer@email.com" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 20px;box-sizing:border-box;">
+
+    <div id="confirmStatus" style="font-size:13px;color:#6fcf6f;min-height:18px;margin-bottom:12px;"></div>
+
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeConfirm()" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#aaa;font-size:14px;cursor:pointer;">Cancel</button>
+      <button onclick="submitConfirm()" style="flex:2;padding:12px;background:#6fcf6f;border:none;border-radius:8px;color:#0a0a0a;font-size:14px;font-weight:700;cursor:pointer;">Send to Customer</button>
     </div>
   </div>
 </div>

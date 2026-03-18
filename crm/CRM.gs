@@ -514,10 +514,14 @@ function sendFollowUpEmail(data) {
 function sendJobConfirmation(data) {
   if (!data.email) return { error: 'No email address' };
   const firstName = (data.name || 'there').split(' ')[0];
+  const dateFmt = data.scheduledDate
+    ? Utilities.formatDate(new Date(data.scheduledDate + 'T12:00:00'), Session.getScriptTimeZone(), 'EEEE, MMMM d, yyyy')
+    : null;
+
   GmailApp.sendEmail(
     data.email,
-    `Cornerstone — Your Project is Confirmed`,
-    `Hi ${firstName},\n\nWe're confirming your forestry mulching project with Cornerstone Hardscape & Excavation.\n\nAddress: ${data.address || ''}\n${data.total ? 'Quote Total: $' + Number(data.total).toLocaleString() : ''}\n\nWe'll be in touch with your exact start date shortly. Questions? Call ${COMPANY.phone}.\n\n${COMPANY.rep}\n${COMPANY.name}`,
+    dateFmt ? `Cornerstone — Job Confirmed for ${dateFmt}` : `Cornerstone — Your Project is Confirmed`,
+    `Hi ${firstName},\n\nYour forestry mulching project with Cornerstone has been confirmed.\n\n${dateFmt ? 'Scheduled Date: ' + dateFmt + '\n' : ''}Address: ${data.address || ''}\n${data.total ? 'Quote Total: $' + Number(data.total).toLocaleString() : ''}\n\nPlease reply or call us at ${COMPANY.phone} if this date doesn't work for you.\n\n${COMPANY.rep}\n${COMPANY.name}`,
     {
       name: COMPANY.name,
       replyTo: COMPANY.email,
@@ -526,20 +530,21 @@ function sendJobConfirmation(data) {
           <img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="Cornerstone" width="100%" style="display:block;width:100%;border:0;">
         </td></tr></table>
         <div style="background:white;border:1px solid #eee;border-top:none;padding:28px 32px;">
-          <h2 style="margin:0 0 6px;font-size:20px;">Your Project is Confirmed</h2>
-          <p style="color:#666;margin:0 0 24px;font-size:13px;">Hi ${firstName}, we're looking forward to getting started on your project.</p>
+          <h2 style="margin:0 0 6px;font-size:20px;">Your Job is Confirmed</h2>
+          <p style="color:#666;margin:0 0 24px;font-size:13px;">Hi ${firstName}, here are your confirmed project details.</p>
           <table style="width:100%;border-collapse:collapse;font-size:13px;">
-            ${data.address ? `<tr><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;color:#888;width:120px;">Address</td><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;">${data.address}</td></tr>` : ''}
+            ${dateFmt ? `<tr><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;color:#888;width:120px;">Scheduled</td><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-weight:700;">${dateFmt}</td></tr>` : ''}
+            ${data.address ? `<tr><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;color:#888;">Address</td><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;">${data.address}</td></tr>` : ''}
             ${data.total ? `<tr><td style="padding:8px 0;color:#888;">Quote Total</td><td style="padding:8px 0;font-weight:700;font-size:16px;">$${Number(data.total).toLocaleString()}</td></tr>` : ''}
           </table>
-          <p style="margin:20px 0 0;font-size:13px;color:#666;">We'll reach out shortly to confirm your start date. In the meantime, feel free to call us at <strong>${COMPANY.phone}</strong> with any questions.</p>
+          <p style="margin:20px 0 0;font-size:13px;color:#666;">If this date doesn't work, just reply to this email or call us at <strong>${COMPANY.phone}</strong>.</p>
           <hr style="border:none;border-top:1px solid #eee;margin:24px 0;">
           <p style="margin:0;font-size:13px;color:#444;">${COMPANY.rep}<br><span style="color:#888;">${COMPANY.name} · ${COMPANY.phone}</span></p>
         </div>
       </body></html>`
     }
   );
-  if (data.leadId) addNote({ id: data.leadId, note: 'Job confirmation email sent to customer' });
+  if (data.leadId) addNote({ id: data.leadId, note: `Job confirmation sent to customer${dateFmt ? ' for ' + dateFmt : ''}` });
   return { success: true };
 }
 
