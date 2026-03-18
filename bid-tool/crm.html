@@ -513,14 +513,24 @@
   });
 
   // ── Fetch ─────────────────────────────────────────────────────
+  function jsonp(url, params) {
+    return new Promise((resolve, reject) => {
+      const cbName = 'cb_' + Date.now();
+      window[cbName] = (data) => { delete window[cbName]; script.remove(); resolve(data); };
+      const script = document.createElement('script');
+      params.callback = cbName;
+      script.src = url + '?' + new URLSearchParams(params);
+      script.onerror = () => { delete window[cbName]; script.remove(); reject(new Error('Failed to reach CRM')); };
+      document.head.appendChild(script);
+    });
+  }
+
   async function loadLeads() {
     const url = getCRMUrl();
     if (!url) return;
     showSpinner();
     try {
-      const r = await fetch(`${url}?action=getLeads`, { redirect: 'follow' });
-      const text = await r.text();
-      const data = JSON.parse(text);
+      const data = await jsonp(url, { action: 'getLeads' });
       allLeads = data.leads || [];
       renderLeads();
     } catch (e) {
@@ -531,10 +541,7 @@
   async function postCRM(payload) {
     const url = getCRMUrl();
     const { action, ...rest } = payload;
-    const params = new URLSearchParams({ action, data: JSON.stringify(rest) });
-    const r = await fetch(`${url}?${params}`, { redirect: 'follow' });
-    const text = await r.text();
-    return JSON.parse(text);
+    return await jsonp(url, { action, data: JSON.stringify(rest) });
   }
 
   // ── Filter ────────────────────────────────────────────────────

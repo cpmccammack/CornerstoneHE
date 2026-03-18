@@ -933,6 +933,18 @@
     el.style.color = type === 'err' ? '#f0a028' : '#6fcf6f';
   }
 
+  function jsonp(url, params) {
+    return new Promise((resolve, reject) => {
+      const cbName = 'cb_' + Date.now();
+      window[cbName] = (data) => { delete window[cbName]; script.remove(); resolve(data); };
+      const script = document.createElement('script');
+      params.callback = cbName;
+      script.src = url + '?' + new URLSearchParams(params);
+      script.onerror = () => { delete window[cbName]; script.remove(); reject(new Error('Failed to fetch')); };
+      document.head.appendChild(script);
+    });
+  }
+
   async function postCRM(payload) {
     const url = localStorage.getItem('crm_url');
     if (!url) {
@@ -941,10 +953,7 @@
     }
     try {
       const { action, ...rest } = payload;
-      const params = new URLSearchParams({ action, data: JSON.stringify(rest) });
-      const r = await fetch(`${url}?${params}`, { redirect: 'follow' });
-      const text = await r.text();
-      return JSON.parse(text);
+      return await jsonp(url, { action, data: JSON.stringify(rest) });
     } catch (e) {
       setCRMStatus('Network error: ' + e.message, 'err');
       return null;
