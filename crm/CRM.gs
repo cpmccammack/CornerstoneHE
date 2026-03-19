@@ -693,41 +693,58 @@ function savePdfFromHtml(html, leadId, name) {
   }
 }
 
+// ── Shared: fetch logo as base64 for PDF embedding ───────────
+function getLogoBase64() {
+  try {
+    const resp = UrlFetchApp.fetch('https://cpmccammack.github.io/CornerstoneHE/logo.png');
+    const b64  = Utilities.base64Encode(resp.getBlob().getBytes());
+    return 'data:image/png;base64,' + b64;
+  } catch(e) { return null; }
+}
+
 // ── Shared: quote PDF HTML template ──────────────────────────
 function buildQuoteHtml(opts) {
-  // opts: { leadId, name, phone, email, address, dateStr, offerStr, lineRows, subtotal, markup, total, notes, scopeText }
-  const css = '<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;padding:40px 48px;font-size:13px;line-height:1.5;}' +
-    '.header{text-align:center;border-bottom:3px solid #000;padding-bottom:16px;margin-bottom:20px;}' +
-    '.co-name{font-size:20px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}' +
-    '.co-sub{font-size:10px;color:#666;margin-top:4px;}' +
-    '.meta{display:flex;justify-content:space-between;margin-bottom:20px;font-size:11px;color:#888;}' +
+  const logoSrc = getLogoBase64();
+
+  const css = '<style>*{box-sizing:border-box;margin:0;padding:0;}' +
+    'body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;font-size:13px;line-height:1.5;}' +
+    '.logo-bar{background:#000;width:100%;display:block;line-height:0;}' +
+    '.logo-bar img{width:100%;display:block;border:0;}' +
+    '.logo-bar-text{background:#000;color:#fff;text-align:center;padding:20px 40px;font-size:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}' +
+    '.logo-bar-sub{background:#000;color:rgba(255,255,255,0.5);text-align:center;padding:0 40px 16px;font-size:10px;letter-spacing:0.5px;}' +
+    '.body{padding:28px 48px 40px;}' +
+    '.meta{display:flex;justify-content:space-between;margin-bottom:24px;font-size:11px;color:#888;border-bottom:1px solid #eee;padding-bottom:16px;}' +
     '.section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin:20px 0 8px;}' +
     '.prepared{font-size:14px;font-weight:700;margin-bottom:4px;}' +
-    '.prepared-detail{font-size:12px;color:#444;line-height:1.6;}' +
-    '.offer-exp{font-size:11px;color:#cc4444;margin-top:4px;}' +
+    '.prepared-detail{font-size:12px;color:#444;line-height:1.7;}' +
     'table{width:100%;border-collapse:collapse;}' +
     'th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;padding:8px 0;border-bottom:2px solid #000;}' +
     'th.r{text-align:right;}th.c{text-align:center;}' +
-    'td{padding:9px 0;border-bottom:1px solid #eee;font-size:13px;vertical-align:top;}' +
+    'td{padding:10px 0;border-bottom:1px solid #eee;font-size:13px;vertical-align:top;}' +
     'td.r{text-align:right;font-weight:600;}td.c{text-align:center;color:#888;}' +
-    '.scope-box{background:#f9f9f9;border-left:3px solid #000;padding:12px 16px;margin-top:16px;font-size:12px;color:#444;}' +
-    '.total-row{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid #000;padding-top:12px;margin-top:8px;}' +
-    '.total-label{font-size:14px;font-weight:700;}' +
-    '.total-value{font-size:24px;font-weight:700;}' +
-    '.footer{margin-top:32px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#888;text-align:center;}' +
+    '.scope-box{background:#f9f9f9;border-left:3px solid #000;padding:12px 16px;font-size:12px;color:#444;margin-top:4px;}' +
+    '.total-wrap{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid #000;padding-top:14px;margin-top:10px;}' +
+    '.total-label{font-size:15px;font-weight:700;}' +
+    '.total-value{font-size:26px;font-weight:700;}' +
+    '.footer{margin-top:36px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#888;text-align:center;}' +
     '</style>';
 
+  const logoHtml = logoSrc
+    ? '<div class="logo-bar"><img src="' + logoSrc + '" alt="Cornerstone"></div>'
+    : '<div class="logo-bar-text">Cornerstone Hardscape &amp; Excavation</div><div class="logo-bar-sub">651 Reed Lane, Simpsonville, KY 40067 &nbsp;·&nbsp; 502-396-7887</div>';
+
   const subtotalRow = opts.markup > 0
-    ? '<tr><td colspan="2" style="color:#888;font-size:12px;border-bottom:none;">Subtotal</td><td class="r" style="color:#888;font-size:12px;border-bottom:none;">$' + Math.round(opts.subtotal).toLocaleString() + '</td></tr>' +
-      '<tr><td colspan="2" style="color:#888;font-size:12px;border-bottom:none;">Markup (' + opts.markup + '%)</td><td class="r" style="color:#888;font-size:12px;border-bottom:none;">+$' + (opts.total - Math.round(opts.subtotal)).toLocaleString() + '</td></tr>'
+    ? '<tr><td colspan="2" style="color:#888;font-size:12px;border-bottom:none;padding:6px 0;">Subtotal</td>' +
+      '<td class="r" style="color:#888;font-size:12px;border-bottom:none;padding:6px 0;">$' + Math.round(opts.subtotal).toLocaleString() + '</td></tr>' +
+      '<tr><td colspan="2" style="color:#888;font-size:12px;border-bottom:none;padding:6px 0;">Markup (' + opts.markup + '%)</td>' +
+      '<td class="r" style="color:#888;font-size:12px;border-bottom:none;padding:6px 0;">+$' + (opts.total - Math.round(opts.subtotal)).toLocaleString() + '</td></tr>'
     : '';
 
   return '<!DOCTYPE html><html><head><meta charset="UTF-8">' + css + '</head><body>' +
-    '<div class="header">' +
-    '<div class="co-name">Cornerstone Hardscape &amp; Excavation</div>' +
-    '<div class="co-sub">651 Reed Lane, Simpsonville, KY 40067 &nbsp;·&nbsp; 502-396-7887 &nbsp;·&nbsp; isaacmosko@cornerstonehe.net</div>' +
-    '</div>' +
-    '<div class="meta"><span>Quote #' + opts.leadId + ' &nbsp;·&nbsp; ' + opts.dateStr + '</span><span style="color:#cc4444;">Valid until ' + opts.offerStr + '</span></div>' +
+    logoHtml +
+    '<div class="body">' +
+    '<div class="meta"><span>Quote #' + opts.leadId + ' &nbsp;·&nbsp; ' + opts.dateStr + '</span>' +
+    '<span style="color:#cc4444;font-weight:600;">Valid until ' + opts.offerStr + '</span></div>' +
     '<div class="section-label">Prepared For</div>' +
     '<div class="prepared">' + opts.name + '</div>' +
     '<div class="prepared-detail">' +
@@ -738,11 +755,11 @@ function buildQuoteHtml(opts) {
     '<div class="section-label">Services</div>' +
     '<table><thead><tr><th>Service</th><th class="c">Qty</th><th class="r">Amount</th></tr></thead>' +
     '<tbody>' + opts.lineRows + subtotalRow + '</tbody></table>' +
-    '<div class="total-row"><span class="total-label">Total</span><span class="total-value">$' + opts.total.toLocaleString() + '</span></div>' +
+    '<div class="total-wrap"><span class="total-label">Total</span><span class="total-value">$' + opts.total.toLocaleString() + '</span></div>' +
     (opts.scopeText ? '<div class="section-label">Scope of Work</div><div class="scope-box">' + opts.scopeText + '</div>' : '') +
-    (opts.notes    ? '<div class="section-label">Notes</div><div class="scope-box">' + opts.notes + '</div>'             : '') +
-    '<div class="footer">Thank you for choosing Cornerstone. Questions? Call 502-396-7887</div>' +
-    '</body></html>';
+    (opts.notes     ? '<div class="section-label">Notes</div><div class="scope-box">' + opts.notes + '</div>'            : '') +
+    '<div class="footer">Thank you for choosing Cornerstone &nbsp;·&nbsp; Questions? Call 502-396-7887</div>' +
+    '</div></body></html>';
 }
 
 // ── Generate Quote PDF (forestry mulching) ────────────────────
@@ -759,7 +776,7 @@ function createQuotePDF(data) {
     const lineRows =
       '<tr><td>Forestry Mulching' + (densityLabel ? ' — ' + densityLabel + ' Density' : '') +
       (data.acreage ? '<br><span style="font-size:11px;color:#888;">' + data.acreage + ' acres</span>' : '') + '</td>' +
-      '<td class="c">' + (data.timeline || '—') + ' days</td>' +
+      '<td class="c">' + (data.timeline ? data.timeline + ' days' : (data.acreage ? Math.max(1, Math.round((data.acreage / ({light:2,medium:1,dense:0.5}[data.density]||1))*2)/2) + ' days' : '—')) + '</td>' +
       '<td class="r">$' + total.toLocaleString() + '</td></tr>';
 
     const scopeText = 'Cornerstone Hardscape &amp; Excavation will perform forestry mulching services at ' +
