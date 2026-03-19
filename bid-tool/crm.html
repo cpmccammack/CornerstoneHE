@@ -986,6 +986,42 @@
       .kanban-col { min-width: 250px; max-width: 250px; }
       .list-address { display: none; }
     }
+
+    /* ── Login screen ── */
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: #0A1A0D;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      text-align: center;
+    }
+    .login-screen.open { display: flex; }
+
+    .list-filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 10px 16px 0;
+    }
+    .lf-pill {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: #8A8070;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+    }
+    .lf-pill.active { background: #22C55E; border-color: #22C55E; color: #fff; }
   </style>
 </head>
 <body>
@@ -997,7 +1033,20 @@
   <div class="sub">Paste your deployed Apps Script web app URL. Deploy CRM.gs → Deploy → New Deployment → Web App.</div>
   <div class="setup-label">Apps Script Web App URL</div>
   <input class="setup-input" id="setupUrl" type="url" placeholder="https://script.google.com/macros/s/…">
+  <div class="setup-label" style="margin-top:8px;">Password (optional)</div>
+  <input class="setup-input" id="setupPass" type="password" placeholder="Set a password to lock this CRM">
   <button class="setup-go" onclick="saveSetup()">Connect</button>
+</div>
+
+<!-- Login screen -->
+<div class="login-screen" id="loginScreen">
+  <div class="setup-mark">🔒</div>
+  <h2 style="font-size:22px;font-weight:700;color:#F0EBE0;margin-bottom:8px;">Welcome back</h2>
+  <div class="sub">Enter your password to unlock the CRM.</div>
+  <div class="setup-label">Password</div>
+  <input class="setup-input" id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitLogin()">
+  <button class="setup-go" onclick="submitLogin()">Unlock</button>
+  <div id="loginError" style="color:#EF4444;font-size:13px;margin-top:12px;min-height:18px;"></div>
 </div>
 
 <!-- Header -->
@@ -1016,10 +1065,14 @@
         <button class="view-toggle-btn" id="btnMonthly" onclick="setView('monthly')">Monthly</button>
       </div>
       <button class="export-btn" onclick="exportCSV()" title="Export leads to CSV">Export</button>
+      <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCSVImport(event)">
+      <button class="export-btn" onclick="document.getElementById('csvFileInput').click()" title="Import leads from CSV">Import</button>
       <button class="new-lead-btn" onclick="openAddLead()">
         <span style="font-size:16px;line-height:1;">+</span>
         <span>New Lead</span>
       </button>
+      <button class="view-toggle-btn" id="hideLostBtn" onclick="toggleHideLost()" style="background:rgba(255,255,255,0.1);border-radius:8px;padding:5px 10px;"></button>
+      <button class="refresh-icon-btn" onclick="lockCRM()" title="Lock CRM" id="lockBtn" style="display:none;">🔒</button>
       <button class="refresh-icon-btn" onclick="loadLeads()" title="Refresh">↻</button>
     </div>
   </div>
@@ -1261,6 +1314,8 @@
   let activePanelId = null;
   let searchQuery = '';
   let currentView = window.innerWidth <= 600 ? 'list' : 'kanban';
+  let hideLost = localStorage.getItem('crm_hidelost') === '1';
+  let listStageFilter = '';
 
   // ── Setup ──────────────────────────────────────────────────────
   function getCRMUrl() { return localStorage.getItem('crm_url') || ''; }
@@ -1272,15 +1327,45 @@
       return;
     }
     localStorage.setItem('crm_url', url);
+    const pass = document.getElementById('setupPass').value.trim();
+    if (pass) localStorage.setItem('crm_pass', pass);
     document.getElementById('setupScreen').style.display = 'none';
     loadLeads();
   }
 
   window.addEventListener('load', () => {
-    if (!getCRMUrl()) return; // setup screen shows
+    if (!getCRMUrl()) return;
     document.getElementById('setupScreen').style.display = 'none';
-    loadLeads();
+    const pass = localStorage.getItem('crm_pass');
+    if (pass && !sessionStorage.getItem('crm_auth')) {
+      document.getElementById('loginScreen').classList.add('open');
+    } else {
+      if (pass) document.getElementById('lockBtn').style.display = '';
+      loadLeads();
+    }
   });
+
+  function submitLogin() {
+    const input = document.getElementById('loginPass').value;
+    const stored = localStorage.getItem('crm_pass') || '';
+    if (input === stored) {
+      sessionStorage.setItem('crm_auth', '1');
+      document.getElementById('loginScreen').classList.remove('open');
+      document.getElementById('lockBtn').style.display = '';
+      loadLeads();
+    } else {
+      document.getElementById('loginError').textContent = 'Incorrect password.';
+      document.getElementById('loginPass').value = '';
+    }
+  }
+
+  function lockCRM() {
+    sessionStorage.removeItem('crm_auth');
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginError').textContent = '';
+    document.getElementById('loginScreen').classList.add('open');
+    closePanel();
+  }
 
   // ── JSONP / Network ────────────────────────────────────────────
   function jsonp(url, params) {
@@ -1334,12 +1419,27 @@
   }
 
   function getFilteredLeads() {
-    if (!searchQuery) return allLeads;
-    return allLeads.filter(l =>
+    let leads = allLeads;
+    if (searchQuery) leads = leads.filter(l =>
       (l.name   || '').toLowerCase().includes(searchQuery) ||
       (l.address || '').toLowerCase().includes(searchQuery) ||
       (String(l.phone || '')).toLowerCase().includes(searchQuery)
     );
+    if (hideLost) leads = leads.filter(l => l.stage !== 'Lost');
+    return leads;
+  }
+
+  function toggleHideLost() {
+    hideLost = !hideLost;
+    localStorage.setItem('crm_hidelost', hideLost ? '1' : '0');
+    syncHideLostBtn();
+    renderAll();
+  }
+
+  function syncHideLostBtn() {
+    const btn = document.getElementById('hideLostBtn');
+    if (btn) btn.textContent = hideLost ? 'Active Only' : 'Show All';
+    if (btn) btn.classList.toggle('active', hideLost);
   }
 
   // ── Stats ──────────────────────────────────────────────────────
@@ -1387,6 +1487,7 @@
 
   // ── Render all ─────────────────────────────────────────────────
   function renderAll() {
+    syncHideLostBtn();
     const filtered = getFilteredLeads();
     updateStats(filtered);
     hideSpinner();
@@ -1473,14 +1574,25 @@
   // ── List view ──────────────────────────────────────────────────
   function renderList(leads) {
     const board = document.getElementById('boardWrap');
-    if (!leads.length) {
-      board.innerHTML = `<div class="empty-state">No leads found.</div>`;
+
+    // Filter pills
+    const allStages = ['New Lead','Contacted','Quote Sent','Follow-Up','Won','Lost'];
+    const filterHtml = `
+      <div class="list-filters">
+        <button class="lf-pill${listStageFilter===''?' active':''}" onclick="setListFilter('')">All</button>
+        ${allStages.map(s => `<button class="lf-pill${listStageFilter===s?' active':''}" onclick="setListFilter('${s}')">${s}</button>`).join('')}
+      </div>`;
+
+    // Apply stage filter
+    const filtered = listStageFilter ? leads.filter(l => l.stage === listStageFilter) : leads;
+
+    if (!filtered.length) {
+      board.innerHTML = filterHtml + `<div class="empty-state">No leads found.</div>`;
       return;
     }
 
-    // Sort: active first (by lastTouch desc), then Won, then Lost
     const order = { 'New Lead': 0, 'Contacted': 1, 'Quote Sent': 2, 'Follow-Up': 3, 'Won': 4, 'Lost': 5 };
-    const sorted = [...leads].sort((a, b) => {
+    const sorted = [...filtered].sort((a, b) => {
       const so = (order[a.stage] ?? 3) - (order[b.stage] ?? 3);
       if (so !== 0) return so;
       return new Date(b.lastTouch || 0) - new Date(a.lastTouch || 0);
@@ -1489,6 +1601,11 @@
     const rows = sorted.map(lead => {
       const stageCls = STAGE_BADGE_CLASS[lead.stage] || 'badge-lost';
       const value    = lead.estimateTotal ? fmtMoney(Number(lead.estimateTotal)) : '';
+      const approvedBadge = lead.approved === 'approved'
+        ? `<span class="badge badge-won" style="font-size:9px;">✓ Approved</span>`
+        : lead.approved === 'declined'
+        ? `<span class="badge badge-lost" style="font-size:9px;">✗ Declined</span>`
+        : '';
       let daysAgo = '';
       if (lead.lastTouch) {
         const diff = Math.floor((Date.now() - new Date(lead.lastTouch).getTime()) / 86400000);
@@ -1498,13 +1615,19 @@
         <div class="list-row" onclick="openPanel('${esc(lead.id)}')">
           <span class="badge ${stageCls}" style="flex-shrink:0;">${esc(lead.stage)}</span>
           <span class="list-name">${esc(lead.name || 'Unnamed')}</span>
+          ${approvedBadge}
           ${lead.address ? `<span class="list-address">${esc(lead.address)}</span>` : ''}
           ${value ? `<span class="list-value">${esc(value)}</span>` : ''}
           ${daysAgo ? `<span class="list-days">${esc(daysAgo)}</span>` : ''}
         </div>`;
     }).join('');
 
-    board.innerHTML = `<div class="list-wrap">${rows}</div>`;
+    board.innerHTML = filterHtml + `<div class="list-wrap">${rows}</div>`;
+  }
+
+  function setListFilter(stage) {
+    listStageFilter = stage;
+    renderAll();
   }
 
   // ── CSV Export ─────────────────────────────────────────────────
@@ -1536,6 +1659,41 @@
     a.download = 'cornerstone-leads-' + new Date().toISOString().slice(0,10) + '.csv';
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function handleCSVImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const lines = ev.target.result.split(/\r?\n/).filter(Boolean);
+      if (lines.length < 2) return alert('CSV must have a header row and at least one lead.');
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g,''));
+      const col = (name) => headers.indexOf(name);
+
+      let created = 0, skipped = 0;
+      for (let i = 1; i < lines.length; i++) {
+        const vals = lines[i].match(/(".*?"|[^,]+|(?<=,)(?=,)|(?<=,)$|^(?=,))/g) || lines[i].split(',');
+        const get = (idx) => idx < 0 ? '' : (vals[idx] || '').replace(/^"|"$/g,'').trim();
+        const name = get(col('name')) || get(col('full name'));
+        if (!name) { skipped++; continue; }
+        try {
+          await postCRM({
+            action: 'createLead',
+            name,
+            phone:   get(col('phone')),
+            email:   get(col('email')),
+            address: get(col('address')),
+            source:  get(col('source')) || 'CSV Import',
+          });
+          created++;
+        } catch { skipped++; }
+      }
+      e.target.value = '';
+      alert(`Import complete: ${created} leads created, ${skipped} skipped.`);
+      loadLeads();
+    };
+    reader.readAsText(file);
   }
 
   // ── Kanban board ───────────────────────────────────────────────
@@ -1595,6 +1753,8 @@
         ${lead.address ? `<div class="card-address">${esc(lead.address)}</div>` : ''}
         <div class="card-badges">
           <span class="badge ${stageCls}">${esc(lead.stage)}</span>
+          ${lead.approved === 'approved' ? `<span class="badge badge-won" style="font-size:9px;">✓ Approved</span>` : ''}
+          ${lead.approved === 'declined' ? `<span class="badge badge-lost" style="font-size:9px;">✗ Declined</span>` : ''}
           ${lead.overdue ? `<span class="badge badge-overdue">Overdue</span>` : ''}
           ${daysAgo ? `<span class="badge badge-days">${esc(daysAgo)}</span>` : ''}
         </div>
@@ -1935,6 +2095,17 @@
     if (!name) {
       document.getElementById('addLeadStatus').textContent = 'Full name is required';
       return;
+    }
+    // Duplicate check
+    const phone = document.getElementById('newPhone').value.trim();
+    const email = document.getElementById('newEmail').value.trim();
+    const dup = allLeads.find(l =>
+      (phone && String(l.phone||'').replace(/\D/g,'') === phone.replace(/\D/g,'')) ||
+      (email && (l.email||'').toLowerCase() === email.toLowerCase())
+    );
+    if (dup) {
+      document.getElementById('addLeadStatus').textContent = `Possible duplicate: ${dup.name}`;
+      // Allow proceeding — just warn
     }
     document.getElementById('addLeadStatus').textContent = 'Creating…';
     try {
