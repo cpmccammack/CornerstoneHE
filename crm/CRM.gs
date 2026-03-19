@@ -80,8 +80,7 @@ function doGet(e) {
         'Estimated project duration: ' + days + ' ' + (days == 1 ? 'day' : 'days') + '.',
         'Our crew will use a professional forestry mulcher to clear, chip, and spread all vegetation on site — leaving a clean, mulched surface with no hauling required.',
       ].filter(Boolean).join(' ');
-      const mapImageUrl = e.parameter.mapImageUrl || '';
-      const html = buildEmailQuoteHtml({ leadId: lead.id, todayStr, offerStr, data: { ...lead, mapImageUrl }, densityLabel, days, total, scopeLines });
+      const html = buildEmailQuoteHtml({ leadId: lead.id, todayStr, offerStr, data: lead, densityLabel, days, total, scopeLines });
       return HtmlService.createHtmlOutput(html);
     }
 
@@ -173,7 +172,7 @@ const COLS = {
   address: 6, dealValue: 7, source: 8, stage: 9,
   lastTouch: 10, nextAction: 11, notes: 12,
   acreage: 13, density: 14, difficulty: 15, estimateTotal: 16,
-  approved: 17, financing: 18
+  approved: 17, financing: 18, mapImageUrl: 19
 };
 
 function rowToObj(row) {
@@ -196,6 +195,7 @@ function rowToObj(row) {
     estimateTotal: row[COLS.estimateTotal - 1],
     approved:      row[COLS.approved - 1] || '',
     financing:     row[COLS.financing - 1] || false,
+    mapImageUrl:   row[COLS.mapImageUrl - 1] || '',
   };
 }
 
@@ -204,7 +204,7 @@ function getLeads() {
   const s = getSheet();
   const lastRow = s.getLastRow();
   if (lastRow < 2) return { leads: [] };
-  const rows = s.getRange(2, 1, lastRow - 1, 18).getValues();
+  const rows = s.getRange(2, 1, lastRow - 1, 19).getValues();
   const leads = rows
     .filter(r => r[0])
     .map(rowToObj)
@@ -250,13 +250,13 @@ function createLead(data) {
   const nextDate = new Date(today);
   nextDate.setDate(today.getDate() + (FOLLOWUP_DAYS['New Lead'] || 1));
 
-  s.getRange(newRow, 1, 1, 18).setValues([[
+  s.getRange(newRow, 1, 1, 19).setValues([[
     id, today,
     data.name || '', data.phone || '', data.email || '',
     data.address || '', data.dealValue || 0, data.source || 'Bid Tool',
     'New Lead', today, nextDate, data.notes || '',
     data.acreage || '', data.density || '', data.difficulty || 0, data.estimateTotal || 0,
-    '', false
+    '', false, data.mapImageUrl || ''
   ]]);
 
   return { success: true, id };
@@ -616,8 +616,7 @@ function scheduleJob(data) {
 
   // Generate quote view URL (served by this web app — renders perfectly)
   const scriptUrl = ScriptApp.getService().getUrl();
-  const mapParam = data.mapImageUrl ? `&mapImageUrl=${encodeURIComponent(data.mapImageUrl)}` : '';
-  const pdfUrl = data.leadId ? `${scriptUrl}?action=viewQuote&leadId=${data.leadId}${mapParam}` : null;
+  const pdfUrl = data.leadId ? `${scriptUrl}?action=viewQuote&leadId=${data.leadId}` : null;
   const pdf = null; // no longer saving to Drive
 
   const desc = [

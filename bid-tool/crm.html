@@ -1511,7 +1511,7 @@
       <div class="panel-label">Actions</div>
       <button class="panel-btn green" onclick="openQuoteModal('${esc(lead.id)}')">Create & Send Quote</button>
       <button class="panel-btn outline" onclick="panelSendFollowUp()">Send Follow-Up</button>
-      <button class="panel-btn outline" onclick="openSchedule('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">Schedule Job</button>
+      <button class="panel-btn outline" onclick="openSchedule('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0}, '${esc(lead.mapImageUrl || '')}')">Schedule Job</button>
       <button class="panel-btn outline" onclick="openConfirm('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">Send Confirmation</button>
     `;
   }
@@ -1659,8 +1659,8 @@
   // ── Schedule Modal ─────────────────────────────────────────────
   let _schedData = {};
 
-  function openSchedule(id, name, email, phone, address, total) {
-    _schedData = { id, name, email, phone, address, total };
+  function openSchedule(id, name, email, phone, address, total, mapImageUrl) {
+    _schedData = { id, name, email, phone, address, total, mapImageUrl };
     document.getElementById('schedName').textContent = name;
     document.getElementById('schedModal').style.display = 'flex';
     const tomorrow = new Date();
@@ -1691,6 +1691,7 @@
         email:         _schedData.email,
         address:       _schedData.address,
         total:         _schedData.total,
+        mapImageUrl:   _schedData.mapImageUrl || '',
         startDate,
         endDate:       endDate || startDate,
         customerEmail: sendEmail ? customerEmail : '',
