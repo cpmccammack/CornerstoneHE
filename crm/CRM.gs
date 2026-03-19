@@ -872,7 +872,7 @@ function buildEmailQuoteHtml(opts) {
   ${data.mapImageUrl ? `
   <div class="section">
     <div class="section-title">Project Area</div>
-    <img src="${data.mapImageUrl}" alt="Project area map" style="width:100%;border-radius:4px;display:block;">
+    <img src="${data.mapImageUrl}" alt="Project area map" referrerpolicy="no-referrer" style="width:100%;border-radius:4px;display:block;">
   </div>` : ''}
   <div class="sig">
     <div style="font-size:15px;font-weight:700;">${COMPANY.rep}</div>
