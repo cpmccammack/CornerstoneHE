@@ -604,6 +604,7 @@ function scheduleJob(data) {
     data.acreage ? `Area: ${data.acreage} acres (${data.density || ''} density)` : '',
     data.total ? `Quote Total: $${Number(data.total).toLocaleString()}` : '',
     data.leadId ? `Lead ID: ${data.leadId}` : '',
+    pdfUrl ? `Quote PDF: ${pdfUrl}` : '',
     '',
     'Scope: Forestry mulching — clear, chip, and spread all vegetation on site. No hauling required.',
   ].filter(Boolean).join('\n');
