@@ -314,10 +314,10 @@ function sendQuoteEmail(data) {
   const todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
 
   const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[data.density] || data.density || '';
-  const RATES    = { light: 3500, medium: 4500, dense: 6500 };
+  const DAY_RATE = 3500;
   const PROD_DAY = { light: 2, medium: 1, dense: 0.5 };
-  const days = data.timeline || (data.acreage && data.density ? Math.ceil(data.acreage / PROD_DAY[data.density]) : 1);
-  const calcBase = data.acreage && data.density ? (days * RATES[data.density]) : 0;
+  const days = data.timeline || (data.acreage && data.density ? Math.max(1, Math.round((data.acreage / PROD_DAY[data.density]) * 2) / 2) : 1);
+  const calcBase = data.acreage && data.density ? (days * DAY_RATE) : 0;
   const calcTotal = Math.round(calcBase * (1 + ((data.difficulty || 0) / 100)));
   // Prefer the custom price from the bid tool; fall back to calculated
   const total = Math.round(data.estimateTotal || calcTotal || 0);

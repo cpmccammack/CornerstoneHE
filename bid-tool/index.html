@@ -681,7 +681,7 @@
   // Paste your deployed Apps Script URL here after deploying CRM.gs
   const CRM_URL = localStorage.getItem('crm_url') || '';
 
-  const RATES    = { light: 3500, medium: 4500, dense: 6500 };
+  const DAY_RATE = 3500;
   const PROD_DAY = { light: 2, medium: 1, dense: 0.5 };
 
   let acreage = null, density = null, difficulty = 0;
@@ -840,10 +840,10 @@
   }
 
   function renderPanel() {
-    const rate     = RATES[density];
     const prod     = PROD_DAY[density];
-    const days     = Math.ceil(acreage / prod);
-    const base     = days * rate;
+    const rawDays  = acreage / prod;
+    const days     = Math.max(1, Math.round(rawDays * 2) / 2); // round to nearest 0.5, min 1
+    const base     = days * DAY_RATE;
     const diffCost = Math.round(base * (difficulty / 100));
     const total    = base + diffCost;
     const dLabel   = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
@@ -900,15 +900,14 @@
 
   function copyQuote(calcTotal, days) {
     const total    = parseInt(document.getElementById('customPrice')?.value) || calcTotal;
-    const rate     = RATES[density];
-    const base     = days * rate;
+    const base     = days * DAY_RATE;
     const dLabel   = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
     const diffCost = Math.round(base * (difficulty / 100));
     let text =
       `Cornerstone Hardscape & Excavation\nForestry Mulching Estimate\n` +
       `——————————————\n` +
       `Acreage: ${acreage.toFixed(2)} acres\nVegetation: ${dLabel}\n` +
-      `Timeline: ${days} ${days === 1 ? 'day' : 'days'} @ $${rate.toLocaleString()}/day\n`;
+      `Timeline: ${days} ${days === 1 ? 'day' : 'days'} @ $${DAY_RATE.toLocaleString()}/day\n`;
     if (difficulty > 0) text += `Difficulty (${difficulty}%): +$${diffCost.toLocaleString()}\n`;
     text += `——————————————\nTotal: $${total.toLocaleString()}`;
 
