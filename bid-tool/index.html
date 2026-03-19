@@ -859,7 +859,7 @@
       <div class="section-label">Breakdown</div>
       <div class="row"><span class="l">Acreage</span><span class="v">${acreage.toFixed(2)} ac</span></div>
       <div class="row"><span class="l">Timeline</span><span class="v">${days} ${days === 1 ? 'day' : 'days'}</span></div>
-      <div class="row"><span class="l">Daily Rate</span><span class="v">$${rate.toLocaleString()}/day</span></div>
+      <div class="row"><span class="l">Daily Rate</span><span class="v">$${DAY_RATE.toLocaleString()}/day</span></div>
       <div class="row"><span class="l">Base Price</span><span class="v">$${Math.round(base).toLocaleString()}</span></div>
       ${difficulty > 0 ? `<div class="row"><span class="l">Difficulty (${difficulty}%)</span><span class="v" style="color:#f0a028">+$${diffCost.toLocaleString()}</span></div>` : ''}
 
