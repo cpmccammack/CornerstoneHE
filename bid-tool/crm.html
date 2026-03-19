@@ -897,6 +897,83 @@
       .view-toggle-btn { padding: 5px 8px; }
     }
 
+    /* ── List view ── */
+    .list-wrap {
+      padding: 10px 16px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .list-row {
+      background: #0A0A0A;
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .list-row:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .list-row:active { transform: scale(0.99); }
+
+    .list-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #F0EBE0;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .list-address {
+      font-size: 11px;
+      color: #9CA3AF;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 140px;
+    }
+
+    .list-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: #F0EBE0;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .list-days {
+      font-size: 10px;
+      color: #9CA3AF;
+      flex-shrink: 0;
+      min-width: 42px;
+      text-align: right;
+    }
+
+    /* Export button */
+    .export-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.55);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-family: inherit;
+      flex-shrink: 0;
+      transition: border-color 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+
+    .export-btn:hover { border-color: #22C55E; color: #22C55E; background: rgba(34,197,94,0.08); }
+
     /* Mobile adjustments */
     @media (max-width: 600px) {
       .header-wordmark { font-size: 15px; }
@@ -907,6 +984,7 @@
       .stat-card .sv { font-size: 15px; }
       .board-wrap { padding: 12px 10px 60px; gap: 10px; }
       .kanban-col { min-width: 250px; max-width: 250px; }
+      .list-address { display: none; }
     }
   </style>
 </head>
@@ -933,9 +1011,11 @@
     </div>
     <div class="header-actions">
       <div class="view-toggle">
-        <button class="view-toggle-btn active" id="btnKanban" onclick="setView('kanban')">Board</button>
+        <button class="view-toggle-btn" id="btnKanban" onclick="setView('kanban')">Board</button>
+        <button class="view-toggle-btn" id="btnList" onclick="setView('list')">List</button>
         <button class="view-toggle-btn" id="btnMonthly" onclick="setView('monthly')">Monthly</button>
       </div>
+      <button class="export-btn" onclick="exportCSV()" title="Export leads to CSV">Export</button>
       <button class="new-lead-btn" onclick="openAddLead()">
         <span style="font-size:16px;line-height:1;">+</span>
         <span>New Lead</span>
@@ -1180,7 +1260,7 @@
   let allLeads = [];
   let activePanelId = null;
   let searchQuery = '';
-  let currentView = 'kanban';
+  let currentView = window.innerWidth <= 600 ? 'list' : 'kanban';
 
   // ── Setup ──────────────────────────────────────────────────────
   function getCRMUrl() { return localStorage.getItem('crm_url') || ''; }
@@ -1300,6 +1380,7 @@
   function setView(v) {
     currentView = v;
     document.getElementById('btnKanban').classList.toggle('active', v === 'kanban');
+    document.getElementById('btnList').classList.toggle('active', v === 'list');
     document.getElementById('btnMonthly').classList.toggle('active', v === 'monthly');
     renderAll();
   }
@@ -1309,7 +1390,12 @@
     const filtered = getFilteredLeads();
     updateStats(filtered);
     hideSpinner();
+    // sync toggle buttons with current view (handles default on mobile)
+    document.getElementById('btnKanban').classList.toggle('active', currentView === 'kanban');
+    document.getElementById('btnList').classList.toggle('active', currentView === 'list');
+    document.getElementById('btnMonthly').classList.toggle('active', currentView === 'monthly');
     if (currentView === 'monthly') renderMonthly(filtered);
+    else if (currentView === 'list') renderList(filtered);
     else renderBoard(filtered);
   }
 
@@ -1382,6 +1468,74 @@
         ${rows.join('')}
       </div>
     `;
+  }
+
+  // ── List view ──────────────────────────────────────────────────
+  function renderList(leads) {
+    const board = document.getElementById('boardWrap');
+    if (!leads.length) {
+      board.innerHTML = `<div class="empty-state">No leads found.</div>`;
+      return;
+    }
+
+    // Sort: active first (by lastTouch desc), then Won, then Lost
+    const order = { 'New Lead': 0, 'Contacted': 1, 'Quote Sent': 2, 'Follow-Up': 3, 'Won': 4, 'Lost': 5 };
+    const sorted = [...leads].sort((a, b) => {
+      const so = (order[a.stage] ?? 3) - (order[b.stage] ?? 3);
+      if (so !== 0) return so;
+      return new Date(b.lastTouch || 0) - new Date(a.lastTouch || 0);
+    });
+
+    const rows = sorted.map(lead => {
+      const stageCls = STAGE_BADGE_CLASS[lead.stage] || 'badge-lost';
+      const value    = lead.estimateTotal ? fmtMoney(Number(lead.estimateTotal)) : '';
+      let daysAgo = '';
+      if (lead.lastTouch) {
+        const diff = Math.floor((Date.now() - new Date(lead.lastTouch).getTime()) / 86400000);
+        daysAgo = diff === 0 ? 'Today' : `${diff}d ago`;
+      }
+      return `
+        <div class="list-row" onclick="openPanel('${esc(lead.id)}')">
+          <span class="badge ${stageCls}" style="flex-shrink:0;">${esc(lead.stage)}</span>
+          <span class="list-name">${esc(lead.name || 'Unnamed')}</span>
+          ${lead.address ? `<span class="list-address">${esc(lead.address)}</span>` : ''}
+          ${value ? `<span class="list-value">${esc(value)}</span>` : ''}
+          ${daysAgo ? `<span class="list-days">${esc(daysAgo)}</span>` : ''}
+        </div>`;
+    }).join('');
+
+    board.innerHTML = `<div class="list-wrap">${rows}</div>`;
+  }
+
+  // ── CSV Export ─────────────────────────────────────────────────
+  function exportCSV() {
+    const cols = ['ID','Name','Phone','Email','Address','Deal Value','Source','Stage',
+                  'Last Touch','Next Action','Acreage','Density','Difficulty','Quote Total',
+                  'Approved','Financing','Scheduled Date'];
+    const rows = [cols];
+    allLeads.forEach(l => {
+      rows.push([
+        l.id, l.name, l.phone, l.email, l.address,
+        l.dealValue, l.source, l.stage,
+        l.lastTouch, l.nextAction,
+        l.acreage, l.density, l.difficulty, l.estimateTotal,
+        l.approved, l.financing, l.scheduledDate,
+      ].map(v => {
+        const s = v == null ? '' : String(v);
+        return s.includes(',') || s.includes('"') || s.includes('\n')
+          ? '"' + s.replace(/"/g, '""') + '"'
+          : s;
+      }));
+    });
+
+    const csv  = rows.map(r => r.join(',')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'cornerstone-leads-' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   // ── Kanban board ───────────────────────────────────────────────
@@ -1589,12 +1743,11 @@
     try {
       const r = await postCRM({ action: 'updateLead', id: leadId, stage: newStage });
       if (r.success) {
-        if (reason) {
-          await postCRM({ action: 'addNote', id: leadId, note: `[${newStage}] ${reason}` });
-          await loadLeads();
-          const updated = allLeads.find(l => String(l.id) === String(leadId));
-          if (updated) renderPanel(updated);
-        }
+        const noteText = reason ? `Stage → ${newStage}: ${reason}` : `Stage → ${newStage}`;
+        await postCRM({ action: 'addNote', id: leadId, note: noteText });
+        await loadLeads();
+        const updated = allLeads.find(l => String(l.id) === String(leadId));
+        if (updated) renderPanel(updated);
         setPanelStatus(`Stage → ${newStage}`, false);
       } else {
         setPanelStatus(r.error || 'Error updating', true);
