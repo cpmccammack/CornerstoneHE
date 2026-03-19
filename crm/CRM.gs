@@ -943,7 +943,6 @@ function sendCustomQuote(data) {
 
   GmailApp.sendEmail(data.email, subject, plainText, emailOpts);
 
-  const leadId = data.id || data.leadId;
   if (leadId) {
     const serviceNames = lineItems.map(function(l){ return l.service; }).join(', ');
     addNote({ id: leadId, note: 'Custom quote sent: ' + serviceNames + ' — $' + total.toLocaleString() });
