@@ -11,9 +11,9 @@
 
     html, body {
       width: 100%; height: 100%;
-      background: #0A1A0D;
+      background: #FFFFFF;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-      color: #F0EBE0;
+      color: #111827;
       letter-spacing: -0.02em;
       overflow-x: hidden;
     }
@@ -23,7 +23,7 @@
       position: fixed;
       inset: 0;
       z-index: 400;
-      background: #0A1A0D;
+      background: #FFFFFF;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -42,7 +42,7 @@
       font-size: 22px;
     }
 
-    .setup-screen h2 { font-size: 22px; font-weight: 700; color: #F0EBE0; margin-bottom: 8px; }
+    .setup-screen h2 { font-size: 22px; font-weight: 700; color: #111827; margin-bottom: 8px; }
     .setup-screen .sub {
       font-size: 13px; color: #9CA3AF;
       margin-bottom: 28px; line-height: 1.6; max-width: 280px;
@@ -59,9 +59,9 @@
       width: 100%;
       padding: 13px 14px;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.07);
-      color: #F0EBE0;
+      border: 1px solid rgba(0,0,0,0.1);
+      background: rgba(0,0,0,0.04);
+      color: #111827;
       font-size: 13px;
       font-family: inherit;
       outline: none;
@@ -94,8 +94,8 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: #0A0A0A;
-      box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+      background: #FFFFFF;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.08);
       padding: 12px 16px;
     }
 
@@ -108,7 +108,7 @@
     .header-wordmark {
       font-size: 17px;
       font-weight: 700;
-      color: #FFFFFF;
+      color: #111827;
       letter-spacing: -0.3px;
       flex-shrink: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
@@ -127,7 +127,7 @@
       left: 10px;
       top: 50%;
       transform: translateY(-50%);
-      color: rgba(255,255,255,0.35);
+      color: rgba(0,0,0,0.35);
       font-size: 14px;
       pointer-events: none;
     }
@@ -136,17 +136,17 @@
       width: 100%;
       padding: 8px 10px 8px 32px;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.08);
-      color: #FFFFFF;
+      border: 1px solid rgba(0,0,0,0.12);
+      background: rgba(0,0,0,0.05);
+      color: #111827;
       font-size: 13px;
       font-family: inherit;
       outline: none;
       transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
     }
 
-    .header-search::placeholder { color: rgba(255,255,255,0.3); }
-    .header-search:focus { border-color: #22C55E; background: rgba(255,255,255,0.12); box-shadow: 0 0 0 3px rgba(34,197,94,0.15); }
+    .header-search::placeholder { color: rgba(0,0,0,0.4); }
+    .header-search:focus { border-color: #22C55E; background: rgba(0,0,0,0.07); box-shadow: 0 0 0 3px rgba(34,197,94,0.15); }
 
     .header-actions {
       display: flex;
@@ -177,8 +177,8 @@
 
     .refresh-icon-btn {
       background: transparent;
-      border: 1px solid rgba(255,255,255,0.15);
-      color: rgba(255,255,255,0.55);
+      border: 1px solid rgba(0,0,0,0.15);
+      color: rgba(0,0,0,0.55);
       font-size: 16px;
       cursor: pointer;
       padding: 7px 9px;
@@ -200,11 +200,11 @@
 
     .stat-card {
       flex: 1;
-      background: #0D1A10;
+      background: #F5F5F5;
       border-radius: 14px;
       padding: 12px 14px;
       box-shadow: none;
-      border: 1px solid rgba(255,255,255,0.07);
+      border: 1px solid rgba(0,0,0,0.07);
     }
 
     .stat-card .sv {
@@ -224,7 +224,7 @@
       letter-spacing: 0.5px;
     }
 
-    #statWon, #statWinRate, #statActive { color: #F0EBE0; }
+    #statWon, #statWinRate, #statActive { color: #111827; }
 
     /* ── Kanban board ── */
     .board-wrap {
@@ -243,7 +243,7 @@
     .kanban-col {
       min-width: 280px;
       max-width: 280px;
-      background: #0D1A10;
+      background: #F5F5F5;
       border-radius: 16px;
       padding: 0 0 12px;
       display: flex;
@@ -252,7 +252,7 @@
     }
 
     .col-header {
-      background: #0D1A10;
+      background: #F5F5F5;
       border-radius: 16px 16px 0 0;
       padding: 14px 14px 10px;
       display: flex;
@@ -263,7 +263,7 @@
     .col-title {
       font-size: 13px;
       font-weight: 700;
-      color: #D4CFC4;
+      color: #374151;
       flex: 1;
     }
 
@@ -289,10 +289,10 @@
 
     /* ── Lead card ── */
     .lead-card {
-      background: #0A0A0A;
+      background: #FFFFFF;
       border-radius: 14px;
       padding: 13px 14px;
-      box-shadow: 0 1px 0 rgba(255,255,255,0.04);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -318,7 +318,7 @@
     .card-name {
       font-size: 14px;
       font-weight: 600;
-      color: #F0EBE0;
+      color: #111827;
       line-height: 1.3;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
     }
@@ -326,7 +326,7 @@
     .card-value {
       font-size: 15px;
       font-weight: 700;
-      color: #F0EBE0;
+      color: #111827;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
       white-space: nowrap;
       flex-shrink: 0;
@@ -361,17 +361,17 @@
     .badge-quote     { background: rgba(34,197,94,0.15); color: #22C55E; border-color: rgba(34,197,94,0.3); }
     .badge-followup  { background: rgba(34,197,94,0.15); color: #22C55E; border-color: rgba(34,197,94,0.3); }
     .badge-won       { background: #22C55E; color: #FFFFFF; border-color: #22C55E; }
-    .badge-lost      { background: rgba(255,255,255,0.07); color: #8A8070; border-color: rgba(255,255,255,0.1); }
+    .badge-lost      { background: rgba(0,0,0,0.05); color: #6B7280; border-color: rgba(0,0,0,0.1); }
     .badge-overdue   { background: rgba(34,197,94,0.15); color: #22C55E; border-color: rgba(34,197,94,0.3); }
-    .badge-days      { background: rgba(255,255,255,0.07); color: #8A8070; border-color: rgba(255,255,255,0.1); }
+    .badge-days      { background: rgba(0,0,0,0.05); color: #6B7280; border-color: rgba(0,0,0,0.1); }
 
     /* Column count badges */
     .col-count.badge-new,
     .col-count.badge-contacted,
     .col-count.badge-quote,
-    .col-count.badge-followup  { background: transparent; color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.2); }
+    .col-count.badge-followup  { background: transparent; color: rgba(0,0,0,0.5); border: 1px solid rgba(0,0,0,0.2); }
     .col-count.badge-won       { background: #22C55E; color: #FFFFFF; border: none; }
-    .col-count.badge-lost      { background: transparent; color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.1); }
+    .col-count.badge-lost      { background: transparent; color: rgba(0,0,0,0.3); border: 1px solid rgba(0,0,0,0.1); }
 
     .col-empty {
       font-size: 12px;
@@ -420,7 +420,7 @@
       top: 0; right: 0; bottom: 0;
       width: 400px;
       max-width: 100%;
-      background: #0A1A0D;
+      background: #FFFFFF;
       z-index: 201;
       box-shadow: -4px 0 32px rgba(0,0,0,0.12);
       transform: translateX(100%);
@@ -436,7 +436,7 @@
 
     .panel-header {
       padding: 16px 18px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(0,0,0,0.08);
       display: flex;
       align-items: flex-start;
       gap: 10px;
@@ -448,19 +448,19 @@
     .panel-name {
       font-size: 18px;
       font-weight: 700;
-      color: #F0EBE0;
+      color: #111827;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
       margin-bottom: 5px;
       line-height: 1.2;
     }
 
     .panel-close {
-      background: rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.06);
       border: none;
       border-radius: 8px;
       width: 32px; height: 32px;
       font-size: 18px;
-      color: #8A8070;
+      color: #6B7280;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -471,7 +471,7 @@
       line-height: 1;
     }
 
-    .panel-close:hover { background: rgba(255,255,255,0.14); color: #F0EBE0; }
+    .panel-close:hover { background: rgba(0,0,0,0.08); color: #111827; }
 
     .panel-body {
       flex: 1;
@@ -491,9 +491,9 @@
       flex: 1;
       padding: 10px;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.05);
-      color: #F0EBE0;
+      border: 1px solid rgba(0,0,0,0.1);
+      background: rgba(0,0,0,0.04);
+      color: #111827;
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
@@ -506,7 +506,7 @@
     }
 
     .panel-contact-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); transform: translateY(-1px); }
-    .panel-contact-btn:active { background: rgba(255,255,255,0.1); }
+    .panel-contact-btn:active { background: rgba(0,0,0,0.06); }
 
     /* Section label */
     .panel-label {
@@ -523,12 +523,12 @@
 
     /* Details */
     .panel-detail-box {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.04);
+      border: 1px solid rgba(0,0,0,0.08);
       border-radius: 10px;
       padding: 10px 13px;
       font-size: 13px;
-      color: #0A0A0A;
+      color: #111827;
       line-height: 1.5;
     }
 
@@ -539,7 +539,7 @@
       gap: 8px;
     }
 
-    .panel-detail-box .drow + .drow { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.07); }
+    .panel-detail-box .drow + .drow { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(0,0,0,0.07); }
 
     .panel-detail-box .dlabel { font-size: 11px; color: #8A8070; }
     .panel-detail-box .dval { font-weight: 600; color: #F0EBE0; text-align: right; }
@@ -555,9 +555,9 @@
     .stage-pill {
       padding: 5px 11px;
       border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.06);
-      color: #8A8070;
+      border: 1px solid rgba(0,0,0,0.1);
+      background: rgba(0,0,0,0.05);
+      color: #6B7280;
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
@@ -584,7 +584,7 @@
       position: absolute;
       left: 6px; top: 6px; bottom: 6px;
       width: 1.5px;
-      background: rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.1);
     }
 
     .tl-entry {
@@ -615,7 +615,7 @@
 
     .tl-text {
       font-size: 12px;
-      color: #8A8070;
+      color: #6B7280;
       line-height: 1.45;
     }
 
@@ -624,9 +624,9 @@
       width: 100%;
       padding: 10px 12px;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.05);
-      color: #F0EBE0;
+      border: 1px solid rgba(0,0,0,0.1);
+      background: rgba(0,0,0,0.04);
+      color: #111827;
       font-size: 13px;
       outline: none;
       resize: none;
@@ -664,9 +664,9 @@
     .panel-btn.green:hover { box-shadow: 0 2px 8px rgba(34,197,94,0.3); transform: translateY(-1px); }
 
     .panel-btn.outline {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      color: #F0EBE0;
+      background: rgba(0,0,0,0.05);
+      border: 1px solid rgba(0,0,0,0.1);
+      color: #111827;
     }
 
     .panel-btn.outline:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.08); transform: translateY(-1px); }
@@ -696,8 +696,8 @@
     .modal-overlay.open { display: flex; }
 
     .modal-box {
-      background: #1a1a1a;
-      border: 1px solid rgba(255,255,255,0.1);
+      background: #FFFFFF;
+      border: 1px solid rgba(0,0,0,0.1);
       border-radius: 16px;
       padding: 28px;
       width: 100%;
@@ -709,13 +709,13 @@
     .modal-title {
       font-size: 16px;
       font-weight: 700;
-      color: #FFFFFF;
+      color: #111827;
       margin-bottom: 20px;
     }
 
     .modal-label {
       font-size: 11px;
-      color: #888;
+      color: #6B7280;
       text-transform: uppercase;
       letter-spacing: 1px;
       display: block;
@@ -724,11 +724,11 @@
 
     .modal-input, .modal-select, .modal-textarea {
       width: 100%;
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.04);
+      border: 1px solid rgba(0,0,0,0.12);
       border-radius: 8px;
       padding: 10px 12px;
-      color: #FFFFFF;
+      color: #111827;
       font-size: 14px;
       font-family: inherit;
       outline: none;
@@ -737,11 +737,11 @@
       transition: border-color 0.15s;
     }
 
-    .modal-input::placeholder, .modal-textarea::placeholder { color: #666; }
+    .modal-input::placeholder, .modal-textarea::placeholder { color: #9CA3AF; }
     .modal-input:focus, .modal-select:focus, .modal-textarea:focus { border-color: #22C55E; }
 
     .modal-select { appearance: none; cursor: pointer; }
-    .modal-select option { background: #1a1a1a; color: #FFFFFF; }
+    .modal-select option { background: #FFFFFF; color: #111827; }
 
     .modal-textarea { resize: none; min-height: 70px; }
 
@@ -763,9 +763,9 @@
     }
 
     .modal-btn.cancel {
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: #aaa;
+      background: rgba(0,0,0,0.04);
+      border: 1px solid rgba(0,0,0,0.12);
+      color: #6B7280;
     }
 
     .modal-btn.submit {
@@ -794,7 +794,7 @@
     /* ── View toggle ── */
     .view-toggle {
       display: flex;
-      background: rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.06);
       border-radius: 8px;
       padding: 3px;
       gap: 2px;
@@ -805,7 +805,7 @@
       border-radius: 6px;
       border: none;
       background: transparent;
-      color: rgba(255,255,255,0.5);
+      color: rgba(0,0,0,0.5);
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
@@ -825,7 +825,7 @@
     }
 
     .month-row {
-      background: #0A0A0A;
+      background: #FFFFFF;
       border-radius: 14px;
       padding: 16px 20px;
       margin-bottom: 10px;
@@ -839,7 +839,7 @@
     .month-name {
       font-size: 14px;
       font-weight: 700;
-      color: #F0EBE0;
+      color: #111827;
       letter-spacing: -0.3px;
     }
 
@@ -858,7 +858,7 @@
     .month-stat .mv {
       font-size: 15px;
       font-weight: 700;
-      color: #F0EBE0;
+      color: #111827;
       line-height: 1.1;
     }
 
@@ -906,7 +906,7 @@
     }
 
     .list-row {
-      background: #0A0A0A;
+      background: #FFFFFF;
       border-radius: 12px;
       padding: 12px 14px;
       display: flex;
@@ -923,7 +923,7 @@
     .list-name {
       font-size: 14px;
       font-weight: 600;
-      color: #F0EBE0;
+      color: #111827;
       flex: 1;
       min-width: 0;
       white-space: nowrap;
@@ -943,7 +943,7 @@
     .list-value {
       font-size: 13px;
       font-weight: 700;
-      color: #F0EBE0;
+      color: #111827;
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -959,8 +959,8 @@
     /* Export button */
     .export-btn {
       background: transparent;
-      border: 1px solid rgba(255,255,255,0.15);
-      color: rgba(255,255,255,0.55);
+      border: 1px solid rgba(0,0,0,0.15);
+      color: rgba(0,0,0,0.55);
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
@@ -992,7 +992,7 @@
       position: fixed;
       inset: 0;
       z-index: 500;
-      background: #0A1A0D;
+      background: #FFFFFF;
       display: none;
       flex-direction: column;
       align-items: center;
@@ -1011,9 +1011,9 @@
     .lf-pill {
       padding: 5px 12px;
       border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.06);
-      color: #8A8070;
+      border: 1px solid rgba(0,0,0,0.12);
+      background: rgba(0,0,0,0.05);
+      color: #6B7280;
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
@@ -1041,7 +1041,7 @@
 <!-- Login screen -->
 <div class="login-screen" id="loginScreen">
   <div class="setup-mark">🔒</div>
-  <h2 style="font-size:22px;font-weight:700;color:#F0EBE0;margin-bottom:8px;">Welcome back</h2>
+  <h2 style="font-size:22px;font-weight:700;color:#111827;margin-bottom:8px;">Welcome back</h2>
   <div class="sub">Enter your password to unlock the CRM.</div>
   <div class="setup-label">Password</div>
   <input class="setup-input" id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')submitLogin()">
@@ -1052,7 +1052,7 @@
 <!-- Header -->
 <div class="header">
   <div class="header-row">
-    <a href="index.html" style="color:rgba(255,255,255,0.45);font-size:18px;line-height:1;text-decoration:none;flex-shrink:0;padding:2px 8px 2px 0;" title="Bid Tool">←</a>
+    <a href="index.html" style="color:rgba(0,0,0,0.45);font-size:18px;line-height:1;text-decoration:none;flex-shrink:0;padding:2px 8px 2px 0;" title="Bid Tool">←</a>
     <div class="header-wordmark">Cornerstone <span>CRM</span></div>
     <div class="header-search-wrap">
       <span class="header-search-icon">⌕</span>
@@ -1071,7 +1071,7 @@
         <span style="font-size:16px;line-height:1;">+</span>
         <span>New Lead</span>
       </button>
-      <button class="view-toggle-btn" id="hideLostBtn" onclick="toggleHideLost()" style="background:rgba(255,255,255,0.1);border-radius:8px;padding:5px 10px;"></button>
+      <button class="view-toggle-btn" id="hideLostBtn" onclick="toggleHideLost()" style="background:rgba(0,0,0,0.06);border-radius:8px;padding:5px 10px;"></button>
       <button class="refresh-icon-btn" onclick="lockCRM()" title="Lock CRM" id="lockBtn" style="display:none;">🔒</button>
       <button class="refresh-icon-btn" onclick="loadLeads()" title="Refresh">↻</button>
     </div>
@@ -1114,7 +1114,7 @@
       <div id="panelStageBadge"></div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
-      <button onclick="openEditLead()" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:6px;color:#aaa;font-size:12px;padding:4px 10px;cursor:pointer;">Edit</button>
+      <button onclick="openEditLead()" style="background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.12);border-radius:6px;color:#6B7280;font-size:12px;padding:4px 10px;cursor:pointer;">Edit</button>
       <button class="panel-close" onclick="closePanel()">×</button>
     </div>
   </div>
@@ -1199,28 +1199,28 @@
 
 <!-- Schedule Modal -->
 <div id="schedModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;width:100%;max-width:380px;">
-    <div style="font-size:16px;font-weight:700;color:white;margin-bottom:4px;">Schedule Job</div>
+  <div style="background:#FFFFFF;border:1px solid rgba(0,0,0,0.1);border-radius:16px;padding:28px;width:100%;max-width:380px;">
+    <div style="font-size:16px;font-weight:700;color:#111827;margin-bottom:4px;">Schedule Job</div>
     <div id="schedName" style="font-size:13px;color:#22C55E;margin-bottom:20px;"></div>
 
-    <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Start Date</label>
-    <input id="schedStart" type="date" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+    <label style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:1px;">Start Date</label>
+    <input id="schedStart" type="date" style="width:100%;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.12);border-radius:8px;padding:10px 12px;color:#111827;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
 
-    <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">End Date</label>
-    <input id="schedEnd" type="date" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+    <label style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:1px;">End Date</label>
+    <input id="schedEnd" type="date" style="width:100%;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.12);border-radius:8px;padding:10px 12px;color:#111827;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
 
-    <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Customer Email</label>
-    <input id="schedCustomerEmail" type="email" placeholder="customer@email.com" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 12px;box-sizing:border-box;">
+    <label style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:1px;">Customer Email</label>
+    <input id="schedCustomerEmail" type="email" placeholder="customer@email.com" style="width:100%;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.12);border-radius:8px;padding:10px 12px;color:#111827;font-size:14px;margin:6px 0 12px;box-sizing:border-box;">
 
     <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:20px;">
       <input id="schedSendEmail" type="checkbox" style="width:16px;height:16px;accent-color:#22C55E;cursor:pointer;">
-      <span style="font-size:13px;color:#ccc;">Also email customer now</span>
+      <span style="font-size:13px;color:#6B7280;">Also email customer now</span>
     </label>
 
     <div id="schedStatus" style="font-size:13px;color:#22C55E;min-height:18px;margin-bottom:12px;"></div>
 
     <div style="display:flex;gap:10px;">
-      <button onclick="closeSchedule()" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#aaa;font-size:14px;cursor:pointer;">Cancel</button>
+      <button onclick="closeSchedule()" style="flex:1;padding:12px;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.12);border-radius:8px;color:#6B7280;font-size:14px;cursor:pointer;">Cancel</button>
       <button onclick="confirmSchedule()" style="flex:2;padding:12px;background:#22C55E;border:none;border-radius:8px;color:#0a0a0a;font-size:14px;font-weight:700;cursor:pointer;">Add to Calendar</button>
     </div>
   </div>
@@ -1228,20 +1228,20 @@
 
 <!-- Confirmation Modal -->
 <div id="confirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;width:100%;max-width:380px;">
-    <div style="font-size:16px;font-weight:700;color:white;margin-bottom:2px;">Send Job Confirmation</div>
+  <div style="background:#FFFFFF;border:1px solid rgba(0,0,0,0.1);border-radius:16px;padding:28px;width:100%;max-width:380px;">
+    <div style="font-size:16px;font-weight:700;color:#111827;margin-bottom:2px;">Send Job Confirmation</div>
     <div id="confirmLeadName" style="font-size:13px;color:#22C55E;margin-bottom:20px;"></div>
 
-    <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Scheduled Date</label>
-    <input id="confirmDate" type="date" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
+    <label style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:1px;">Scheduled Date</label>
+    <input id="confirmDate" type="date" style="width:100%;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.12);border-radius:8px;padding:10px 12px;color:#111827;font-size:14px;margin:6px 0 14px;box-sizing:border-box;">
 
-    <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Customer Email</label>
-    <input id="confirmCustomerEmail" type="email" placeholder="customer@email.com" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;color:white;font-size:14px;margin:6px 0 20px;box-sizing:border-box;">
+    <label style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:1px;">Customer Email</label>
+    <input id="confirmCustomerEmail" type="email" placeholder="customer@email.com" style="width:100%;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.12);border-radius:8px;padding:10px 12px;color:#111827;font-size:14px;margin:6px 0 20px;box-sizing:border-box;">
 
     <div id="confirmStatus" style="font-size:13px;color:#22C55E;min-height:18px;margin-bottom:12px;"></div>
 
     <div style="display:flex;gap:10px;">
-      <button onclick="closeConfirm()" style="flex:1;padding:12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#aaa;font-size:14px;cursor:pointer;">Cancel</button>
+      <button onclick="closeConfirm()" style="flex:1;padding:12px;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.12);border-radius:8px;color:#6B7280;font-size:14px;cursor:pointer;">Cancel</button>
       <button onclick="submitConfirm()" style="flex:2;padding:12px;background:#22C55E;border:none;border-radius:8px;color:#0a0a0a;font-size:14px;font-weight:700;cursor:pointer;">Send to Customer</button>
     </div>
   </div>
@@ -1249,39 +1249,39 @@
 
 <!-- Quote Builder Modal -->
 <div id="quoteModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
-  <div style="background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;width:100%;max-width:580px;margin:auto;">
+  <div style="background:#FFFFFF;border:1px solid rgba(0,0,0,0.1);border-radius:16px;padding:28px;width:100%;max-width:580px;margin:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
       <div>
-        <div style="font-size:18px;font-weight:700;color:white;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;">Create Quote</div>
+        <div style="font-size:18px;font-weight:700;color:#111827;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;">Create Quote</div>
         <div id="quoteLeadName" style="font-size:13px;color:#22C55E;margin-top:2px;"></div>
       </div>
-      <button onclick="closeQuoteModal()" style="background:rgba(255,255,255,0.08);border:none;border-radius:8px;color:white;width:32px;height:32px;cursor:pointer;font-size:18px;line-height:1;">×</button>
+      <button onclick="closeQuoteModal()" style="background:rgba(0,0,0,0.06);border:none;border-radius:8px;color:#6B7280;width:32px;height:32px;cursor:pointer;font-size:18px;line-height:1;">×</button>
     </div>
 
-    <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Quick Add Service</div>
+    <div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Quick Add Service</div>
     <div id="servicePills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;"></div>
 
-    <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Line Items</div>
+    <div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Line Items</div>
     <div id="quoteLines" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
-    <button onclick="addQuoteLine()" style="width:100%;padding:10px;background:transparent;border:1px dashed rgba(255,255,255,0.15);border-radius:8px;color:#666;font-size:13px;cursor:pointer;margin-bottom:20px;">+ Add Line Item</button>
+    <button onclick="addQuoteLine()" style="width:100%;padding:10px;background:transparent;border:1px dashed rgba(0,0,0,0.15);border-radius:8px;color:#9CA3AF;font-size:13px;cursor:pointer;margin-bottom:20px;">+ Add Line Item</button>
 
-    <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Scope of Work / Notes</div>
-    <textarea id="quoteNotes" placeholder="Describe the scope of work..." style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:white;font-size:13px;resize:vertical;min-height:70px;box-sizing:border-box;margin-bottom:20px;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;"></textarea>
+    <div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Scope of Work / Notes</div>
+    <textarea id="quoteNotes" placeholder="Describe the scope of work..." style="width:100%;background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.1);border-radius:8px;padding:10px 12px;color:#111827;font-size:13px;resize:vertical;min-height:70px;box-sizing:border-box;margin-bottom:20px;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;"></textarea>
 
-    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;margin-bottom:20px;">
-      <div style="display:flex;justify-content:space-between;color:#888;font-size:13px;margin-bottom:10px;"><span>Subtotal</span><span id="quoteSubtotal">$0</span></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;color:#888;font-size:13px;margin-bottom:10px;">
+    <div style="background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.08);border-radius:10px;padding:14px;margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;color:#6B7280;font-size:13px;margin-bottom:10px;"><span>Subtotal</span><span id="quoteSubtotal">$0</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;color:#6B7280;font-size:13px;margin-bottom:10px;">
         <span>Markup %</span>
-        <input id="quoteMarkup" type="number" value="0" min="0" max="200" oninput="calcQuoteTotal()" style="width:64px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:4px 8px;color:white;font-size:13px;text-align:right;outline:none;">
+        <input id="quoteMarkup" type="number" value="0" min="0" max="200" oninput="calcQuoteTotal()" style="width:64px;background:rgba(0,0,0,0.06);border:1px solid rgba(0,0,0,0.12);border-radius:6px;padding:4px 8px;color:#111827;font-size:13px;text-align:right;outline:none;">
       </div>
-      <div style="display:flex;justify-content:space-between;color:white;font-size:18px;font-weight:700;border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;">
+      <div style="display:flex;justify-content:space-between;color:#111827;font-size:18px;font-weight:700;border-top:1px solid rgba(0,0,0,0.08);padding-top:12px;">
         <span>Total</span><span id="quoteTotalDisplay" style="color:#22C55E;">$0</span>
       </div>
     </div>
 
     <div id="quoteStatus" style="font-size:13px;color:#22C55E;min-height:18px;margin-bottom:12px;text-align:center;"></div>
     <div style="display:flex;gap:10px;">
-      <button onclick="closeQuoteModal()" style="flex:1;padding:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#aaa;font-size:14px;cursor:pointer;">Cancel</button>
+      <button onclick="closeQuoteModal()" style="flex:1;padding:12px;background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.1);border-radius:8px;color:#6B7280;font-size:14px;cursor:pointer;">Cancel</button>
       <button onclick="submitCustomQuote()" style="flex:2;padding:12px;background:#22C55E;border:none;border-radius:8px;color:#0a0a0a;font-size:14px;font-weight:700;cursor:pointer;">Send Quote</button>
     </div>
   </div>
@@ -2292,8 +2292,8 @@
     document.getElementById('servicePills').innerHTML =
       QUOTE_SERVICES.map(s =>
         `<button onclick="addQuoteLineFromService('${s}')"
-          style="padding:5px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
-          border-radius:20px;color:#F0EBE0;font-size:12px;cursor:pointer;font-family:inherit;">${s}</button>`
+          style="padding:5px 12px;background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.12);
+          border-radius:20px;color:#374151;font-size:12px;cursor:pointer;font-family:inherit;">${s}</button>`
       ).join('');
   }
 
@@ -2325,21 +2325,21 @@
   function renderQuoteLines() {
     const el = document.getElementById('quoteLines');
     if (!quoteLines.length) {
-      el.innerHTML = `<div style="text-align:center;color:#444;font-size:13px;padding:12px;">
+      el.innerHTML = `<div style="text-align:center;color:#9CA3AF;font-size:13px;padding:12px;">
         Click a service above or use + Add Line Item</div>`;
       return;
     }
     const units = ['lot','acres','sq ft','linear ft','ea','hrs','days'];
-    const inp = 'background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 8px;color:white;font-size:12px;outline:none;';
+    const inp = 'background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.1);border-radius:6px;padding:5px 8px;color:#111827;font-size:12px;outline:none;';
     el.innerHTML = quoteLines.map((line, i) => `
-      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:10px 12px;">
+      <div style="background:rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.07);border-radius:8px;padding:10px 12px;">
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
           <input value="${esc(line.service)}" onchange="qlUpdate(${i},'service',this.value)"
             placeholder="Service name"
-            style="flex:1;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.15);
-            color:white;font-size:13px;font-weight:600;outline:none;padding:2px 0;font-family:inherit;">
+            style="flex:1;background:transparent;border:none;border-bottom:1px solid rgba(0,0,0,0.15);
+            color:#111827;font-size:13px;font-weight:600;outline:none;padding:2px 0;font-family:inherit;">
           <button onclick="removeQuoteLine(${i})"
-            style="background:none;border:none;color:#444;font-size:18px;cursor:pointer;line-height:1;padding:0;">×</button>
+            style="background:none;border:none;color:#9CA3AF;font-size:18px;cursor:pointer;line-height:1;padding:0;">×</button>
         </div>
         <div style="display:flex;gap:8px;align-items:center;">
           <input type="text" value="${esc(line.description)}" onchange="qlUpdate(${i},'description',this.value)"
@@ -2349,11 +2349,11 @@
             onchange="qlUpdate(${i},'qty',parseFloat(this.value)||1);calcQuoteTotal()"
             style="width:54px;${inp}text-align:center;" title="Qty">
           <select onchange="qlUpdate(${i},'unit',this.value)"
-            style="${inp}background:#1a1a1a;cursor:pointer;">
+            style="${inp}background:#FFFFFF;cursor:pointer;">
             ${units.map(u=>`<option${u===line.unit?' selected':''}>${u}</option>`).join('')}
           </select>
           <div style="display:flex;align-items:center;gap:3px;">
-            <span style="color:#666;font-size:12px;">$</span>
+            <span style="color:#9CA3AF;font-size:12px;">$</span>
             <input type="number" value="${line.unitPrice}" min="0"
               onchange="qlUpdate(${i},'unitPrice',parseFloat(this.value)||0);calcQuoteTotal()"
               placeholder="Price" style="width:80px;${inp}text-align:right;" title="Unit price">
