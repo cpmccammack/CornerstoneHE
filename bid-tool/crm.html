@@ -18,223 +18,240 @@
       overflow-x: hidden;
     }
 
-    /* ── Setup screen ── */
-    .setup-screen {
+    /* ── Layout ── */
+    body { display: flex; min-height: 100vh; background: #EDEAE5; }
+
+    .sidebar {
+      width: 220px;
+      min-height: 100vh;
+      background: #0A0A0A;
+      flex-shrink: 0;
       position: fixed;
-      inset: 0;
-      z-index: 400;
-      background: #FFFFFF;
+      top: 0; left: 0; bottom: 0;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 32px;
-      text-align: center;
+      z-index: 50;
     }
 
-    .setup-mark {
-      width: 52px; height: 52px;
-      border-radius: 14px;
-      background: rgba(34,197,94,0.15);
-      border: 1px solid rgba(34,197,94,0.3);
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 22px;
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
 
-    .setup-screen h2 { font-size: 22px; font-weight: 700; color: #0A0A0A; margin-bottom: 8px; }
-    .setup-screen .sub {
-      font-size: 13px; color: #9CA3AF;
-      margin-bottom: 28px; line-height: 1.6; max-width: 280px;
-    }
-
-    .setup-label {
-      width: 100%; text-align: left;
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.8px;
-      color: #22C55E; margin-bottom: 6px;
-    }
-
-    .setup-input {
-      width: 100%;
-      padding: 13px 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(0,0,0,0.1);
-      background: rgba(0,0,0,0.04);
-      color: #0A0A0A;
-      font-size: 13px;
-      font-family: inherit;
-      outline: none;
-      margin-bottom: 12px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-    }
-
-    .setup-input::placeholder { color: #9CA3AF; }
-    .setup-input:focus { border-color: #22C55E; box-shadow: 0 0 0 3px rgba(34,197,94,0.12); }
-
-    .setup-go {
-      width: 100%;
-      padding: 14px;
-      background: #22C55E;
-      border: none;
-      color: #FFFFFF;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      letter-spacing: 0.3px;
-      font-family: inherit;
-      transition: box-shadow 0.15s, transform 0.15s;
-    }
-
-    .setup-go:active { box-shadow: 0 0 0 3px rgba(34,197,94,0.25); transform: scale(0.99); }
-
-    /* ── Header ── */
-    .header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: #0A0A0A;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.2);
-      padding: 12px 16px;
-    }
-
-    .header-row {
+    .top-bar {
+      background: #FFFFFF;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      padding: 14px 24px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+      flex-shrink: 0;
     }
 
-    .header-wordmark {
-      font-size: 17px;
+    .content-area {
+      padding: 20px 24px;
+      flex: 1;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar-logo {
+      padding: 20px 18px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo-text {
+      font-size: 16px;
       font-weight: 700;
       color: #FFFFFF;
       letter-spacing: -0.3px;
-      flex-shrink: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
     }
 
-    .header-wordmark span { color: #0A0A0A; }
+    .sidebar-logo-text span { color: #22C55E; }
 
-    .header-search-wrap {
+    .nav-section {
+      padding: 12px 10px;
       flex: 1;
-      position: relative;
-      min-width: 0;
     }
 
-    .header-search-icon {
-      position: absolute;
-      left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: rgba(255,255,255,0.4);
-      font-size: 14px;
-      pointer-events: none;
-    }
-
-    .header-search {
-      width: 100%;
-      padding: 8px 10px 8px 32px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.15);
-      background: rgba(255,255,255,0.1);
-      color: #FFFFFF;
-      font-size: 13px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-    }
-
-    .header-search::placeholder { color: rgba(255,255,255,0.35); }
-    .header-search:focus { border-color: #22C55E; background: rgba(255,255,255,0.15); box-shadow: 0 0 0 3px rgba(34,197,94,0.2); }
-
-    .header-actions {
+    .nav-item {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      color: rgba(255,255,255,0.55);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      margin-bottom: 2px;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
+      text-decoration: none;
+    }
+
+    .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
+    .nav-item.active { background: rgba(34,197,94,0.15); color: #22C55E; }
+
+    .nav-icon {
+      font-size: 15px;
+      width: 18px;
+      text-align: center;
       flex-shrink: 0;
+    }
+
+    .nav-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 8px 10px;
+    }
+
+    .sidebar-bottom {
+      padding: 12px 10px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+
+    /* ── Top bar ── */
+    .top-bar-search {
+      flex: 1;
+      max-width: 360px;
+      position: relative;
+    }
+
+    .top-bar-search input {
+      width: 100%;
+      padding: 8px 12px 8px 34px;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,0.1);
+      background: #F5F5F5;
+      font-size: 13px;
+      outline: none;
+      font-family: inherit;
+      color: #111;
+    }
+
+    .top-bar-search input:focus {
+      border-color: #22C55E;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
     }
 
     .new-lead-btn {
       display: flex;
       align-items: center;
       gap: 5px;
-      padding: 8px 14px;
+      padding: 8px 16px;
       background: #22C55E;
       color: #FFFFFF;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
       font-family: inherit;
       white-space: nowrap;
       transition: box-shadow 0.15s, transform 0.15s;
+      flex-shrink: 0;
     }
 
     .new-lead-btn:hover { box-shadow: 0 2px 8px rgba(34,197,94,0.3); transform: translateY(-1px); }
     .new-lead-btn:active { transform: scale(0.98); }
 
-    .refresh-icon-btn {
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.2);
-      color: rgba(255,255,255,0.6);
-      font-size: 16px;
-      cursor: pointer;
-      padding: 7px 9px;
-      border-radius: 10px;
-      -webkit-tap-highlight-color: transparent;
-      flex-shrink: 0;
-      line-height: 1;
-      transition: border-color 0.15s, color 0.15s;
-    }
-
-    .refresh-icon-btn:hover { border-color: #22C55E; color: #22C55E; background: rgba(34,197,94,0.08); }
-
-    /* ── Stats bar ── */
-    .stats-bar {
+    /* ── Stats inline ── */
+    .stats-inline {
       display: flex;
-      gap: 10px;
-      padding: 14px 16px 0;
+      gap: 24px;
+      padding: 12px 24px;
+      background: #FFFFFF;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      flex-shrink: 0;
     }
 
-    .stat-card {
-      flex: 1;
-      background: #0A0A0A;
-      border-radius: 14px;
-      padding: 12px 14px;
-      box-shadow: none;
-      border: 1px solid rgba(255,255,255,0.06);
+    .stat-inline { display: flex; flex-direction: column; }
+    .stat-inline .siv { font-size: 18px; font-weight: 700; color: #22C55E; }
+    .stat-inline .sil { font-size: 10px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+
+    /* ── Table ── */
+    .leads-table-wrap {
+      background: #FFFFFF;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
 
-    .stat-card .sv {
-      font-size: 18px;
-      font-weight: 700;
-      color: #22C55E;
-      line-height: 1.1;
-      margin-bottom: 3px;
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    .leads-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
     }
 
-    .stat-card .sl {
+    .leads-table th {
+      padding: 10px 14px;
+      text-align: left;
       font-size: 10px;
-      color: rgba(255,255,255,0.5);
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.6px;
+      color: #9CA3AF;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      background: #FAFAFA;
     }
 
-    #statWon, #statWinRate, #statActive { color: #FFFFFF; }
+    .leads-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      color: #111827;
+      vertical-align: middle;
+    }
+
+    .leads-table tr:last-child td { border-bottom: none; }
+
+    .leads-table tbody tr {
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .leads-table tbody tr:hover { background: #F9F9F9; }
+
+    .tbl-name { font-weight: 600; color: #111827; }
+    .tbl-value { font-weight: 700; color: #22C55E; }
+    .tbl-muted { color: #9CA3AF; }
+
+    /* ── Spinner ── */
+    .spinner {
+      width: 28px; height: 28px;
+      border: 2.5px solid rgba(34,197,94,0.2);
+      border-top-color: #22C55E;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 60px auto;
+    }
+
+    .board-spinner-wrap {
+      width: 100%;
+      padding: 60px 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── Kanban board ── */
     .board-wrap {
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
-      padding: 14px 16px 60px;
       display: flex;
       gap: 12px;
       align-items: flex-start;
+      padding-bottom: 40px;
     }
 
     .board-wrap::-webkit-scrollbar { display: none; }
@@ -320,14 +337,12 @@
       font-weight: 600;
       color: #0A0A0A;
       line-height: 1.3;
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
     }
 
     .card-value {
       font-size: 15px;
       font-weight: 700;
       color: #0A0A0A;
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -355,14 +370,14 @@
       border: 1px solid transparent;
     }
 
-    /* Badge system — dark mode */
-    .badge-new       { background: rgba(34,197,94,0.15); color: #22C55E; border-color: rgba(34,197,94,0.3); }
-    .badge-contacted { background: rgba(34,197,94,0.15); color: #22C55E; border-color: rgba(34,197,94,0.3); }
-    .badge-quote     { background: rgba(34,197,94,0.15); color: #22C55E; border-color: rgba(34,197,94,0.3); }
-    .badge-followup  { background: rgba(34,197,94,0.15); color: #22C55E; border-color: rgba(34,197,94,0.3); }
+    /* Badge system */
+    .badge-new       { background: rgba(34,197,94,0.12); color: #16A34A; border-color: rgba(34,197,94,0.25); }
+    .badge-contacted { background: rgba(59,130,246,0.12); color: #2563EB; border-color: rgba(59,130,246,0.25); }
+    .badge-quote     { background: rgba(168,85,247,0.12); color: #7C3AED; border-color: rgba(168,85,247,0.25); }
+    .badge-followup  { background: rgba(245,158,11,0.12); color: #D97706; border-color: rgba(245,158,11,0.25); }
     .badge-won       { background: #22C55E; color: #FFFFFF; border-color: #22C55E; }
     .badge-lost      { background: rgba(0,0,0,0.05); color: #6B7280; border-color: rgba(0,0,0,0.1); }
-    .badge-overdue   { background: rgba(34,197,94,0.15); color: #22C55E; border-color: rgba(34,197,94,0.3); }
+    .badge-overdue   { background: rgba(239,68,68,0.12); color: #DC2626; border-color: rgba(239,68,68,0.25); }
     .badge-days      { background: rgba(0,0,0,0.05); color: #6B7280; border-color: rgba(0,0,0,0.1); }
 
     /* Column count badges */
@@ -379,25 +394,6 @@
       text-align: center;
       padding: 20px 10px;
     }
-
-    /* ── Spinner ── */
-    .spinner {
-      width: 28px; height: 28px;
-      border: 2.5px solid rgba(34,197,94,0.2);
-      border-top-color: #22C55E;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      margin: 60px auto;
-    }
-
-    .board-spinner-wrap {
-      width: 100%;
-      padding: 60px 0;
-      display: flex;
-      justify-content: center;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── Lead Panel (slide-over) ── */
     .panel-overlay {
@@ -449,7 +445,6 @@
       font-size: 18px;
       font-weight: 700;
       color: #0A0A0A;
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
       margin-bottom: 5px;
       line-height: 1.2;
     }
@@ -542,7 +537,7 @@
     .panel-detail-box .drow + .drow { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(0,0,0,0.07); }
 
     .panel-detail-box .dlabel { font-size: 11px; color: #8A8070; }
-    .panel-detail-box .dval { font-weight: 600; color: #F0EBE0; text-align: right; }
+    .panel-detail-box .dval { font-weight: 600; color: #111827; text-align: right; }
     .panel-detail-box .dval.green { color: #22C55E; }
 
     /* Stage pills */
@@ -791,21 +786,13 @@
       line-height: 1.8;
     }
 
-    /* ── View toggle ── */
-    .view-toggle {
-      display: flex;
-      background: rgba(255,255,255,0.1);
-      border-radius: 8px;
-      padding: 3px;
-      gap: 2px;
-    }
-
+    /* ── View toggle (keep for compatibility) ── */
     .view-toggle-btn {
       padding: 5px 12px;
       border-radius: 6px;
       border: none;
       background: transparent;
-      color: rgba(255,255,255,0.55);
+      color: #555;
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
@@ -821,7 +808,7 @@
 
     /* ── Monthly view ── */
     .monthly-wrap {
-      padding: 14px 16px 60px;
+      padding-bottom: 40px;
     }
 
     .month-row {
@@ -891,15 +878,8 @@
 
     .month-header-row span:first-child { text-align: left; }
 
-    @media (max-width: 600px) {
-      .month-row { grid-template-columns: 100px repeat(4, 1fr); gap: 8px; padding: 12px 14px; }
-      .month-stat .mv { font-size: 13px; }
-      .view-toggle-btn { padding: 5px 8px; }
-    }
-
     /* ── List view ── */
     .list-wrap {
-      padding: 10px 16px 60px;
       display: flex;
       flex-direction: column;
       gap: 6px;
@@ -917,7 +897,7 @@
       transition: transform 0.15s, box-shadow 0.15s;
     }
 
-    .list-row:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+    .list-row:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
     .list-row:active { transform: scale(0.99); }
 
     .list-name {
@@ -956,36 +936,99 @@
       text-align: right;
     }
 
-    /* Export button */
-    .export-btn {
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.2);
-      color: rgba(255,255,255,0.6);
-      font-size: 12px;
+    .list-filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .lf-pill {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(0,0,0,0.12);
+      background: rgba(0,0,0,0.05);
+      color: #6B7280;
+      font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      padding: 6px 10px;
-      border-radius: 10px;
       font-family: inherit;
-      flex-shrink: 0;
-      transition: border-color 0.15s, color 0.15s;
       white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
     }
 
-    .export-btn:hover { border-color: #22C55E; color: #22C55E; background: rgba(34,197,94,0.08); }
+    .lf-pill.active { background: #22C55E; border-color: #22C55E; color: #fff; }
 
-    /* Mobile adjustments */
-    @media (max-width: 600px) {
-      .header-wordmark { font-size: 15px; }
-      .new-lead-btn span { display: none; }
-      .new-lead-btn { padding: 8px 10px; }
-      .stats-bar { gap: 7px; padding: 12px 12px 0; }
-      .stat-card { padding: 10px 10px; }
-      .stat-card .sv { font-size: 15px; }
-      .board-wrap { padding: 12px 10px 60px; gap: 10px; }
-      .kanban-col { min-width: 250px; max-width: 250px; }
-      .list-address { display: none; }
+    /* ── Setup screen ── */
+    .setup-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 400;
+      background: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      text-align: center;
     }
+
+    .setup-mark {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.3);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 22px;
+    }
+
+    .setup-screen h2 { font-size: 22px; font-weight: 700; color: #0A0A0A; margin-bottom: 8px; }
+    .setup-screen .sub {
+      font-size: 13px; color: #9CA3AF;
+      margin-bottom: 28px; line-height: 1.6; max-width: 280px;
+    }
+
+    .setup-label {
+      width: 100%; text-align: left;
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: #22C55E; margin-bottom: 6px;
+    }
+
+    .setup-input {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.1);
+      background: rgba(0,0,0,0.04);
+      color: #0A0A0A;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    .setup-input::placeholder { color: #9CA3AF; }
+    .setup-input:focus { border-color: #22C55E; box-shadow: 0 0 0 3px rgba(34,197,94,0.12); }
+
+    .setup-go {
+      width: 100%;
+      padding: 14px;
+      background: #22C55E;
+      border: none;
+      color: #FFFFFF;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      font-family: inherit;
+      transition: box-shadow 0.15s, transform 0.15s;
+    }
+
+    .setup-go:active { box-shadow: 0 0 0 3px rgba(34,197,94,0.25); transform: scale(0.99); }
 
     /* ── Login screen ── */
     .login-screen {
@@ -1000,28 +1043,25 @@
       padding: 32px;
       text-align: center;
     }
+
     .login-screen.open { display: flex; }
 
-    .list-filters {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-      padding: 10px 16px 0;
+    /* ── Mobile ── */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .tbl-hide-mobile { display: none; }
+      .month-row { grid-template-columns: 100px repeat(4, 1fr); gap: 8px; padding: 12px 14px; }
+      .month-stat .mv { font-size: 13px; }
     }
-    .lf-pill {
-      padding: 5px 12px;
-      border-radius: 20px;
-      border: 1px solid rgba(0,0,0,0.12);
-      background: rgba(0,0,0,0.05);
-      color: #6B7280;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      white-space: nowrap;
-      transition: background 0.15s, color 0.15s;
+
+    @media (max-width: 600px) {
+      .list-address { display: none; }
+      .content-area { padding: 16px; }
+      .top-bar { padding: 12px 16px; gap: 8px; }
+      .stats-inline { padding: 10px 16px; gap: 16px; }
     }
-    .lf-pill.active { background: #22C55E; border-color: #22C55E; color: #fff; }
   </style>
 </head>
 <body>
@@ -1049,58 +1089,62 @@
   <div id="loginError" style="color:#EF4444;font-size:13px;margin-top:12px;min-height:18px;"></div>
 </div>
 
-<!-- Header -->
-<div class="header">
-  <div class="header-row">
-    <a href="index.html" style="color:rgba(0,0,0,0.45);font-size:18px;line-height:1;text-decoration:none;flex-shrink:0;padding:2px 8px 2px 0;" title="Bid Tool">←</a>
-    <div class="header-wordmark">Cornerstone <span>CRM</span></div>
-    <div class="header-search-wrap">
-      <span class="header-search-icon">⌕</span>
-      <input class="header-search" id="searchInput" type="text" placeholder="Search leads…" oninput="onSearch()">
-    </div>
-    <div class="header-actions">
-      <div class="view-toggle">
-        <button class="view-toggle-btn" id="btnKanban" onclick="setView('kanban')">Board</button>
-        <button class="view-toggle-btn" id="btnList" onclick="setView('list')">List</button>
-        <button class="view-toggle-btn" id="btnMonthly" onclick="setView('monthly')">Monthly</button>
-      </div>
-      <button class="export-btn" onclick="exportCSV()" title="Export leads to CSV">Export</button>
-      <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCSVImport(event)">
-      <button class="export-btn" onclick="document.getElementById('csvFileInput').click()" title="Import leads from CSV">Import</button>
-      <button class="new-lead-btn" onclick="openAddLead()">
-        <span style="font-size:16px;line-height:1;">+</span>
-        <span>New Lead</span>
-      </button>
-      <button class="view-toggle-btn" id="hideLostBtn" onclick="toggleHideLost()" style="background:rgba(0,0,0,0.06);border-radius:8px;padding:5px 10px;"></button>
-      <button class="refresh-icon-btn" onclick="lockCRM()" title="Lock CRM" id="lockBtn" style="display:none;">🔒</button>
-      <button class="refresh-icon-btn" onclick="loadLeads()" title="Refresh">↻</button>
-    </div>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-text">Cornerstone <span>CRM</span></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-divider"></div>
+    <button class="nav-item active" id="navTable" onclick="setView('table')">
+      <span class="nav-icon">☰</span> Leads
+    </button>
+    <button class="nav-item" id="navKanban" onclick="setView('kanban')">
+      <span class="nav-icon">⊞</span> Pipeline
+    </button>
+    <button class="nav-item" id="navMonthly" onclick="setView('monthly')">
+      <span class="nav-icon">📅</span> Monthly
+    </button>
+    <div class="nav-divider"></div>
+    <a class="nav-item" href="index.html">
+      <span class="nav-icon">🔧</span> Bid Tool
+    </a>
+  </div>
+  <div class="sidebar-bottom">
+    <button class="nav-item" onclick="exportCSV()"><span class="nav-icon">↑</span> Export</button>
+    <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCSVImport(event)">
+    <button class="nav-item" onclick="document.getElementById('csvFileInput').click()"><span class="nav-icon">↓</span> Import</button>
+    <button class="nav-item" onclick="lockCRM()" id="lockBtn" style="display:none;"><span class="nav-icon">🔒</span> Lock</button>
   </div>
 </div>
 
-<!-- Stats bar -->
-<div class="stats-bar" id="statsBar" style="display:none;">
-  <div class="stat-card">
-    <div class="sv" id="statPipeline">—</div>
-    <div class="sl">Pipeline</div>
+<!-- Main -->
+<div class="main">
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="top-bar-search">
+      <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9CA3AF;font-size:13px;pointer-events:none;">⌕</span>
+      <input id="searchInput" type="text" placeholder="Search leads…" oninput="onSearch()">
+    </div>
+    <button class="view-toggle-btn" id="hideLostBtn" onclick="toggleHideLost()" style="background:rgba(0,0,0,0.06);border-radius:8px;padding:5px 10px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#555;"></button>
+    <button onclick="loadLeads()" style="background:none;border:1px solid rgba(0,0,0,0.12);color:#555;font-size:14px;padding:6px 10px;border-radius:8px;cursor:pointer;font-family:inherit;">↻</button>
+    <button class="new-lead-btn" onclick="openAddLead()">+ New Lead</button>
   </div>
-  <div class="stat-card">
-    <div class="sv" id="statWon">—</div>
-    <div class="sl">Won / Mo</div>
-  </div>
-  <div class="stat-card">
-    <div class="sv" id="statWinRate">—</div>
-    <div class="sl">Win Rate</div>
-  </div>
-  <div class="stat-card">
-    <div class="sv" id="statActive">—</div>
-    <div class="sl">Active</div>
-  </div>
-</div>
 
-<!-- Kanban board -->
-<div class="board-wrap" id="boardWrap">
-  <div class="board-spinner-wrap"><div class="spinner"></div></div>
+  <!-- Stats inline -->
+  <div class="stats-inline" id="statsBar" style="display:none;">
+    <div class="stat-inline"><div class="siv" id="statPipeline">—</div><div class="sil">Pipeline</div></div>
+    <div class="stat-inline"><div class="siv" style="color:#111827;" id="statWon">—</div><div class="sil">Won / Mo</div></div>
+    <div class="stat-inline"><div class="siv" style="color:#111827;" id="statWinRate">—</div><div class="sil">Win Rate</div></div>
+    <div class="stat-inline"><div class="siv" style="color:#111827;" id="statActive">—</div><div class="sil">Active</div></div>
+  </div>
+
+  <!-- Board/table area -->
+  <div class="content-area">
+    <div id="boardWrap">
+      <div class="board-spinner-wrap"><div class="spinner"></div></div>
+    </div>
+  </div>
 </div>
 
 <!-- Panel overlay -->
@@ -1313,7 +1357,7 @@
   let allLeads = [];
   let activePanelId = null;
   let searchQuery = '';
-  let currentView = window.innerWidth <= 600 ? 'list' : 'kanban';
+  let currentView = 'table';
   let hideLost = localStorage.getItem('crm_hidelost') === '1';
   let listStageFilter = '';
 
@@ -1479,9 +1523,10 @@
   // ── View toggle ────────────────────────────────────────────────
   function setView(v) {
     currentView = v;
-    document.getElementById('btnKanban').classList.toggle('active', v === 'kanban');
-    document.getElementById('btnList').classList.toggle('active', v === 'list');
-    document.getElementById('btnMonthly').classList.toggle('active', v === 'monthly');
+    ['table','kanban','monthly'].forEach(name => {
+      const el = document.getElementById('nav' + name.charAt(0).toUpperCase() + name.slice(1));
+      if (el) el.classList.toggle('active', v === name);
+    });
     renderAll();
   }
 
@@ -1491,13 +1536,52 @@
     const filtered = getFilteredLeads();
     updateStats(filtered);
     hideSpinner();
-    // sync toggle buttons with current view (handles default on mobile)
-    document.getElementById('btnKanban').classList.toggle('active', currentView === 'kanban');
-    document.getElementById('btnList').classList.toggle('active', currentView === 'list');
-    document.getElementById('btnMonthly').classList.toggle('active', currentView === 'monthly');
     if (currentView === 'monthly') renderMonthly(filtered);
+    else if (currentView === 'table') renderTable(filtered);
     else if (currentView === 'list') renderList(filtered);
     else renderBoard(filtered);
+  }
+
+  // ── Table view ─────────────────────────────────────────────────
+  function renderTable(leads) {
+    const board = document.getElementById('boardWrap');
+    if (!leads.length) {
+      board.innerHTML = `<div style="background:#fff;border-radius:12px;padding:60px;text-align:center;color:#9CA3AF;font-size:14px;">No leads yet. Click "+ New Lead" to get started.</div>`;
+      return;
+    }
+    const sorted = [...leads].sort((a,b) => new Date(b.lastTouch||0) - new Date(a.lastTouch||0));
+    const rows = sorted.map(lead => {
+      const color = leadColor(lead);
+      const stageCls = STAGE_BADGE_CLASS[lead.stage] || 'badge-lost';
+      const value = lead.estimateTotal ? fmtMoney(Number(lead.estimateTotal)) : '—';
+      let daysAgo = '—';
+      if (lead.lastTouch) {
+        const diff = Math.floor((Date.now() - new Date(lead.lastTouch).getTime()) / 86400000);
+        daysAgo = diff === 0 ? 'Today' : diff + 'd ago';
+      }
+      return `<tr onclick="openPanel('${esc(lead.id)}')" style="border-left:3px solid ${color};">
+        <td><span class="tbl-name">${esc(lead.name||'Unnamed')}</span></td>
+        <td><span class="badge ${stageCls}">${esc(lead.stage)}</span></td>
+        <td class="tbl-muted">${esc(lead.phone||'—')}</td>
+        <td class="tbl-hide-mobile tbl-muted">${esc(lead.address||'—')}</td>
+        <td class="${lead.estimateTotal ? 'tbl-value' : 'tbl-muted'}">${esc(value)}</td>
+        <td class="tbl-hide-mobile tbl-muted">${esc(lead.source||'—')}</td>
+        <td class="tbl-muted">${esc(daysAgo)}</td>
+      </tr>`;
+    }).join('');
+    board.innerHTML = `
+      <div class="leads-table-wrap">
+        <table class="leads-table">
+          <thead><tr>
+            <th>Name</th><th>Stage</th><th>Phone</th>
+            <th class="tbl-hide-mobile">Address</th>
+            <th>Value</th>
+            <th class="tbl-hide-mobile">Source</th>
+            <th>Last Touch</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
   }
 
   // ── Monthly pipeline summary ────────────────────────────────────
@@ -1707,6 +1791,7 @@
   // ── Kanban board ───────────────────────────────────────────────
   function renderBoard(leads) {
     const board = document.getElementById('boardWrap');
+    board.style.overflowX = 'auto';
     let html = '';
 
     STAGES.forEach(stage => {
@@ -1735,7 +1820,7 @@
       `;
     });
 
-    board.innerHTML = html;
+    board.innerHTML = `<div class="board-wrap">${html}</div>`;
   }
 
   function renderLeadCard(lead) {
