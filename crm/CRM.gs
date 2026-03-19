@@ -813,7 +813,7 @@ function createQuotePDF(data) {
 
 // ── Build email-style quote HTML (shared by email + Drive file) ───────────────
 function buildEmailQuoteHtml(opts) {
-  const { leadId, todayStr, offerStr, data, densityLabel, days, total, scopeLines } = opts;
+  const { leadId, todayStr, offerStr, data, densityLabel, days, total, scopeLines, customLinesHtml } = opts;
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -858,19 +858,19 @@ function buildEmailQuoteHtml(opts) {
       <p>${COMPANY.name}</p><p>${COMPANY.address}</p><p>${COMPANY.phone}</p><p>${COMPANY.email}</p>
     </div>
   </div>
-  <div class="section">
+  ${scopeLines ? `<div class="section">
     <div class="section-title">Scope of Work</div>
     <div style="font-size:13px;line-height:1.7;color:#444;">${scopeLines}</div>
-  </div>
+  </div>` : ''}
   <div class="section">
     <div class="section-title">Services</div>
-    <div class="line">
+    ${customLinesHtml || `<div class="line">
       <div class="line-desc">
         <strong>Forestry Mulching${densityLabel ? ' — ' + densityLabel + ' Density' : ''}</strong>
         <span>${data.acreage ? data.acreage + ' acres · ' : ''}All vegetation cleared, chipped, and spread on site. No hauling required.</span>
       </div>
       <div class="line-price">$${total.toLocaleString()}</div>
-    </div>
+    </div>`}
     <div style="padding-top:14px">
       <div class="total-row grand"><span>Total</span><span>$${total.toLocaleString()}</span></div>
     </div>
@@ -904,50 +904,35 @@ function sendCustomQuote(data) {
   const offerStr  = Utilities.formatDate(offerDate, Session.getScriptTimeZone(), 'MMMM d, yyyy');
   const subtotal  = lineItems.reduce(function(s,l){ return s + (parseFloat(l.qty)||1)*(parseFloat(l.unitPrice)||0); }, 0);
 
-  const rowsHtml = lineItems.map(function(item) {
+  const leadId = data.id || data.leadId || 'DRAFT';
+  const todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
+
+  // Build line items HTML matching the forestry quote style
+  const linesHtml = lineItems.map(function(item) {
     const lineTotal = Math.round((parseFloat(item.qty)||1)*(parseFloat(item.unitPrice)||0));
-    return '<tr>' +
-      '<td style="padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:13px;">' + item.service +
-        (item.description ? '<br><span style="color:#888;font-size:11px;">' + item.description + '</span>' : '') + '</td>' +
-      '<td style="padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:13px;text-align:center;color:#888;">' + item.qty + ' ' + item.unit + '</td>' +
-      '<td style="padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:13px;text-align:right;font-weight:600;">$' + lineTotal.toLocaleString() + '</td>' +
-      '</tr>';
+    return `<div class="line">
+      <div class="line-desc">
+        <strong>${item.service}</strong>
+        ${item.description ? '<span>' + item.description + '</span>' : ''}
+      </div>
+      <div class="line-price">$${lineTotal.toLocaleString()}</div>
+    </div>`;
   }).join('');
 
-  const markupRow = markup > 0
-    ? '<tr><td style="padding:6px 0;color:#888;font-size:12px;">Subtotal</td><td></td><td style="text-align:right;color:#888;font-size:12px;">$' + Math.round(subtotal).toLocaleString() + '</td></tr>' +
-      '<tr><td style="padding:6px 0;color:#888;font-size:12px;">Markup (' + markup + '%)</td><td></td><td style="text-align:right;color:#888;font-size:12px;">+$' + (total - Math.round(subtotal)).toLocaleString() + '</td></tr>'
+  const markupSection = markup > 0
+    ? `<div class="total-row"><span>Subtotal</span><span>$${Math.round(subtotal).toLocaleString()}</span></div>
+       <div class="total-row"><span>Markup (${markup}%)</span><span>+$${(total - Math.round(subtotal)).toLocaleString()}</span></div>`
     : '';
 
-  const htmlBody =
-    '<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#222;max-width:520px;margin:0 auto;padding:20px;">' +
-    '<table width="100%" bgcolor="#000000" cellpadding="0" cellspacing="0"><tr><td>' +
-    '<img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="Cornerstone" width="100%" style="display:block;border:0;">' +
-    '</td></tr></table>' +
-    '<div style="background:white;border:1px solid #eee;border-top:none;padding:28px 32px;">' +
-    '<h2 style="margin:0 0 6px;font-size:20px;">Your Quote from Cornerstone</h2>' +
-    '<p style="color:#666;margin:0 0 4px;font-size:13px;">Hi ' + firstName + ',</p>' +
-    '<p style="color:#666;margin:0 0 24px;font-size:13px;">Thank you for reaching out. Please find your quote below.</p>' +
-    '<p style="margin:0 0 2px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Quote Date</p>' +
-    '<p style="margin:0 0 4px;font-size:13px;">' + dateStr + '</p>' +
-    '<p style="margin:0 0 24px;font-size:11px;color:#cc4444;">Offer valid until ' + offerStr + '</p>' +
-    (data.address ? '<p style="margin:0 0 2px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Property Address</p><p style="margin:0 0 24px;font-size:13px;">' + data.address + '</p>' : '') +
-    '<p style="margin:0 0 8px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Services</p>' +
-    '<table style="width:100%;border-collapse:collapse;">' +
-    '<thead><tr>' +
-    '<th style="text-align:left;font-size:11px;color:#888;padding-bottom:8px;border-bottom:2px solid #000;font-weight:600;">Service</th>' +
-    '<th style="text-align:center;font-size:11px;color:#888;padding-bottom:8px;border-bottom:2px solid #000;font-weight:600;">Qty</th>' +
-    '<th style="text-align:right;font-size:11px;color:#888;padding-bottom:8px;border-bottom:2px solid #000;font-weight:600;">Amount</th>' +
-    '</tr></thead><tbody>' + rowsHtml + markupRow + '</tbody></table>' +
-    '<div style="display:flex;justify-content:space-between;padding:14px 0 0;border-top:2px solid #000;margin-top:8px;">' +
-    '<span style="font-size:16px;font-weight:700;">Total</span>' +
-    '<span style="font-size:22px;font-weight:700;">$' + total.toLocaleString() + '</span></div>' +
-    (data.notes ? '<div style="background:#f9f9f9;border-radius:8px;padding:14px;margin-top:20px;">' +
-      '<p style="margin:0 0 6px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Scope of Work</p>' +
-      '<p style="margin:0;font-size:13px;color:#444;">' + data.notes + '</p></div>' : '') +
-    '<hr style="border:none;border-top:1px solid #eee;margin:24px 0;">' +
-    '<p style="margin:0;font-size:13px;color:#444;">' + COMPANY.rep + '<br><span style="color:#888;">' + COMPANY.name + ' · ' + COMPANY.phone + '</span></p>' +
-    '</div></body></html>';
+  const htmlBody = buildEmailQuoteHtml({
+    leadId, todayStr, offerStr,
+    data: { ...data, mapImageUrl: '' },
+    densityLabel: '',
+    days: null,
+    total,
+    scopeLines: data.notes || '',
+    customLinesHtml: linesHtml + markupSection,
+  });
 
   const subject   = 'Your Quote from Cornerstone' + (data.address ? ' — ' + data.address : '');
   const plainText = 'Hi ' + firstName + ',\n\nPlease see your quote below.\n\nTotal: $' + total.toLocaleString() + '\nOffer valid until: ' + offerStr + '\n\n' + COMPANY.rep + '\n' + COMPANY.name + ' · ' + COMPANY.phone;
