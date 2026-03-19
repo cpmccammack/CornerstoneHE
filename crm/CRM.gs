@@ -80,7 +80,8 @@ function doGet(e) {
         'Estimated project duration: ' + days + ' ' + (days == 1 ? 'day' : 'days') + '.',
         'Our crew will use a professional forestry mulcher to clear, chip, and spread all vegetation on site — leaving a clean, mulched surface with no hauling required.',
       ].filter(Boolean).join(' ');
-      const html = buildEmailQuoteHtml({ leadId: lead.id, todayStr, offerStr, data: lead, densityLabel, days, total, scopeLines });
+      const mapImageUrl = e.parameter.mapImageUrl || '';
+      const html = buildEmailQuoteHtml({ leadId: lead.id, todayStr, offerStr, data: { ...lead, mapImageUrl }, densityLabel, days, total, scopeLines });
       return HtmlService.createHtmlOutput(html);
     }
 
@@ -615,7 +616,8 @@ function scheduleJob(data) {
 
   // Generate quote view URL (served by this web app — renders perfectly)
   const scriptUrl = ScriptApp.getService().getUrl();
-  const pdfUrl = data.leadId ? `${scriptUrl}?action=viewQuote&leadId=${data.leadId}` : null;
+  const mapParam = data.mapImageUrl ? `&mapImageUrl=${encodeURIComponent(data.mapImageUrl)}` : '';
+  const pdfUrl = data.leadId ? `${scriptUrl}?action=viewQuote&leadId=${data.leadId}${mapParam}` : null;
   const pdf = null; // no longer saving to Drive
 
   const desc = [
@@ -868,6 +870,11 @@ function buildEmailQuoteHtml(opts) {
       <div class="total-row grand"><span>Total</span><span>$${total.toLocaleString()}</span></div>
     </div>
   </div>
+  ${data.mapImageUrl ? `
+  <div class="section">
+    <div class="section-title">Project Area</div>
+    <img src="${data.mapImageUrl}" alt="Project area map" style="width:100%;border-radius:4px;display:block;">
+  </div>` : ''}
   <div class="sig">
     <div style="font-size:15px;font-weight:700;">${COMPANY.rep}</div>
     <div style="font-size:12px;color:#888;">Cornerstone Hardscape &amp; Excavation</div>
