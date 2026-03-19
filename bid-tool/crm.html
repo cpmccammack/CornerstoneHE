@@ -1075,6 +1075,46 @@
   </div>
 </div>
 
+<!-- Quote Builder Modal -->
+<div id="quoteModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
+  <div style="background:#111;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;width:100%;max-width:580px;margin:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:white;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;">Create Quote</div>
+        <div id="quoteLeadName" style="font-size:13px;color:#22C55E;margin-top:2px;"></div>
+      </div>
+      <button onclick="closeQuoteModal()" style="background:rgba(255,255,255,0.08);border:none;border-radius:8px;color:white;width:32px;height:32px;cursor:pointer;font-size:18px;line-height:1;">×</button>
+    </div>
+
+    <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Quick Add Service</div>
+    <div id="servicePills" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;"></div>
+
+    <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Line Items</div>
+    <div id="quoteLines" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+    <button onclick="addQuoteLine()" style="width:100%;padding:10px;background:transparent;border:1px dashed rgba(255,255,255,0.15);border-radius:8px;color:#666;font-size:13px;cursor:pointer;margin-bottom:20px;">+ Add Line Item</button>
+
+    <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Scope of Work / Notes</div>
+    <textarea id="quoteNotes" placeholder="Describe the scope of work..." style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;color:white;font-size:13px;resize:vertical;min-height:70px;box-sizing:border-box;margin-bottom:20px;font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;"></textarea>
+
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;margin-bottom:20px;">
+      <div style="display:flex;justify-content:space-between;color:#888;font-size:13px;margin-bottom:10px;"><span>Subtotal</span><span id="quoteSubtotal">$0</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;color:#888;font-size:13px;margin-bottom:10px;">
+        <span>Markup %</span>
+        <input id="quoteMarkup" type="number" value="0" min="0" max="200" oninput="calcQuoteTotal()" style="width:64px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:4px 8px;color:white;font-size:13px;text-align:right;outline:none;">
+      </div>
+      <div style="display:flex;justify-content:space-between;color:white;font-size:18px;font-weight:700;border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;">
+        <span>Total</span><span id="quoteTotalDisplay" style="color:#22C55E;">$0</span>
+      </div>
+    </div>
+
+    <div id="quoteStatus" style="font-size:13px;color:#22C55E;min-height:18px;margin-bottom:12px;text-align:center;"></div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeQuoteModal()" style="flex:1;padding:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#aaa;font-size:14px;cursor:pointer;">Cancel</button>
+      <button onclick="submitCustomQuote()" style="flex:2;padding:12px;background:#22C55E;border:none;border-radius:8px;color:#0a0a0a;font-size:14px;font-weight:700;cursor:pointer;">Send Quote Email + PDF</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ── Constants ──────────────────────────────────────────────────
   const STAGES = ['New Lead', 'Contacted', 'Quote Sent', 'Follow-Up', 'Won', 'Lost'];
@@ -1469,6 +1509,7 @@
       <button class="panel-btn green" onclick="savePanelNote()">Save Note</button>
 
       <div class="panel-label">Actions</div>
+      <button class="panel-btn green" onclick="openQuoteModal('${esc(lead.id)}')">Create & Send Quote</button>
       <button class="panel-btn outline" onclick="panelSendFollowUp()">Send Follow-Up</button>
       <button class="panel-btn outline" onclick="openSchedule('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">Schedule Job</button>
       <button class="panel-btn outline" onclick="openConfirm('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">Send Confirmation</button>
@@ -1740,6 +1781,164 @@
       closeAddLead();
     }
   });
+
+  // ── Quote Builder ───────────────────────────────────────────────
+  const QUOTE_SERVICES = ['Forestry Mulching','Excavation','Grading','Site Prep','Hardscaping','Concrete','Retaining Walls'];
+  let quoteLeadId   = null;
+  let quoteLeadData = null;
+  let quoteLines    = [];
+
+  function openQuoteModal(leadId) {
+    const lead = allLeads.find(l => l.id === leadId);
+    if (!lead) return;
+    quoteLeadId   = leadId;
+    quoteLeadData = lead;
+    quoteLines    = [];
+    document.getElementById('quoteLeadName').textContent = lead.name || '';
+    document.getElementById('quoteNotes').value          = '';
+    document.getElementById('quoteMarkup').value         = '0';
+    document.getElementById('quoteStatus').textContent   = '';
+    renderServicePills();
+    renderQuoteLines();
+    calcQuoteTotal();
+    document.getElementById('quoteModal').style.display = 'flex';
+  }
+
+  function closeQuoteModal() {
+    document.getElementById('quoteModal').style.display = 'none';
+  }
+
+  function renderServicePills() {
+    document.getElementById('servicePills').innerHTML =
+      QUOTE_SERVICES.map(s =>
+        `<button onclick="addQuoteLineFromService('${s}')"
+          style="padding:5px 12px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
+          border-radius:20px;color:#F0EBE0;font-size:12px;cursor:pointer;font-family:inherit;">${s}</button>`
+      ).join('');
+  }
+
+  function addQuoteLineFromService(service) {
+    quoteLines.push({ service, description: '', qty: 1, unit: 'lot', unitPrice: 0 });
+    renderQuoteLines();
+    calcQuoteTotal();
+  }
+
+  function addQuoteLine() {
+    quoteLines.push({ service: '', description: '', qty: 1, unit: 'lot', unitPrice: 0 });
+    renderQuoteLines();
+    calcQuoteTotal();
+  }
+
+  function removeQuoteLine(idx) {
+    quoteLines.splice(idx, 1);
+    renderQuoteLines();
+    calcQuoteTotal();
+  }
+
+  function qlUpdate(idx, field, val) {
+    quoteLines[idx][field] = val;
+    calcQuoteTotal();
+  }
+
+  function renderQuoteLines() {
+    const el = document.getElementById('quoteLines');
+    if (!quoteLines.length) {
+      el.innerHTML = `<div style="text-align:center;color:#444;font-size:13px;padding:12px;">
+        Click a service above or use + Add Line Item</div>`;
+      return;
+    }
+    const units = ['lot','acres','sq ft','linear ft','ea','hrs','days'];
+    const inp = 'background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:5px 8px;color:white;font-size:12px;outline:none;';
+    el.innerHTML = quoteLines.map((line, i) => `
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:10px 12px;">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;">
+          <input value="${esc(line.service)}" onchange="qlUpdate(${i},'service',this.value)"
+            placeholder="Service name"
+            style="flex:1;background:transparent;border:none;border-bottom:1px solid rgba(255,255,255,0.15);
+            color:white;font-size:13px;font-weight:600;outline:none;padding:2px 0;font-family:inherit;">
+          <button onclick="removeQuoteLine(${i})"
+            style="background:none;border:none;color:#444;font-size:18px;cursor:pointer;line-height:1;padding:0;">×</button>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" value="${esc(line.description)}" onchange="qlUpdate(${i},'description',this.value)"
+            placeholder="Description (optional)"
+            style="flex:1;${inp}font-size:12px;">
+          <input type="number" value="${line.qty}" min="0.25" step="0.25"
+            onchange="qlUpdate(${i},'qty',parseFloat(this.value)||1);calcQuoteTotal()"
+            style="width:54px;${inp}text-align:center;" title="Qty">
+          <select onchange="qlUpdate(${i},'unit',this.value)"
+            style="${inp}background:#1a1a1a;cursor:pointer;">
+            ${units.map(u=>`<option${u===line.unit?' selected':''}>${u}</option>`).join('')}
+          </select>
+          <div style="display:flex;align-items:center;gap:3px;">
+            <span style="color:#666;font-size:12px;">$</span>
+            <input type="number" value="${line.unitPrice}" min="0"
+              onchange="qlUpdate(${i},'unitPrice',parseFloat(this.value)||0);calcQuoteTotal()"
+              placeholder="Price" style="width:80px;${inp}text-align:right;" title="Unit price">
+          </div>
+          <span style="color:#22C55E;font-size:12px;font-weight:600;min-width:52px;text-align:right;">
+            $${Math.round((parseFloat(line.qty)||1)*(parseFloat(line.unitPrice)||0)).toLocaleString()}
+          </span>
+        </div>
+      </div>`).join('');
+  }
+
+  function calcQuoteTotal() {
+    const subtotal = quoteLines.reduce((s,l) => s + (parseFloat(l.qty)||1)*(parseFloat(l.unitPrice)||0), 0);
+    const markup   = parseFloat(document.getElementById('quoteMarkup').value) || 0;
+    const total    = Math.round(subtotal * (1 + markup/100));
+    document.getElementById('quoteSubtotal').textContent    = '$' + Math.round(subtotal).toLocaleString();
+    document.getElementById('quoteTotalDisplay').textContent = '$' + total.toLocaleString();
+  }
+
+  async function submitCustomQuote() {
+    if (!quoteLines.length) {
+      document.getElementById('quoteStatus').textContent = 'Add at least one line item.';
+      return;
+    }
+    const markup   = parseFloat(document.getElementById('quoteMarkup').value) || 0;
+    const subtotal = quoteLines.reduce((s,l) => s + (parseFloat(l.qty)||1)*(parseFloat(l.unitPrice)||0), 0);
+    const total    = Math.round(subtotal * (1 + markup/100));
+    const notes    = document.getElementById('quoteNotes').value.trim();
+    const lead     = quoteLeadData;
+
+    document.getElementById('quoteStatus').textContent = 'Sending quote + generating PDF...';
+
+    const params = new URLSearchParams({
+      action:    'sendCustomQuote',
+      callback:  'cb_q_' + Date.now(),
+      id:        quoteLeadId,
+      name:      lead.name  || '',
+      email:     lead.email || '',
+      phone:     lead.phone || '',
+      address:   lead.address || '',
+      lineItems: JSON.stringify(quoteLines),
+      markup:    markup,
+      total:     total,
+      notes:     notes,
+    });
+
+    try {
+      const res = await new Promise((resolve, reject) => {
+        const cbName = 'cb_q_' + Date.now();
+        window[cbName] = d => { delete window[cbName]; resolve(d); };
+        const s = document.createElement('script');
+        s.src = getCRMUrl() + '&' + params.toString().replace(/callback=[^&]+/, 'callback=' + cbName);
+        s.onerror = () => reject(new Error('Network error'));
+        document.head.appendChild(s);
+        setTimeout(() => reject(new Error('Timeout — check Apps Script logs')), 30000);
+      });
+      if (res.success) {
+        document.getElementById('quoteStatus').textContent = 'Quote sent!';
+        setTimeout(closeQuoteModal, 1500);
+        loadLeads();
+      } else {
+        document.getElementById('quoteStatus').textContent = res.error || 'Error sending quote.';
+      }
+    } catch(e) {
+      document.getElementById('quoteStatus').textContent = 'Error: ' + e.message;
+    }
+  }
 </script>
 </body>
 </html>

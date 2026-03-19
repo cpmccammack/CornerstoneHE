@@ -117,6 +117,7 @@ function doGet(e) {
     if (action === 'addNote')      return corsResponse(addNote(data), cb);
     if (action === 'scheduleJob')          return corsResponse(scheduleJob(data), cb);
     if (action === 'sendJobConfirmation')  return corsResponse(sendJobConfirmation(data), cb);
+    if (action === 'sendCustomQuote')      return corsResponse(sendCustomQuote(data), cb);
 
     return corsResponse({ error: 'Unknown action' }, cb);
   } catch (err) {
@@ -760,6 +761,176 @@ function createQuotePDF(data) {
     DriveApp.getFileById(docId).setTrashed(true);
 
     return { fileId: pdfFile.getId(), fileUrl: pdfFile.getUrl(), fileName };
+  } catch(e) {
+    return null;
+  }
+}
+
+// ── Send Custom Multi-Service Quote ──────────────────────────
+function sendCustomQuote(data) {
+  if (!data.email) return { error: 'No email address on this lead' };
+
+  const name      = data.name || 'Customer';
+  const firstName = name.split(' ')[0];
+  const lineItems = JSON.parse(data.lineItems || '[]');
+  const markup    = parseFloat(data.markup) || 0;
+  const total     = Math.round(parseFloat(data.total) || 0);
+  const dateStr   = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMMM d, yyyy');
+  const offerDate = new Date(); offerDate.setDate(offerDate.getDate() + 30);
+  const offerStr  = Utilities.formatDate(offerDate, Session.getScriptTimeZone(), 'MMMM d, yyyy');
+  const subtotal  = lineItems.reduce(function(s,l){ return s + (parseFloat(l.qty)||1)*(parseFloat(l.unitPrice)||0); }, 0);
+
+  const rowsHtml = lineItems.map(function(item) {
+    const lineTotal = Math.round((parseFloat(item.qty)||1)*(parseFloat(item.unitPrice)||0));
+    return '<tr>' +
+      '<td style="padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:13px;">' + item.service +
+        (item.description ? '<br><span style="color:#888;font-size:11px;">' + item.description + '</span>' : '') + '</td>' +
+      '<td style="padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:13px;text-align:center;color:#888;">' + item.qty + ' ' + item.unit + '</td>' +
+      '<td style="padding:9px 0;border-bottom:1px solid #f0f0f0;font-size:13px;text-align:right;font-weight:600;">$' + lineTotal.toLocaleString() + '</td>' +
+      '</tr>';
+  }).join('');
+
+  const markupRow = markup > 0
+    ? '<tr><td style="padding:6px 0;color:#888;font-size:12px;">Subtotal</td><td></td><td style="text-align:right;color:#888;font-size:12px;">$' + Math.round(subtotal).toLocaleString() + '</td></tr>' +
+      '<tr><td style="padding:6px 0;color:#888;font-size:12px;">Markup (' + markup + '%)</td><td></td><td style="text-align:right;color:#888;font-size:12px;">+$' + (total - Math.round(subtotal)).toLocaleString() + '</td></tr>'
+    : '';
+
+  const htmlBody =
+    '<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#222;max-width:520px;margin:0 auto;padding:20px;">' +
+    '<table width="100%" bgcolor="#000000" cellpadding="0" cellspacing="0"><tr><td>' +
+    '<img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="Cornerstone" width="100%" style="display:block;border:0;">' +
+    '</td></tr></table>' +
+    '<div style="background:white;border:1px solid #eee;border-top:none;padding:28px 32px;">' +
+    '<h2 style="margin:0 0 6px;font-size:20px;">Your Quote from Cornerstone</h2>' +
+    '<p style="color:#666;margin:0 0 4px;font-size:13px;">Hi ' + firstName + ',</p>' +
+    '<p style="color:#666;margin:0 0 24px;font-size:13px;">Thank you for reaching out. Please find your quote below.</p>' +
+    '<p style="margin:0 0 2px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Quote Date</p>' +
+    '<p style="margin:0 0 4px;font-size:13px;">' + dateStr + '</p>' +
+    '<p style="margin:0 0 24px;font-size:11px;color:#cc4444;">Offer valid until ' + offerStr + '</p>' +
+    (data.address ? '<p style="margin:0 0 2px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Property Address</p><p style="margin:0 0 24px;font-size:13px;">' + data.address + '</p>' : '') +
+    '<p style="margin:0 0 8px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Services</p>' +
+    '<table style="width:100%;border-collapse:collapse;">' +
+    '<thead><tr>' +
+    '<th style="text-align:left;font-size:11px;color:#888;padding-bottom:8px;border-bottom:2px solid #000;font-weight:600;">Service</th>' +
+    '<th style="text-align:center;font-size:11px;color:#888;padding-bottom:8px;border-bottom:2px solid #000;font-weight:600;">Qty</th>' +
+    '<th style="text-align:right;font-size:11px;color:#888;padding-bottom:8px;border-bottom:2px solid #000;font-weight:600;">Amount</th>' +
+    '</tr></thead><tbody>' + rowsHtml + markupRow + '</tbody></table>' +
+    '<div style="display:flex;justify-content:space-between;padding:14px 0 0;border-top:2px solid #000;margin-top:8px;">' +
+    '<span style="font-size:16px;font-weight:700;">Total</span>' +
+    '<span style="font-size:22px;font-weight:700;">$' + total.toLocaleString() + '</span></div>' +
+    (data.notes ? '<div style="background:#f9f9f9;border-radius:8px;padding:14px;margin-top:20px;">' +
+      '<p style="margin:0 0 6px;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;">Scope of Work</p>' +
+      '<p style="margin:0;font-size:13px;color:#444;">' + data.notes + '</p></div>' : '') +
+    '<hr style="border:none;border-top:1px solid #eee;margin:24px 0;">' +
+    '<p style="margin:0;font-size:13px;color:#444;">' + COMPANY.rep + '<br><span style="color:#888;">' + COMPANY.name + ' · ' + COMPANY.phone + '</span></p>' +
+    '</div></body></html>';
+
+  const subject   = 'Your Quote from Cornerstone' + (data.address ? ' — ' + data.address : '');
+  const plainText = 'Hi ' + firstName + ',\n\nPlease see your quote below.\n\nTotal: $' + total.toLocaleString() + '\nOffer valid until: ' + offerStr + '\n\n' + COMPANY.rep + '\n' + COMPANY.name + ' · ' + COMPANY.phone;
+
+  const pdfResult = createCustomQuotePDF(data, lineItems, markup, total);
+  const emailOpts = { name: COMPANY.name, replyTo: COMPANY.email, htmlBody: htmlBody };
+  if (pdfResult) emailOpts.attachments = [pdfResult.blob];
+
+  GmailApp.sendEmail(data.email, subject, plainText, emailOpts);
+
+  const leadId = data.id || data.leadId;
+  if (leadId) {
+    const serviceNames = lineItems.map(function(l){ return l.service; }).join(', ');
+    addNote({ id: leadId, note: 'Custom quote sent: ' + serviceNames + ' — $' + total.toLocaleString() });
+    updateLead({ id: leadId, stage: 'Quote Sent', estimateTotal: total });
+  }
+
+  return { success: true };
+}
+
+// ── Create PDF for Custom Quote ───────────────────────────────
+function createCustomQuotePDF(data, lineItems, markup, total) {
+  try {
+    const leadId   = data.id || data.leadId || 'DRAFT';
+    const name     = data.name || 'Customer';
+    const dateStr  = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
+    const offerDate = new Date(); offerDate.setDate(offerDate.getDate() + 30);
+    const offerStr  = Utilities.formatDate(offerDate, Session.getScriptTimeZone(), 'MM/dd/yyyy');
+    const subtotal  = lineItems.reduce(function(s,l){ return s + (parseFloat(l.qty)||1)*(parseFloat(l.unitPrice)||0); }, 0);
+
+    const doc  = DocumentApp.create('Cornerstone Quote — ' + leadId);
+    const body = doc.getBody();
+    body.setMarginTop(36).setMarginBottom(36).setMarginLeft(54).setMarginRight(54);
+
+    const title = body.appendParagraph('CORNERSTONE HARDSCAPE & EXCAVATION');
+    title.setHeading(DocumentApp.ParagraphHeading.HEADING1);
+    title.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+
+    const sub = body.appendParagraph('651 Reed Lane, Simpsonville, KY 40067  ·  502-396-7887  ·  isaacmosko@cornerstonehe.net');
+    sub.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    sub.setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 9, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
+
+    body.appendParagraph('');
+    body.appendParagraph('Quote ' + leadId + '  ·  ' + dateStr)
+      .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
+    body.appendParagraph('');
+
+    body.appendParagraph('Prepared for: ' + name)
+      .setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 12 });
+    if (data.phone)   body.appendParagraph(String(data.phone)).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
+    if (data.email)   body.appendParagraph(data.email).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
+    if (data.address) body.appendParagraph(data.address).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
+    body.appendParagraph('Offer valid until: ' + offerStr)
+      .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#cc4444' });
+
+    body.appendParagraph('');
+    body.appendParagraph('SERVICES')
+      .setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
+
+    lineItems.forEach(function(item) {
+      const lineTotal = Math.round((parseFloat(item.qty)||1)*(parseFloat(item.unitPrice)||0));
+      body.appendParagraph(item.service + '  —  ' + item.qty + ' ' + item.unit + '  ·  $' + lineTotal.toLocaleString())
+        .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 12, [DocumentApp.Attribute.BOLD]: true });
+      if (item.description) {
+        body.appendParagraph(item.description)
+          .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888', [DocumentApp.Attribute.ITALIC]: true });
+      }
+    });
+
+    body.appendParagraph('');
+    if (markup > 0) {
+      body.appendParagraph('Subtotal: $' + Math.round(subtotal).toLocaleString())
+        .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
+      body.appendParagraph('Markup (' + markup + '%): +$' + (total - Math.round(subtotal)).toLocaleString())
+        .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
+    }
+    body.appendParagraph('Total: $' + total.toLocaleString())
+      .setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 16 });
+
+    if (data.notes) {
+      body.appendParagraph('');
+      body.appendParagraph('SCOPE OF WORK')
+        .setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
+      body.appendParagraph(data.notes).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
+    }
+
+    body.appendParagraph('');
+    body.appendParagraph('Thank you for choosing Cornerstone. Questions? Call 502-396-7887')
+      .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888', [DocumentApp.Attribute.ITALIC]: true });
+
+    doc.saveAndClose();
+
+    const pdfBlob = UrlFetchApp.fetch(
+      'https://docs.google.com/document/d/' + doc.getId() + '/export?format=pdf',
+      { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() } }
+    ).getBlob();
+
+    const fileName = 'Cornerstone-Quote-' + leadId + '-' + name.replace(/\s+/g, '-') + '.pdf';
+    pdfBlob.setName(fileName);
+
+    const folders = DriveApp.getFoldersByName('Cornerstone Quotes');
+    const folder  = folders.hasNext() ? folders.next() : DriveApp.createFolder('Cornerstone Quotes');
+    const pdfFile = folder.createFile(pdfBlob.copyBlob());
+    pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    DriveApp.getFileById(doc.getId()).setTrashed(true);
+
+    return { blob: pdfBlob, fileId: pdfFile.getId(), fileUrl: pdfFile.getUrl(), fileName: fileName };
   } catch(e) {
     return null;
   }
