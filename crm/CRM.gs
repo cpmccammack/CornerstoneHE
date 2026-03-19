@@ -586,8 +586,8 @@ function sendJobConfirmation(data) {
 // ── Schedule Job on Google Calendar ──────────────────────────
 function scheduleJob(data) {
   const calendar = CalendarApp.getDefaultCalendar();
-  const start = new Date(data.startDate);
-  const end   = new Date(data.endDate || data.startDate);
+  const start = new Date((data.startDate || '').replace(/-/g, '/'));
+  const end   = new Date((data.endDate || data.startDate || '').replace(/-/g, '/'));
   if (start.getTime() === end.getTime()) end.setDate(end.getDate() + 1);
 
   const title = `Cornerstone — ${data.name || 'Job'} (${data.address || ''})`;
