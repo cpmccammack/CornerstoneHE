@@ -673,22 +673,19 @@ function scheduleJob(data) {
   return { success: true, eventId: event.getId(), pdfUrl };
 }
 
-// ── Shared: render HTML → PDF, save to Drive ─────────────────
-function savePdfFromHtml(html, leadId, name) {
+// ── Shared: save HTML file to Drive (opens in browser, looks like email) ─────
+function saveHtmlToDrive(html, leadId, name) {
   try {
-    const fileName = 'Cornerstone-Quote-' + leadId + '-' + name.replace(/\s+/g,'-') + '.pdf';
-    const htmlBlob = Utilities.newBlob(html, MimeType.HTML, 'quote.html');
-    const tempFile = DriveApp.createFile(htmlBlob);
-    const pdfBlob  = tempFile.getAs(MimeType.PDF);
-    pdfBlob.setName(fileName);
-    tempFile.setTrashed(true);
+    const fileName = 'Cornerstone-Quote-' + leadId + '-' + name.replace(/\s+/g,'-') + '.html';
+    const htmlBlob = Utilities.newBlob(html, MimeType.HTML, fileName);
 
     const folders = DriveApp.getFoldersByName('Cornerstone Quotes');
     const folder  = folders.hasNext() ? folders.next() : DriveApp.createFolder('Cornerstone Quotes');
-    const pdfFile = folder.createFile(pdfBlob.copyBlob());
-    pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    const file = folder.createFile(htmlBlob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
-    return { blob: pdfBlob, fileId: pdfFile.getId(), fileUrl: pdfFile.getUrl(), fileName: fileName };
+    // Return both blob (for email attachment) and file info (for calendar link)
+    return { blob: htmlBlob, fileId: file.getId(), fileUrl: file.getUrl(), fileName: fileName };
   } catch(e) {
     return null;
   }
@@ -755,39 +752,108 @@ function buildQuoteHtml(opts) {
     '</div></body></html>';
 }
 
-// ── Generate Quote PDF (forestry mulching) ────────────────────
+// ── Generate Quote HTML file (forestry mulching) — same HTML as email ────────
 function createQuotePDF(data) {
   try {
     const leadId   = data.leadId || 'DRAFT';
     const name     = data.name   || 'Customer';
     const total    = Math.round(parseFloat(data.total) || 0);
-    const dateStr  = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
     const offerDate = new Date(); offerDate.setDate(offerDate.getDate() + 7);
     const offerStr  = Utilities.formatDate(offerDate, Session.getScriptTimeZone(), 'MM/dd/yyyy');
+    const todayStr  = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
     const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[data.density] || data.density || '';
+    const DAY_RATE = 3500;
+    const PROD_DAY = { light: 2, medium: 1, dense: 0.5 };
+    const days = data.timeline || (data.acreage && data.density ? Math.max(1, Math.round((data.acreage / (PROD_DAY[data.density]||1)) * 2) / 2) : 1);
+    const scopeLines = [
+      'Cornerstone Hardscape & Excavation will perform forestry mulching services at ' + (data.address || 'the property') + '.',
+      data.acreage ? 'The area to be cleared is approximately ' + data.acreage + ' acres of ' + densityLabel.toLowerCase() + ' vegetation density.' : '',
+      'Estimated project duration: ' + days + ' ' + (days == 1 ? 'day' : 'days') + '.',
+      'Our crew will use a professional forestry mulcher to clear, chip, and spread all vegetation on site — leaving a clean, mulched surface with no hauling required.',
+    ].filter(Boolean).join(' ');
 
-    const lineRows =
-      '<tr><td>Forestry Mulching' + (densityLabel ? ' — ' + densityLabel + ' Density' : '') +
-      (data.acreage ? '<br><span style="font-size:11px;color:#888;">' + data.acreage + ' acres</span>' : '') + '</td>' +
-      '<td class="c">' + (data.timeline ? data.timeline + ' days' : (data.acreage ? Math.max(1, Math.round((data.acreage / ({light:2,medium:1,dense:0.5}[data.density]||1))*2)/2) + ' days' : '—')) + '</td>' +
-      '<td class="r">$' + total.toLocaleString() + '</td></tr>';
-
-    const scopeText = 'Cornerstone Hardscape &amp; Excavation will perform forestry mulching services at ' +
-      (data.address || 'the specified property') + '. ' +
-      (data.acreage ? 'The area to be cleared is approximately ' + data.acreage + ' acres of ' + densityLabel.toLowerCase() + ' vegetation density. ' : '') +
-      'Our crew will use a professional forestry mulcher to clear, chip, and spread all vegetation on site — leaving a clean, mulched surface with no hauling required.';
-
-    const html = buildQuoteHtml({
-      leadId, name, phone: data.phone || '', email: data.email || '', address: data.address || '',
-      dateStr, offerStr, lineRows, subtotal: total, markup: 0, total, scopeText, notes: ''
-    });
-
-    const result = savePdfFromHtml(html, leadId, name);
+    // Use the same HTML as the email — renders perfectly in a browser
+    const html = buildEmailQuoteHtml({ leadId, todayStr, offerStr, data, densityLabel, days, total, scopeLines });
+    const result = saveHtmlToDrive(html, leadId, name);
     if (!result) return null;
-    return { fileId: result.fileId, fileUrl: result.fileUrl, fileName: result.fileName };
+    return { blob: result.blob, fileId: result.fileId, fileUrl: result.fileUrl, fileName: result.fileName };
   } catch(e) {
     return null;
   }
+}
+
+// ── Build email-style quote HTML (shared by email + Drive file) ───────────────
+function buildEmailQuoteHtml(opts) {
+  const { leadId, todayStr, offerStr, data, densityLabel, days, total, scopeLines } = opts;
+  return `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 20px; background: #f0f0f0; font-family: Arial, sans-serif; color: #222; }
+  .page { max-width: 680px; margin: 0 auto; background: white; border-radius: 4px; overflow: hidden; box-shadow: 0 2px 16px rgba(0,0,0,0.1); }
+  .bill { display: flex; justify-content: space-between; padding: 24px 36px; border-bottom: 1px solid #eee; gap: 20px; }
+  .bill-col h4 { margin: 0 0 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #aaa; }
+  .bill-col p { margin: 2px 0; font-size: 13px; color: #444; }
+  .bill-col strong { color: #1a1a1a; font-size: 14px; }
+  .offer strong { color: #c84444; }
+  .section { padding: 20px 36px; border-bottom: 1px solid #eee; }
+  .section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #aaa; margin-bottom: 10px; }
+  .line { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid #f5f5f5; gap: 16px; }
+  .line:last-child { border-bottom: none; }
+  .line-desc strong { font-size: 14px; display: block; margin-bottom: 3px; }
+  .line-desc span { font-size: 12px; color: #888; }
+  .line-price { font-size: 15px; font-weight: 700; color: #1a1a1a; white-space: nowrap; }
+  .total-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; color: #888; }
+  .total-row.grand { font-size: 18px; font-weight: 800; color: #1a1a1a; border-top: 2px solid #1a1a1a; margin-top: 8px; padding-top: 14px; }
+  .sig { padding: 20px 36px 24px; }
+  .footer { background: #000; padding: 14px 36px; font-size: 11px; color: rgba(255,255,255,0.4); text-align: center; }
+</style>
+</head>
+<body>
+<div class="page">
+  <table width="100%" bgcolor="#000000" cellpadding="0" cellspacing="0"><tr><td bgcolor="#000000" style="padding:0;">
+    <img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="Cornerstone" width="100%" style="display:block;width:100%;border:0;">
+  </td></tr></table>
+  <div style="padding:14px 36px 0;font-size:12px;color:#aaa;">Quote <strong style="color:#333;">${leadId}</strong> &nbsp;·&nbsp; ${todayStr}</div>
+  <div class="bill">
+    <div class="bill-col">
+      <h4>Prepared For</h4>
+      <strong>${data.name || 'Customer'}</strong>
+      <p>${data.phone || ''}</p><p>${data.email || ''}</p><p>${data.address || ''}</p>
+      <p style="font-size:11px;color:#888;margin-top:10px;">Offer good until: <strong style="color:#c84444;">${offerStr}</strong></p>
+    </div>
+    <div class="bill-col" style="text-align:right">
+      <h4>From</h4>
+      <strong>${COMPANY.rep}</strong>
+      <p>${COMPANY.name}</p><p>${COMPANY.address}</p><p>${COMPANY.phone}</p><p>${COMPANY.email}</p>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">Scope of Work</div>
+    <div style="font-size:13px;line-height:1.7;color:#444;">${scopeLines}</div>
+  </div>
+  <div class="section">
+    <div class="section-title">Services</div>
+    <div class="line">
+      <div class="line-desc">
+        <strong>Forestry Mulching${densityLabel ? ' — ' + densityLabel + ' Density' : ''}</strong>
+        <span>${data.acreage ? data.acreage + ' acres · ' : ''}All vegetation cleared, chipped, and spread on site. No hauling required.</span>
+      </div>
+      <div class="line-price">$${total.toLocaleString()}</div>
+    </div>
+    <div style="padding-top:14px">
+      <div class="total-row grand"><span>Total</span><span>$${total.toLocaleString()}</span></div>
+    </div>
+  </div>
+  <div class="sig">
+    <div style="font-size:15px;font-weight:700;">${COMPANY.rep}</div>
+    <div style="font-size:12px;color:#888;">Cornerstone Hardscape &amp; Excavation</div>
+    <div style="font-size:12px;color:#555;margin-top:8px;">${COMPANY.phone} &nbsp;·&nbsp; ${COMPANY.email}</div>
+  </div>
+  <div class="footer">Thank you for considering Cornerstone. We appreciate your business.</div>
+</div>
+</body></html>`;
 }
 
 // ── Send Custom Multi-Service Quote ──────────────────────────
@@ -895,7 +961,7 @@ function createCustomQuotePDF(data, lineItems, markup, total) {
       scopeText: '', notes: data.notes || ''
     });
 
-    return savePdfFromHtml(html, leadId, name);
+    return saveHtmlToDrive(html, leadId, name);
   } catch(e) {
     return null;
   }
