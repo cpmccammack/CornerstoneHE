@@ -172,7 +172,7 @@ const COLS = {
   address: 6, dealValue: 7, source: 8, stage: 9,
   lastTouch: 10, nextAction: 11, notes: 12,
   acreage: 13, density: 14, difficulty: 15, estimateTotal: 16,
-  approved: 17, financing: 18, mapImageUrl: 19
+  approved: 17, financing: 18, mapImageUrl: 19, scheduledDate: 20
 };
 
 function rowToObj(row) {
@@ -196,6 +196,7 @@ function rowToObj(row) {
     approved:      row[COLS.approved - 1] || '',
     financing:     row[COLS.financing - 1] || false,
     mapImageUrl:   row[COLS.mapImageUrl - 1] || '',
+    scheduledDate: row[COLS.scheduledDate - 1] || '',
   };
 }
 
@@ -204,7 +205,7 @@ function getLeads() {
   const s = getSheet();
   const lastRow = s.getLastRow();
   if (lastRow < 2) return { leads: [] };
-  const rows = s.getRange(2, 1, lastRow - 1, 19).getValues();
+  const rows = s.getRange(2, 1, lastRow - 1, 20).getValues();
   const leads = rows
     .filter(r => r[0])
     .map(rowToObj)
@@ -250,13 +251,13 @@ function createLead(data) {
   const nextDate = new Date(today);
   nextDate.setDate(today.getDate() + (FOLLOWUP_DAYS['New Lead'] || 1));
 
-  s.getRange(newRow, 1, 1, 19).setValues([[
+  s.getRange(newRow, 1, 1, 20).setValues([[
     id, today,
     data.name || '', data.phone || '', data.email || '',
     data.address || '', data.dealValue || 0, data.source || 'Bid Tool',
     'New Lead', today, nextDate, data.notes || '',
     data.acreage || '', data.density || '', data.difficulty || 0, data.estimateTotal || 0,
-    '', false, data.mapImageUrl || ''
+    '', false, data.mapImageUrl || '', ''
   ]]);
 
   return { success: true, id };
@@ -691,6 +692,11 @@ function scheduleJob(data) {
 
   if (data.leadId) {
     addNote({ id: data.leadId, note: `Job scheduled: ${Utilities.formatDate(start, Session.getScriptTimeZone(), 'MM/dd/yyyy')}${pdfUrl ? ' · PDF saved to Drive' : ''}` });
+    // Store scheduled date for monthly pipeline view
+    const s2 = getSheet();
+    const rows2 = s2.getRange(2, 1, s2.getLastRow() - 1, 1).getValues();
+    const ri = rows2.findIndex(r => r[0] === data.leadId);
+    if (ri !== -1) s2.getRange(ri + 2, COLS.scheduledDate).setValue(data.startDate || '');
   }
 
   return { success: true, eventId: event.getId(), pdfUrl };
