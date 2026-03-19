@@ -673,94 +673,109 @@ function scheduleJob(data) {
   return { success: true, eventId: event.getId(), pdfUrl };
 }
 
-// ── Generate Quote PDF → save to Drive ───────────────────────
-function createQuotePDF(data) {
+// ── Shared: render HTML → PDF, save to Drive ─────────────────
+function savePdfFromHtml(html, leadId, name) {
   try {
-    const leadId = data.leadId || 'DRAFT';
-    const name   = data.name || 'Customer';
-    const total  = data.total ? `$${Number(data.total).toLocaleString()}` : 'See quote';
-    const dateStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
-    const offerDate = new Date(); offerDate.setDate(offerDate.getDate() + 7);
-    const offerStr  = Utilities.formatDate(offerDate, Session.getScriptTimeZone(), 'MM/dd/yyyy');
-
-    // Build a clean Google Doc
-    const doc  = DocumentApp.create(`Cornerstone Quote — ${leadId}`);
-    const body = doc.getBody();
-    body.setMarginTop(36).setMarginBottom(36).setMarginLeft(54).setMarginRight(54);
-
-    const titlePara = body.appendParagraph('CORNERSTONE HARDSCAPE & EXCAVATION');
-    titlePara.setHeading(DocumentApp.ParagraphHeading.HEADING1);
-    titlePara.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
-
-    const subPara = body.appendParagraph('651 Reed Lane, Simpsonville, KY 40067  ·  502-396-7887  ·  isaacmosko@cornerstonehe.net');
-    subPara.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
-    subPara.setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 9, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
-
-    body.appendParagraph('').setSpacingAfter(6);
-
-    body.appendParagraph(`Quote ${leadId}  ·  ${dateStr}`).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
-
-    body.appendParagraph('').setSpacingAfter(4);
-
-    const prep = body.appendParagraph(`Prepared for: ${name}`);
-    prep.setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 12 });
-    if (data.phone)   body.appendParagraph(String(data.phone)).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
-    if (data.email)   body.appendParagraph(data.email).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
-    if (data.address) body.appendParagraph(data.address).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
-    body.appendParagraph(`Offer good until: ${offerStr}`).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#cc4444' });
-
-    body.appendParagraph('').setSpacingAfter(8);
-
-    const sow = body.appendParagraph('SCOPE OF WORK');
-    sow.setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
-
-    const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[data.density] || data.density || '';
-    const scopeText = [
-      `Cornerstone Hardscape & Excavation will perform forestry mulching services at ${data.address || 'the specified property'}.`,
-      data.acreage ? `The area to be cleared is approximately ${data.acreage} acres of ${densityLabel.toLowerCase()} vegetation density.` : '',
-      `Our crew will use a professional forestry mulcher to clear, chip, and spread all vegetation on site — leaving a clean, mulched surface with no hauling required.`,
-    ].filter(Boolean).join(' ');
-    body.appendParagraph(scopeText).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
-
-    body.appendParagraph('').setSpacingAfter(8);
-
-    const svc = body.appendParagraph('SERVICES');
-    svc.setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
-
-    const svcLine = body.appendParagraph(`Forestry Mulching${densityLabel ? ' — ' + densityLabel + ' Density' : ''}${data.acreage ? '  (' + data.acreage + ' acres)' : ''}`);
-    svcLine.setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 12 });
-
-    body.appendParagraph('').setSpacingAfter(4);
-
-    const totalLine = body.appendParagraph(`Total: ${total}`);
-    totalLine.setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 16 });
-
-    body.appendParagraph('').setSpacingAfter(12);
-    body.appendParagraph('Thank you for choosing Cornerstone. Questions? Call 502-396-7887')
-      .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888', [DocumentApp.Attribute.ITALIC]: true });
-
-    doc.saveAndClose();
-
-    // Export as PDF
-    const docId   = doc.getId();
-    const pdfBlob = UrlFetchApp.fetch(
-      `https://docs.google.com/document/d/${docId}/export?format=pdf`,
-      { headers: { Authorization: `Bearer ${ScriptApp.getOAuthToken()}` } }
-    ).getBlob();
-
-    const fileName = `Cornerstone-Quote-${leadId}-${name.replace(/\s+/g, '-')}.pdf`;
+    const fileName = 'Cornerstone-Quote-' + leadId + '-' + name.replace(/\s+/g,'-') + '.pdf';
+    const htmlBlob = Utilities.newBlob(html, MimeType.HTML, 'quote.html');
+    const tempFile = DriveApp.createFile(htmlBlob);
+    const pdfBlob  = tempFile.getAs(MimeType.PDF);
     pdfBlob.setName(fileName);
+    tempFile.setTrashed(true);
 
-    // Save to Drive folder
     const folders = DriveApp.getFoldersByName('Cornerstone Quotes');
     const folder  = folders.hasNext() ? folders.next() : DriveApp.createFolder('Cornerstone Quotes');
-    const pdfFile = folder.createFile(pdfBlob);
+    const pdfFile = folder.createFile(pdfBlob.copyBlob());
     pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
-    // Delete temp Doc
-    DriveApp.getFileById(docId).setTrashed(true);
+    return { blob: pdfBlob, fileId: pdfFile.getId(), fileUrl: pdfFile.getUrl(), fileName: fileName };
+  } catch(e) {
+    return null;
+  }
+}
 
-    return { fileId: pdfFile.getId(), fileUrl: pdfFile.getUrl(), fileName };
+// ── Shared: quote PDF HTML template ──────────────────────────
+function buildQuoteHtml(opts) {
+  // opts: { leadId, name, phone, email, address, dateStr, offerStr, lineRows, subtotal, markup, total, notes, scopeText }
+  const css = '<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;padding:40px 48px;font-size:13px;line-height:1.5;}' +
+    '.header{text-align:center;border-bottom:3px solid #000;padding-bottom:16px;margin-bottom:20px;}' +
+    '.co-name{font-size:20px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}' +
+    '.co-sub{font-size:10px;color:#666;margin-top:4px;}' +
+    '.meta{display:flex;justify-content:space-between;margin-bottom:20px;font-size:11px;color:#888;}' +
+    '.section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin:20px 0 8px;}' +
+    '.prepared{font-size:14px;font-weight:700;margin-bottom:4px;}' +
+    '.prepared-detail{font-size:12px;color:#444;line-height:1.6;}' +
+    '.offer-exp{font-size:11px;color:#cc4444;margin-top:4px;}' +
+    'table{width:100%;border-collapse:collapse;}' +
+    'th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;padding:8px 0;border-bottom:2px solid #000;}' +
+    'th.r{text-align:right;}th.c{text-align:center;}' +
+    'td{padding:9px 0;border-bottom:1px solid #eee;font-size:13px;vertical-align:top;}' +
+    'td.r{text-align:right;font-weight:600;}td.c{text-align:center;color:#888;}' +
+    '.scope-box{background:#f9f9f9;border-left:3px solid #000;padding:12px 16px;margin-top:16px;font-size:12px;color:#444;}' +
+    '.total-row{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid #000;padding-top:12px;margin-top:8px;}' +
+    '.total-label{font-size:14px;font-weight:700;}' +
+    '.total-value{font-size:24px;font-weight:700;}' +
+    '.footer{margin-top:32px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#888;text-align:center;}' +
+    '</style>';
+
+  const subtotalRow = opts.markup > 0
+    ? '<tr><td colspan="2" style="color:#888;font-size:12px;border-bottom:none;">Subtotal</td><td class="r" style="color:#888;font-size:12px;border-bottom:none;">$' + Math.round(opts.subtotal).toLocaleString() + '</td></tr>' +
+      '<tr><td colspan="2" style="color:#888;font-size:12px;border-bottom:none;">Markup (' + opts.markup + '%)</td><td class="r" style="color:#888;font-size:12px;border-bottom:none;">+$' + (opts.total - Math.round(opts.subtotal)).toLocaleString() + '</td></tr>'
+    : '';
+
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8">' + css + '</head><body>' +
+    '<div class="header">' +
+    '<div class="co-name">Cornerstone Hardscape &amp; Excavation</div>' +
+    '<div class="co-sub">651 Reed Lane, Simpsonville, KY 40067 &nbsp;·&nbsp; 502-396-7887 &nbsp;·&nbsp; isaacmosko@cornerstonehe.net</div>' +
+    '</div>' +
+    '<div class="meta"><span>Quote #' + opts.leadId + ' &nbsp;·&nbsp; ' + opts.dateStr + '</span><span style="color:#cc4444;">Valid until ' + opts.offerStr + '</span></div>' +
+    '<div class="section-label">Prepared For</div>' +
+    '<div class="prepared">' + opts.name + '</div>' +
+    '<div class="prepared-detail">' +
+    (opts.phone   ? opts.phone + '<br>' : '') +
+    (opts.email   ? opts.email + '<br>' : '') +
+    (opts.address ? opts.address        : '') +
+    '</div>' +
+    '<div class="section-label">Services</div>' +
+    '<table><thead><tr><th>Service</th><th class="c">Qty</th><th class="r">Amount</th></tr></thead>' +
+    '<tbody>' + opts.lineRows + subtotalRow + '</tbody></table>' +
+    '<div class="total-row"><span class="total-label">Total</span><span class="total-value">$' + opts.total.toLocaleString() + '</span></div>' +
+    (opts.scopeText ? '<div class="section-label">Scope of Work</div><div class="scope-box">' + opts.scopeText + '</div>' : '') +
+    (opts.notes    ? '<div class="section-label">Notes</div><div class="scope-box">' + opts.notes + '</div>'             : '') +
+    '<div class="footer">Thank you for choosing Cornerstone. Questions? Call 502-396-7887</div>' +
+    '</body></html>';
+}
+
+// ── Generate Quote PDF (forestry mulching) ────────────────────
+function createQuotePDF(data) {
+  try {
+    const leadId   = data.leadId || 'DRAFT';
+    const name     = data.name   || 'Customer';
+    const total    = Math.round(parseFloat(data.total) || 0);
+    const dateStr  = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
+    const offerDate = new Date(); offerDate.setDate(offerDate.getDate() + 7);
+    const offerStr  = Utilities.formatDate(offerDate, Session.getScriptTimeZone(), 'MM/dd/yyyy');
+    const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[data.density] || data.density || '';
+
+    const lineRows =
+      '<tr><td>Forestry Mulching' + (densityLabel ? ' — ' + densityLabel + ' Density' : '') +
+      (data.acreage ? '<br><span style="font-size:11px;color:#888;">' + data.acreage + ' acres</span>' : '') + '</td>' +
+      '<td class="c">' + (data.timeline || '—') + ' days</td>' +
+      '<td class="r">$' + total.toLocaleString() + '</td></tr>';
+
+    const scopeText = 'Cornerstone Hardscape &amp; Excavation will perform forestry mulching services at ' +
+      (data.address || 'the specified property') + '. ' +
+      (data.acreage ? 'The area to be cleared is approximately ' + data.acreage + ' acres of ' + densityLabel.toLowerCase() + ' vegetation density. ' : '') +
+      'Our crew will use a professional forestry mulcher to clear, chip, and spread all vegetation on site — leaving a clean, mulched surface with no hauling required.';
+
+    const html = buildQuoteHtml({
+      leadId, name, phone: data.phone || '', email: data.email || '', address: data.address || '',
+      dateStr, offerStr, lineRows, subtotal: total, markup: 0, total, scopeText, notes: ''
+    });
+
+    const result = savePdfFromHtml(html, leadId, name);
+    if (!result) return null;
+    return { fileId: result.fileId, fileUrl: result.fileUrl, fileName: result.fileName };
   } catch(e) {
     return null;
   }
@@ -854,83 +869,24 @@ function createCustomQuotePDF(data, lineItems, markup, total) {
     const offerStr  = Utilities.formatDate(offerDate, Session.getScriptTimeZone(), 'MM/dd/yyyy');
     const subtotal  = lineItems.reduce(function(s,l){ return s + (parseFloat(l.qty)||1)*(parseFloat(l.unitPrice)||0); }, 0);
 
-    const doc  = DocumentApp.create('Cornerstone Quote — ' + leadId);
-    const body = doc.getBody();
-    body.setMarginTop(36).setMarginBottom(36).setMarginLeft(54).setMarginRight(54);
-
-    const title = body.appendParagraph('CORNERSTONE HARDSCAPE & EXCAVATION');
-    title.setHeading(DocumentApp.ParagraphHeading.HEADING1);
-    title.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
-
-    const sub = body.appendParagraph('651 Reed Lane, Simpsonville, KY 40067  ·  502-396-7887  ·  isaacmosko@cornerstonehe.net');
-    sub.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
-    sub.setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 9, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
-
-    body.appendParagraph('');
-    body.appendParagraph('Quote ' + leadId + '  ·  ' + dateStr)
-      .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
-    body.appendParagraph('');
-
-    body.appendParagraph('Prepared for: ' + name)
-      .setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 12 });
-    if (data.phone)   body.appendParagraph(String(data.phone)).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
-    if (data.email)   body.appendParagraph(data.email).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
-    if (data.address) body.appendParagraph(data.address).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
-    body.appendParagraph('Offer valid until: ' + offerStr)
-      .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#cc4444' });
-
-    body.appendParagraph('');
-    body.appendParagraph('SERVICES')
-      .setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
-
-    lineItems.forEach(function(item) {
+    const lineRows = lineItems.map(function(item) {
       const lineTotal = Math.round((parseFloat(item.qty)||1)*(parseFloat(item.unitPrice)||0));
-      body.appendParagraph(item.service + '  —  ' + item.qty + ' ' + item.unit + '  ·  $' + lineTotal.toLocaleString())
-        .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 12, [DocumentApp.Attribute.BOLD]: true });
-      if (item.description) {
-        body.appendParagraph(item.description)
-          .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888', [DocumentApp.Attribute.ITALIC]: true });
-      }
+      return '<tr><td>' + item.service +
+        (item.description ? '<br><span style="font-size:11px;color:#888;">' + item.description + '</span>' : '') + '</td>' +
+        '<td class="c">' + item.qty + ' ' + item.unit + '</td>' +
+        '<td class="r">$' + lineTotal.toLocaleString() + '</td></tr>';
+    }).join('');
+
+    const html = buildQuoteHtml({
+      leadId, name,
+      phone:   data.phone   || '',
+      email:   data.email   || '',
+      address: data.address || '',
+      dateStr, offerStr, lineRows, subtotal, markup, total,
+      scopeText: '', notes: data.notes || ''
     });
 
-    body.appendParagraph('');
-    if (markup > 0) {
-      body.appendParagraph('Subtotal: $' + Math.round(subtotal).toLocaleString())
-        .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
-      body.appendParagraph('Markup (' + markup + '%): +$' + (total - Math.round(subtotal)).toLocaleString())
-        .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
-    }
-    body.appendParagraph('Total: $' + total.toLocaleString())
-      .setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 16 });
-
-    if (data.notes) {
-      body.appendParagraph('');
-      body.appendParagraph('SCOPE OF WORK')
-        .setAttributes({ [DocumentApp.Attribute.BOLD]: true, [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888' });
-      body.appendParagraph(data.notes).setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 11 });
-    }
-
-    body.appendParagraph('');
-    body.appendParagraph('Thank you for choosing Cornerstone. Questions? Call 502-396-7887')
-      .setAttributes({ [DocumentApp.Attribute.FONT_SIZE]: 10, [DocumentApp.Attribute.FOREGROUND_COLOR]: '#888888', [DocumentApp.Attribute.ITALIC]: true });
-
-    doc.saveAndClose();
-
-    const pdfBlob = UrlFetchApp.fetch(
-      'https://docs.google.com/document/d/' + doc.getId() + '/export?format=pdf',
-      { headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() } }
-    ).getBlob();
-
-    const fileName = 'Cornerstone-Quote-' + leadId + '-' + name.replace(/\s+/g, '-') + '.pdf';
-    pdfBlob.setName(fileName);
-
-    const folders = DriveApp.getFoldersByName('Cornerstone Quotes');
-    const folder  = folders.hasNext() ? folders.next() : DriveApp.createFolder('Cornerstone Quotes');
-    const pdfFile = folder.createFile(pdfBlob.copyBlob());
-    pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    DriveApp.getFileById(doc.getId()).setTrashed(true);
-
-    return { blob: pdfBlob, fileId: pdfFile.getId(), fileUrl: pdfFile.getUrl(), fileName: fileName };
+    return savePdfFromHtml(html, leadId, name);
   } catch(e) {
     return null;
   }
