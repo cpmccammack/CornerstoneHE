@@ -1110,7 +1110,7 @@
     <div id="quoteStatus" style="font-size:13px;color:#22C55E;min-height:18px;margin-bottom:12px;text-align:center;"></div>
     <div style="display:flex;gap:10px;">
       <button onclick="closeQuoteModal()" style="flex:1;padding:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#aaa;font-size:14px;cursor:pointer;">Cancel</button>
-      <button onclick="submitCustomQuote()" style="flex:2;padding:12px;background:#22C55E;border:none;border-radius:8px;color:#0a0a0a;font-size:14px;font-weight:700;cursor:pointer;">Send Quote Email + PDF</button>
+      <button onclick="submitCustomQuote()" style="flex:2;padding:12px;background:#22C55E;border:none;border-radius:8px;color:#0a0a0a;font-size:14px;font-weight:700;cursor:pointer;">Send Quote</button>
     </div>
   </div>
 </div>
@@ -1905,7 +1905,7 @@
     const notes    = document.getElementById('quoteNotes').value.trim();
     const lead     = quoteLeadData;
 
-    document.getElementById('quoteStatus').textContent = 'Sending quote + generating PDF...';
+    document.getElementById('quoteStatus').textContent = 'Sending quote…';
 
     try {
       const res = await postCRM({
