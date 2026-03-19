@@ -708,10 +708,10 @@ function buildQuoteHtml(opts) {
     'body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;font-size:13px;line-height:1.5;}' +
     '</style></head><body>' +
 
-    // Black header — pure CSS, no image needed
-    '<table width="100%" cellpadding="0" cellspacing="0" style="background:#000;"><tr><td style="padding:22px 48px;">' +
-    '<div style="color:#fff;font-size:20px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;">Cornerstone Hardscape &amp; Excavation</div>' +
-    '<div style="color:rgba(255,255,255,0.45);font-size:10px;margin-top:5px;letter-spacing:0.3px;">651 Reed Lane, Simpsonville, KY 40067 &nbsp;·&nbsp; 502-396-7887 &nbsp;·&nbsp; isaacmosko@cornerstonehe.net</div>' +
+    // Black header — bgcolor attribute for Drive PDF renderer
+    '<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#000000" style="background:#000000;"><tr><td bgcolor="#000000" style="padding:22px 48px;background:#000000;">' +
+    '<div style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;">Cornerstone Hardscape &amp; Excavation</div>' +
+    '<div style="color:#999999;font-size:10px;margin-top:5px;letter-spacing:0.3px;">651 Reed Lane, Simpsonville, KY 40067 &nbsp;·&nbsp; 502-396-7887 &nbsp;·&nbsp; isaacmosko@cornerstonehe.net</div>' +
     '</td></tr></table>' +
 
     // Body
