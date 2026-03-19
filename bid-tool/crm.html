@@ -1601,6 +1601,7 @@
     const rows = sorted.map(lead => {
       const stageCls = STAGE_BADGE_CLASS[lead.stage] || 'badge-lost';
       const value    = lead.estimateTotal ? fmtMoney(Number(lead.estimateTotal)) : '';
+      const color    = leadColor(lead);
       const approvedBadge = lead.approved === 'approved'
         ? `<span class="badge badge-won" style="font-size:9px;">✓ Approved</span>`
         : lead.approved === 'declined'
@@ -1612,7 +1613,7 @@
         daysAgo = diff === 0 ? 'Today' : `${diff}d ago`;
       }
       return `
-        <div class="list-row" onclick="openPanel('${esc(lead.id)}')">
+        <div class="list-row" onclick="openPanel('${esc(lead.id)}')" style="border-left:4px solid ${color};">
           <span class="badge ${stageCls}" style="flex-shrink:0;">${esc(lead.stage)}</span>
           <span class="list-name">${esc(lead.name || 'Unnamed')}</span>
           ${approvedBadge}
@@ -1696,6 +1697,13 @@
     reader.readAsText(file);
   }
 
+  // ── Lead color coding ──────────────────────────────────────────
+  function leadColor(lead) {
+    if (lead.stage === 'Won' || lead.approved === 'approved') return '#16a34a'; // green
+    if (lead.stage === 'Lost' || lead.approved === 'declined') return '#991b1b'; // dark red
+    return '#1e40af'; // dark blue = in progress
+  }
+
   // ── Kanban board ───────────────────────────────────────────────
   function renderBoard(leads) {
     const board = document.getElementById('boardWrap');
@@ -1743,9 +1751,10 @@
     }
 
     const overdueCls = lead.overdue ? ' overdue' : '';
+    const color = leadColor(lead);
 
     return `
-      <div class="lead-card${overdueCls}" onclick="openPanel('${esc(lead.id)}')">
+      <div class="lead-card${overdueCls}" onclick="openPanel('${esc(lead.id)}')" style="border-left:4px solid ${color};">
         <div class="card-top">
           <div class="card-name">${esc(lead.name || 'Unnamed')}</div>
           <div class="card-value">${esc(value)}</div>
