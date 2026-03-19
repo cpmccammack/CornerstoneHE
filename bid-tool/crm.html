@@ -980,9 +980,48 @@
       <div class="panel-name" id="panelName">—</div>
       <div id="panelStageBadge"></div>
     </div>
-    <button class="panel-close" onclick="closePanel()">×</button>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button onclick="openEditLead()" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:6px;color:#aaa;font-size:12px;padding:4px 10px;cursor:pointer;">Edit</button>
+      <button class="panel-close" onclick="closePanel()">×</button>
+    </div>
   </div>
   <div class="panel-body" id="panelBody"></div>
+</div>
+
+<!-- Edit Lead Modal -->
+<div class="modal-overlay" id="editLeadModal">
+  <div class="modal-box">
+    <div class="modal-title">Edit Lead</div>
+    <label class="modal-label">Full Name</label>
+    <input class="modal-input" id="editName" type="text">
+    <label class="modal-label">Phone</label>
+    <input class="modal-input" id="editPhone" type="tel">
+    <label class="modal-label">Email</label>
+    <input class="modal-input" id="editEmail" type="email">
+    <label class="modal-label">Address</label>
+    <input class="modal-input" id="editAddress" type="text">
+    <label class="modal-label">Deal Value ($)</label>
+    <input class="modal-input" id="editDealValue" type="number" placeholder="0">
+    <div class="modal-status" id="editLeadStatus"></div>
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeEditLead()">Cancel</button>
+      <button class="modal-btn cancel" onclick="confirmDeleteLead()" style="background:#7f1d1d;border-color:#7f1d1d;color:#fca5a5;">Delete Lead</button>
+      <button class="modal-btn submit" onclick="submitEditLead()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Win/Loss Reason Modal -->
+<div class="modal-overlay" id="reasonModal">
+  <div class="modal-box" style="max-width:340px;">
+    <div class="modal-title" id="reasonModalTitle">Why did you win this?</div>
+    <label class="modal-label">Reason (optional)</label>
+    <input class="modal-input" id="reasonInput" type="text" placeholder="e.g. Best price, referral…">
+    <div class="modal-footer">
+      <button class="modal-btn cancel" onclick="closeReasonModal()">Skip</button>
+      <button class="modal-btn submit" onclick="submitReason()">Save</button>
+    </div>
+  </div>
 </div>
 
 <!-- Add Lead Modal -->
@@ -1517,7 +1556,21 @@
   }
 
   // ── Update Stage ───────────────────────────────────────────────
+  let _pendingStageLeadId = null;
+  let _pendingStageValue  = null;
+
   async function updateStage(leadId, newStage) {
+    // Intercept Won/Lost to collect reason first
+    if (newStage === 'Won' || newStage === 'Lost') {
+      _pendingStageLeadId = leadId;
+      _pendingStageValue  = newStage;
+      openReasonModal(newStage);
+      return;
+    }
+    await _applyStageUpdate(leadId, newStage, null);
+  }
+
+  async function _applyStageUpdate(leadId, newStage, reason) {
     // Optimistic local update
     const lead = allLeads.find(l => String(l.id) === String(leadId));
     if (lead) {
@@ -1536,12 +1589,111 @@
     try {
       const r = await postCRM({ action: 'updateLead', id: leadId, stage: newStage });
       if (r.success) {
+        if (reason) {
+          await postCRM({ action: 'addNote', id: leadId, note: `[${newStage}] ${reason}` });
+          await loadLeads();
+          const updated = allLeads.find(l => String(l.id) === String(leadId));
+          if (updated) renderPanel(updated);
+        }
         setPanelStatus(`Stage → ${newStage}`, false);
       } else {
         setPanelStatus(r.error || 'Error updating', true);
       }
     } catch (e) {
       setPanelStatus('Network error', true);
+    }
+  }
+
+  // ── Edit Lead Modal ─────────────────────────────────────────────
+  function openEditLead() {
+    const lead = allLeads.find(l => String(l.id) === String(activePanelId));
+    if (!lead) return;
+    document.getElementById('editName').value      = lead.name      || '';
+    document.getElementById('editPhone').value     = lead.phone     || '';
+    document.getElementById('editEmail').value     = lead.email     || '';
+    document.getElementById('editAddress').value   = lead.address   || '';
+    document.getElementById('editDealValue').value = lead.estimateTotal || '';
+    document.getElementById('editLeadStatus').textContent = '';
+    document.getElementById('editLeadModal').style.display = 'flex';
+  }
+
+  function closeEditLead() {
+    document.getElementById('editLeadModal').style.display = 'none';
+  }
+
+  async function submitEditLead() {
+    const name  = document.getElementById('editName').value.trim();
+    if (!name) {
+      document.getElementById('editLeadStatus').textContent = 'Name is required.';
+      return;
+    }
+    document.getElementById('editLeadStatus').textContent = 'Saving…';
+    try {
+      const r = await postCRM({
+        action:        'updateLead',
+        id:            activePanelId,
+        name,
+        phone:         document.getElementById('editPhone').value.trim(),
+        email:         document.getElementById('editEmail').value.trim(),
+        address:       document.getElementById('editAddress').value.trim(),
+        estimateTotal: document.getElementById('editDealValue').value.trim(),
+      });
+      if (r.success) {
+        closeEditLead();
+        await loadLeads();
+        const updated = allLeads.find(l => String(l.id) === String(activePanelId));
+        if (updated) renderPanel(updated);
+      } else {
+        document.getElementById('editLeadStatus').textContent = r.error || 'Error saving.';
+      }
+    } catch (e) {
+      document.getElementById('editLeadStatus').textContent = 'Network error.';
+    }
+  }
+
+  async function confirmDeleteLead() {
+    const lead = allLeads.find(l => String(l.id) === String(activePanelId));
+    const name = lead ? lead.name : 'this lead';
+    if (!confirm(`Delete ${name}? This cannot be undone.`)) return;
+    document.getElementById('editLeadStatus').textContent = 'Deleting…';
+    try {
+      const r = await postCRM({ action: 'deleteLead', id: activePanelId });
+      if (r.success) {
+        closeEditLead();
+        closePanel();
+        await loadLeads();
+      } else {
+        document.getElementById('editLeadStatus').textContent = r.error || 'Error deleting.';
+      }
+    } catch (e) {
+      document.getElementById('editLeadStatus').textContent = 'Network error.';
+    }
+  }
+
+  // ── Win/Loss Reason Modal ───────────────────────────────────────
+  function openReasonModal(stage) {
+    document.getElementById('reasonModalTitle').textContent =
+      stage === 'Won' ? 'Why did you win this?' : 'Why did you lose this?';
+    document.getElementById('reasonInput').value = '';
+    document.getElementById('reasonModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('reasonInput').focus(), 100);
+  }
+
+  function closeReasonModal() {
+    document.getElementById('reasonModal').style.display = 'none';
+    _pendingStageLeadId = null;
+    _pendingStageValue  = null;
+  }
+
+  async function submitReason() {
+    const reason = document.getElementById('reasonInput').value.trim();
+    const leadId = _pendingStageLeadId;
+    const stage  = _pendingStageValue;
+    document.getElementById('reasonModal').style.display = 'none';
+    _pendingStageLeadId = null;
+    _pendingStageValue  = null;
+    if (leadId && stage) {
+      await _applyStageUpdate(leadId, stage, reason || null);
     }
   }
 
@@ -1780,6 +1932,9 @@
     if (e.key === 'Escape') {
       closePanel();
       closeAddLead();
+      closeEditLead();
+      closeReasonModal();
+      closeQuoteModal();
     }
   });
 
