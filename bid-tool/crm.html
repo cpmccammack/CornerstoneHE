@@ -6,14 +6,14 @@
   <title>Cornerstone CRM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
       width: 100%; height: 100%;
       background: #F5F5F0;
-      font-family: 'Figtree', 'Aptos Narrow', system-ui, sans-serif;
+      font-family: 'Geist', system-ui, sans-serif;
       color: #0A0A0A;
       letter-spacing: -0.02em;
       overflow-x: hidden;
@@ -112,7 +112,7 @@
       color: #FFFFFF;
       letter-spacing: -0.3px;
       flex-shrink: 0;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Geist', system-ui, sans-serif;
     }
 
     .header-wordmark span { color: #F97316; }
@@ -213,7 +213,7 @@
       color: #F97316;
       line-height: 1.1;
       margin-bottom: 3px;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Geist', system-ui, sans-serif;
     }
 
     .stat-card .sl {
@@ -320,14 +320,14 @@
       font-weight: 600;
       color: #0A0A0A;
       line-height: 1.3;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Geist', system-ui, sans-serif;
     }
 
     .card-value {
       font-size: 15px;
       font-weight: 700;
       color: #F97316;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Geist', system-ui, sans-serif;
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -449,7 +449,7 @@
       font-size: 18px;
       font-weight: 700;
       color: #0A0A0A;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Geist', system-ui, sans-serif;
       margin-bottom: 5px;
       line-height: 1.2;
     }
@@ -791,6 +791,112 @@
       line-height: 1.8;
     }
 
+    /* ── View toggle ── */
+    .view-toggle {
+      display: flex;
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .view-toggle-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+
+    .view-toggle-btn.active {
+      background: #F97316;
+      color: #FFFFFF;
+    }
+
+    /* ── Monthly view ── */
+    .monthly-wrap {
+      padding: 14px 16px 60px;
+    }
+
+    .month-row {
+      background: #FFFFFF;
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 20px rgba(0,0,0,0.06);
+      display: grid;
+      grid-template-columns: 140px repeat(4, 1fr);
+      align-items: center;
+      gap: 12px;
+    }
+
+    .month-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0A0A0A;
+      letter-spacing: -0.3px;
+    }
+
+    .month-name .month-year {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: #9CA3AF;
+      letter-spacing: 0;
+    }
+
+    .month-stat {
+      text-align: right;
+    }
+
+    .month-stat .mv {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0A0A0A;
+      line-height: 1.1;
+    }
+
+    .month-stat .mv.orange { color: #F97316; }
+
+    .month-stat .ml {
+      font-size: 10px;
+      color: #9CA3AF;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-top: 2px;
+    }
+
+    .month-header-row {
+      display: grid;
+      grid-template-columns: 140px repeat(4, 1fr);
+      gap: 12px;
+      padding: 0 20px 8px;
+    }
+
+    .month-header-row span {
+      font-size: 10px;
+      font-weight: 700;
+      color: #9CA3AF;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      text-align: right;
+    }
+
+    .month-header-row span:first-child { text-align: left; }
+
+    @media (max-width: 600px) {
+      .month-row { grid-template-columns: 100px repeat(4, 1fr); gap: 8px; padding: 12px 14px; }
+      .month-stat .mv { font-size: 13px; }
+      .view-toggle-btn { padding: 5px 8px; }
+    }
+
     /* Mobile adjustments */
     @media (max-width: 600px) {
       .header-wordmark { font-size: 15px; }
@@ -826,6 +932,10 @@
       <input class="header-search" id="searchInput" type="text" placeholder="Search leads…" oninput="onSearch()">
     </div>
     <div class="header-actions">
+      <div class="view-toggle">
+        <button class="view-toggle-btn active" id="btnKanban" onclick="setView('kanban')">Board</button>
+        <button class="view-toggle-btn" id="btnMonthly" onclick="setView('monthly')">Monthly</button>
+      </div>
       <button class="new-lead-btn" onclick="openAddLead()">
         <span style="font-size:16px;line-height:1;">+</span>
         <span>New Lead</span>
@@ -991,6 +1101,7 @@
   let allLeads = [];
   let activePanelId = null;
   let searchQuery = '';
+  let currentView = 'kanban';
 
   // ── Setup ──────────────────────────────────────────────────────
   function getCRMUrl() { return localStorage.getItem('crm_url') || ''; }
@@ -1106,12 +1217,92 @@
     document.getElementById('statActive').textContent   = s.activeCount;
   }
 
+  // ── View toggle ────────────────────────────────────────────────
+  function setView(v) {
+    currentView = v;
+    document.getElementById('btnKanban').classList.toggle('active', v === 'kanban');
+    document.getElementById('btnMonthly').classList.toggle('active', v === 'monthly');
+    renderAll();
+  }
+
   // ── Render all ─────────────────────────────────────────────────
   function renderAll() {
     const filtered = getFilteredLeads();
     updateStats(filtered);
     hideSpinner();
-    renderBoard(filtered);
+    if (currentView === 'monthly') renderMonthly(filtered);
+    else renderBoard(filtered);
+  }
+
+  // ── Monthly pipeline summary ────────────────────────────────────
+  function renderMonthly(leads) {
+    const board = document.getElementById('boardWrap');
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const now = new Date();
+
+    // Build last 12 months
+    const months = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({ year: d.getFullYear(), month: d.getMonth() });
+    }
+
+    const rows = months.map(({ year, month }) => {
+      const inMonth = (dateStr) => {
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
+        return d.getFullYear() === year && d.getMonth() === month;
+      };
+
+      const monthLeads   = leads.filter(l => inMonth(l.lastTouch));
+      const wonLeads     = monthLeads.filter(l => l.stage === 'Won');
+      const scheduled    = leads.filter(l => inMonth(l.scheduledDate));
+      const pipeline     = monthLeads.filter(l => l.stage !== 'Won' && l.stage !== 'Lost')
+                                     .reduce((s, l) => s + (Number(l.estimateTotal) || 0), 0);
+      const wonRev       = wonLeads.reduce((s, l) => s + (Number(l.estimateTotal) || 0), 0);
+
+      const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
+      const label = `${MONTHS[month]} ${year}`;
+      const sublabel = isCurrentMonth ? 'This month' : '';
+
+      return `
+        <div class="month-row">
+          <div class="month-name">
+            ${label}
+            ${sublabel ? `<span class="month-year">${sublabel}</span>` : ''}
+          </div>
+          <div class="month-stat">
+            <div class="mv">${monthLeads.length}</div>
+            <div class="ml">Leads</div>
+          </div>
+          <div class="month-stat">
+            <div class="mv orange">${pipeline > 0 ? fmtMoney(pipeline) : '—'}</div>
+            <div class="ml">Pipeline</div>
+          </div>
+          <div class="month-stat">
+            <div class="mv orange">${wonRev > 0 ? fmtMoney(wonRev) : '—'}</div>
+            <div class="ml">Won</div>
+          </div>
+          <div class="month-stat">
+            <div class="mv">${scheduled.length > 0 ? scheduled.length : '—'}</div>
+            <div class="ml">Scheduled</div>
+          </div>
+        </div>
+      `;
+    }).reverse(); // newest first
+
+    board.innerHTML = `
+      <div class="monthly-wrap">
+        <div class="month-header-row">
+          <span>Month</span>
+          <span>Leads</span>
+          <span>Pipeline</span>
+          <span>Won</span>
+          <span>Scheduled</span>
+        </div>
+        ${rows.join('')}
+      </div>
+    `;
   }
 
   // ── Kanban board ───────────────────────────────────────────────
