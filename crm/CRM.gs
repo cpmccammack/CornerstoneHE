@@ -70,17 +70,41 @@ function doGet(e) {
       const offerDate = new Date(); offerDate.setDate(offerDate.getDate() + 7);
       const offerStr  = Utilities.formatDate(offerDate, Session.getScriptTimeZone(), 'MM/dd/yyyy');
       const todayStr  = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
-      const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[lead.density] || lead.density || '';
-      const PROD_DAY = { light: 2, medium: 1, dense: 0.5 };
-      const days = lead.acreage && lead.density ? Math.max(1, Math.round((lead.acreage / (PROD_DAY[lead.density]||1)) * 2) / 2) : 1;
-      const total = Math.round(parseFloat(lead.estimateTotal) || parseFloat(lead.dealValue) || 0);
-      const scopeLines = [
-        'Cornerstone Hardscape & Excavation will perform forestry mulching services at ' + (lead.address || 'the property') + '.',
-        lead.acreage ? 'The area to be cleared is approximately ' + lead.acreage + ' acres of ' + densityLabel.toLowerCase() + ' vegetation density.' : '',
-        'Estimated project duration: ' + days + ' ' + (days == 1 ? 'day' : 'days') + '.',
-        'Our crew will use a professional forestry mulcher to clear, chip, and spread all vegetation on site — leaving a clean, mulched surface with no hauling required.',
-      ].filter(Boolean).join(' ');
-      const html = buildEmailQuoteHtml({ leadId: lead.id, todayStr, offerStr, data: lead, densityLabel, days, total, scopeLines });
+      let html;
+
+      // If a custom quote was sent, show that instead of forestry template
+      if (lead.lastQuoteJson) {
+        try {
+          const q = JSON.parse(lead.lastQuoteJson);
+          if (q.type === 'custom') {
+            const subtotal = q.lineItems.reduce(function(s,l){ return s + (parseFloat(l.qty)||1)*(parseFloat(l.unitPrice)||0); }, 0);
+            const linesHtml = q.lineItems.map(function(item) {
+              const lineTotal = Math.round((parseFloat(item.qty)||1)*(parseFloat(item.unitPrice)||0));
+              return `<div class="line"><div class="line-desc"><strong>${item.service}</strong>${item.description ? '<span>' + item.description + '</span>' : ''}</div><div class="line-price">$${lineTotal.toLocaleString()}</div></div>`;
+            }).join('');
+            const markupSection = q.markup > 0
+              ? `<div class="total-row"><span>Subtotal</span><span>$${Math.round(subtotal).toLocaleString()}</span></div><div class="total-row"><span>Markup (${q.markup}%)</span><span>+$${(q.total - Math.round(subtotal)).toLocaleString()}</span></div>`
+              : '';
+            html = buildEmailQuoteHtml({ leadId: lead.id, todayStr, offerStr, data: { ...lead, mapImageUrl: '' }, densityLabel: '', days: null, total: q.total, scopeLines: q.notes || '', customLinesHtml: linesHtml + markupSection });
+          }
+        } catch(err) {}
+      }
+
+      // Fallback to forestry mulching template
+      if (!html) {
+        const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[lead.density] || lead.density || '';
+        const PROD_DAY = { light: 2, medium: 1, dense: 0.5 };
+        const days = lead.acreage && lead.density ? Math.max(1, Math.round((lead.acreage / (PROD_DAY[lead.density]||1)) * 2) / 2) : 1;
+        const total = Math.round(parseFloat(lead.estimateTotal) || parseFloat(lead.dealValue) || 0);
+        const scopeLines = [
+          'Cornerstone Hardscape & Excavation will perform forestry mulching services at ' + (lead.address || 'the property') + '.',
+          lead.acreage ? 'The area to be cleared is approximately ' + lead.acreage + ' acres of ' + densityLabel.toLowerCase() + ' vegetation density.' : '',
+          'Estimated project duration: ' + days + ' ' + (days == 1 ? 'day' : 'days') + '.',
+          'Our crew will use a professional forestry mulcher to clear, chip, and spread all vegetation on site — leaving a clean, mulched surface with no hauling required.',
+        ].filter(Boolean).join(' ');
+        html = buildEmailQuoteHtml({ leadId: lead.id, todayStr, offerStr, data: lead, densityLabel, days, total, scopeLines });
+      }
+
       return HtmlService.createHtmlOutput(html);
     }
 
@@ -172,7 +196,7 @@ const COLS = {
   address: 6, dealValue: 7, source: 8, stage: 9,
   lastTouch: 10, nextAction: 11, notes: 12,
   acreage: 13, density: 14, difficulty: 15, estimateTotal: 16,
-  approved: 17, financing: 18, mapImageUrl: 19, scheduledDate: 20
+  approved: 17, financing: 18, mapImageUrl: 19, scheduledDate: 20, lastQuoteJson: 21
 };
 
 function rowToObj(row) {
@@ -196,7 +220,8 @@ function rowToObj(row) {
     approved:      row[COLS.approved - 1] || '',
     financing:     row[COLS.financing - 1] || false,
     mapImageUrl:   row[COLS.mapImageUrl - 1] || '',
-    scheduledDate: row[COLS.scheduledDate - 1] || '',
+    scheduledDate:  row[COLS.scheduledDate - 1]  || '',
+    lastQuoteJson:  row[COLS.lastQuoteJson - 1]   || '',
   };
 }
 
@@ -205,7 +230,7 @@ function getLeads() {
   const s = getSheet();
   const lastRow = s.getLastRow();
   if (lastRow < 2) return { leads: [] };
-  const rows = s.getRange(2, 1, lastRow - 1, 20).getValues();
+  const rows = s.getRange(2, 1, lastRow - 1, 21).getValues();
   const leads = rows
     .filter(r => r[0])
     .map(rowToObj)
@@ -251,13 +276,13 @@ function createLead(data) {
   const nextDate = new Date(today);
   nextDate.setDate(today.getDate() + (FOLLOWUP_DAYS['New Lead'] || 1));
 
-  s.getRange(newRow, 1, 1, 20).setValues([[
+  s.getRange(newRow, 1, 1, 21).setValues([[
     id, today,
     data.name || '', data.phone || '', data.email || '',
     data.address || '', data.dealValue || 0, data.source || 'Bid Tool',
     'New Lead', today, nextDate, data.notes || '',
     data.acreage || '', data.density || '', data.difficulty || 0, data.estimateTotal || 0,
-    '', false, data.mapImageUrl || '', ''
+    '', false, data.mapImageUrl || '', '', ''
   ]]);
 
   return { success: true, id };
@@ -947,6 +972,11 @@ function sendCustomQuote(data) {
     const serviceNames = lineItems.map(function(l){ return l.service; }).join(', ');
     addNote({ id: leadId, note: 'Custom quote sent: ' + serviceNames + ' — $' + total.toLocaleString() });
     updateLead({ id: leadId, stage: 'Quote Sent', estimateTotal: total });
+    // Store quote data for viewQuote page
+    const s2 = getSheet();
+    const rows2 = s2.getRange(2, 1, s2.getLastRow() - 1, 1).getValues();
+    const ri = rows2.findIndex(r => r[0] === leadId);
+    if (ri !== -1) s2.getRange(ri + 2, COLS.lastQuoteJson).setValue(JSON.stringify({ type: 'custom', lineItems, markup, total, notes: data.notes || '' }));
   }
 
   return { success: true };
