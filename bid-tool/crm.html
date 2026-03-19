@@ -191,6 +191,34 @@
 
     .refresh-icon-btn:hover { border-color: #22C55E; color: #22C55E; background: rgba(34,197,94,0.08); }
 
+    /* ── Background picker ── */
+    .bg-picker {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: #0A0A0A;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 12px;
+      display: none;
+      gap: 8px;
+      flex-wrap: wrap;
+      width: 168px;
+      z-index: 200;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .bg-picker.open { display: flex; }
+    .bg-swatch {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.15s, transform 0.1s;
+      flex-shrink: 0;
+    }
+    .bg-swatch:hover { transform: scale(1.1); }
+    .bg-swatch.active { border-color: #22C55E; }
+
     /* ── Stats bar ── */
     .stats-bar {
       display: flex;
@@ -1074,6 +1102,10 @@
       <button class="view-toggle-btn" id="hideLostBtn" onclick="toggleHideLost()" style="background:rgba(0,0,0,0.06);border-radius:8px;padding:5px 10px;"></button>
       <button class="refresh-icon-btn" onclick="lockCRM()" title="Lock CRM" id="lockBtn" style="display:none;">🔒</button>
       <button class="refresh-icon-btn" onclick="loadLeads()" title="Refresh">↻</button>
+      <div style="position:relative;">
+        <button class="refresh-icon-btn" onclick="toggleBgPicker()" title="Background">🎨</button>
+        <div class="bg-picker" id="bgPicker"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1317,6 +1349,49 @@
   let hideLost = localStorage.getItem('crm_hidelost') === '1';
   let listStageFilter = '';
 
+  // ── Background picker ───────────────────────────────────────────
+  const BG_OPTIONS = [
+    { label: 'White',      value: '#FFFFFF' },
+    { label: 'Cream',      value: '#FAF7F0' },
+    { label: 'Light Gray', value: '#F0F0F0' },
+    { label: 'Cool Gray',  value: '#E5ECF2' },
+    { label: 'Warm Gray',  value: '#EDE9E3' },
+    { label: 'Charcoal',   value: '#1C1C1E' },
+  ];
+
+  function initBgPicker() {
+    const saved = localStorage.getItem('crm_bg') || '#FFFFFF';
+    document.body.style.background = saved;
+    const picker = document.getElementById('bgPicker');
+    picker.innerHTML = BG_OPTIONS.map(opt => `
+      <div class="bg-swatch${opt.value === saved ? ' active' : ''}"
+        style="background:${opt.value};box-shadow:inset 0 0 0 1px rgba(0,0,0,0.1);"
+        title="${opt.label}"
+        onclick="setBg('${opt.value}')"></div>
+    `).join('');
+  }
+
+  function setBg(color) {
+    localStorage.setItem('crm_bg', color);
+    document.body.style.background = color;
+    document.querySelectorAll('.bg-swatch').forEach(s => {
+      s.classList.toggle('active', s.style.background === color || s.getAttribute('onclick').includes(color));
+    });
+    toggleBgPicker();
+  }
+
+  function toggleBgPicker() {
+    document.getElementById('bgPicker').classList.toggle('open');
+  }
+
+  document.addEventListener('click', e => {
+    const picker = document.getElementById('bgPicker');
+    if (picker && picker.classList.contains('open') &&
+        !picker.contains(e.target) && !e.target.closest('[onclick="toggleBgPicker()"]')) {
+      picker.classList.remove('open');
+    }
+  });
+
   // ── Setup ──────────────────────────────────────────────────────
   function getCRMUrl() { return localStorage.getItem('crm_url') || ''; }
 
@@ -1334,6 +1409,7 @@
   }
 
   window.addEventListener('load', () => {
+    initBgPicker();
     if (!getCRMUrl()) return;
     document.getElementById('setupScreen').style.display = 'none';
     const pass = localStorage.getItem('crm_pass');
