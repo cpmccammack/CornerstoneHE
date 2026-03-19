@@ -708,10 +708,11 @@ function buildQuoteHtml(opts) {
     'body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;font-size:13px;line-height:1.5;}' +
     '</style></head><body>' +
 
-    // Black header — bgcolor attribute for Drive PDF renderer
-    '<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#000000" style="background:#000000;"><tr><td bgcolor="#000000" style="padding:22px 48px;background:#000000;">' +
-    '<div style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;">Cornerstone Hardscape &amp; Excavation</div>' +
-    '<div style="color:#999999;font-size:10px;margin-top:5px;letter-spacing:0.3px;">651 Reed Lane, Simpsonville, KY 40067 &nbsp;·&nbsp; 502-396-7887 &nbsp;·&nbsp; isaacmosko@cornerstonehe.net</div>' +
+    // Header — typographic style (Drive PDF renderer cannot render background colors)
+    '<table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:36px 48px 20px;">' +
+    '<div style="font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#000000;">Cornerstone Hardscape &amp; Excavation</div>' +
+    '<div style="font-size:10px;color:#888888;margin-top:6px;letter-spacing:0.3px;">651 Reed Lane, Simpsonville, KY 40067 &nbsp;&nbsp;|&nbsp;&nbsp; 502-396-7887 &nbsp;&nbsp;|&nbsp;&nbsp; isaacmosko@cornerstonehe.net</div>' +
+    '<div style="border-top:3px solid #000000;margin-top:16px;"></div>' +
     '</td></tr></table>' +
 
     // Body
