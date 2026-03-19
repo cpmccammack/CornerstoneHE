@@ -63,6 +63,27 @@ function doGet(e) {
     if (action === 'getLead')   return corsResponse(getLead(e.parameter.id), cb);
     if (action === 'ping')      return corsResponse({ ok: true }, cb);
 
+    // View quote as rendered HTML page
+    if (action === 'viewQuote') {
+      const lead = getLead(e.parameter.leadId).lead;
+      if (!lead) return htmlPage('<h2>Quote not found</h2>');
+      const offerDate = new Date(); offerDate.setDate(offerDate.getDate() + 7);
+      const offerStr  = Utilities.formatDate(offerDate, Session.getScriptTimeZone(), 'MM/dd/yyyy');
+      const todayStr  = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
+      const densityLabel = { light: 'Light', medium: 'Medium', dense: 'Dense' }[lead.density] || lead.density || '';
+      const PROD_DAY = { light: 2, medium: 1, dense: 0.5 };
+      const days = lead.acreage && lead.density ? Math.max(1, Math.round((lead.acreage / (PROD_DAY[lead.density]||1)) * 2) / 2) : 1;
+      const total = Math.round(parseFloat(lead.estimateTotal) || parseFloat(lead.dealValue) || 0);
+      const scopeLines = [
+        'Cornerstone Hardscape & Excavation will perform forestry mulching services at ' + (lead.address || 'the property') + '.',
+        lead.acreage ? 'The area to be cleared is approximately ' + lead.acreage + ' acres of ' + densityLabel.toLowerCase() + ' vegetation density.' : '',
+        'Estimated project duration: ' + days + ' ' + (days == 1 ? 'day' : 'days') + '.',
+        'Our crew will use a professional forestry mulcher to clear, chip, and spread all vegetation on site — leaving a clean, mulched surface with no hauling required.',
+      ].filter(Boolean).join(' ');
+      const html = buildEmailQuoteHtml({ leadId: lead.id, todayStr, offerStr, data: lead, densityLabel, days, total, scopeLines });
+      return HtmlService.createHtmlOutput(html);
+    }
+
     // Customer-facing approval links (return HTML pages — no JSONP needed)
     if (action === 'approveQuote') {
       const id = e.parameter.leadId;
@@ -592,9 +613,10 @@ function scheduleJob(data) {
 
   const title = `Cornerstone — ${data.name || 'Job'} (${data.address || ''})`;
 
-  // Generate PDF and get its Drive URL
-  const pdf = createQuotePDF(data);
-  const pdfUrl = pdf ? pdf.fileUrl : null;
+  // Generate quote view URL (served by this web app — renders perfectly)
+  const scriptUrl = ScriptApp.getService().getUrl();
+  const pdfUrl = data.leadId ? `${scriptUrl}?action=viewQuote&leadId=${data.leadId}` : null;
+  const pdf = null; // no longer saving to Drive
 
   const desc = [
     `Customer: ${data.name || ''}`,
