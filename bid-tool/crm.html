@@ -224,7 +224,7 @@
       letter-spacing: 0.5px;
     }
 
-    #statWinRate, #statActive { color: #F0EBE0; }
+    #statWon, #statWinRate, #statActive { color: #F0EBE0; }
 
     /* ── Kanban board ── */
     .board-wrap {
@@ -326,7 +326,7 @@
     .card-value {
       font-size: 15px;
       font-weight: 700;
-      color: #22C55E;
+      color: #F0EBE0;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
       white-space: nowrap;
       flex-shrink: 0;
@@ -366,12 +366,12 @@
     .badge-days      { background: rgba(255,255,255,0.07); color: #8A8070; border-color: rgba(255,255,255,0.1); }
 
     /* Column count badges */
-    .col-count.badge-new       { background: rgba(34,197,94,0.15); color: #22C55E; }
-    .col-count.badge-contacted { background: rgba(34,197,94,0.15); color: #22C55E; }
-    .col-count.badge-quote     { background: rgba(34,197,94,0.15); color: #22C55E; }
-    .col-count.badge-followup  { background: rgba(34,197,94,0.15); color: #22C55E; }
-    .col-count.badge-won       { background: #22C55E; color: #FFFFFF; }
-    .col-count.badge-lost      { background: rgba(255,255,255,0.07); color: #8A8070; border: 1px solid rgba(255,255,255,0.1); }
+    .col-count.badge-new,
+    .col-count.badge-contacted,
+    .col-count.badge-quote,
+    .col-count.badge-followup  { background: transparent; color: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.2); }
+    .col-count.badge-won       { background: #22C55E; color: #FFFFFF; border: none; }
+    .col-count.badge-lost      { background: transparent; color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.1); }
 
     .col-empty {
       font-size: 12px;
