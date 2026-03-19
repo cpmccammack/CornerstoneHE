@@ -693,72 +693,63 @@ function savePdfFromHtml(html, leadId, name) {
   }
 }
 
-// ── Shared: fetch logo as base64 for PDF embedding ───────────
-function getLogoBase64() {
-  try {
-    const resp = UrlFetchApp.fetch('https://cpmccammack.github.io/CornerstoneHE/logo.png');
-    const b64  = Utilities.base64Encode(resp.getBlob().getBytes());
-    return 'data:image/png;base64,' + b64;
-  } catch(e) { return null; }
-}
-
 // ── Shared: quote PDF HTML template ──────────────────────────
 function buildQuoteHtml(opts) {
-  const logoSrc = getLogoBase64();
-
-  const css = '<style>*{box-sizing:border-box;margin:0;padding:0;}' +
-    'body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;font-size:13px;line-height:1.5;}' +
-    '.logo-bar{background:#000;width:100%;display:block;line-height:0;}' +
-    '.logo-bar img{width:100%;display:block;border:0;}' +
-    '.logo-bar-text{background:#000;color:#fff;text-align:center;padding:20px 40px;font-size:18px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}' +
-    '.logo-bar-sub{background:#000;color:rgba(255,255,255,0.5);text-align:center;padding:0 40px 16px;font-size:10px;letter-spacing:0.5px;}' +
-    '.body{padding:28px 48px 40px;}' +
-    '.meta{display:flex;justify-content:space-between;margin-bottom:24px;font-size:11px;color:#888;border-bottom:1px solid #eee;padding-bottom:16px;}' +
-    '.section-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin:20px 0 8px;}' +
-    '.prepared{font-size:14px;font-weight:700;margin-bottom:4px;}' +
-    '.prepared-detail{font-size:12px;color:#444;line-height:1.7;}' +
-    'table{width:100%;border-collapse:collapse;}' +
-    'th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;padding:8px 0;border-bottom:2px solid #000;}' +
-    'th.r{text-align:right;}th.c{text-align:center;}' +
-    'td{padding:10px 0;border-bottom:1px solid #eee;font-size:13px;vertical-align:top;}' +
-    'td.r{text-align:right;font-weight:600;}td.c{text-align:center;color:#888;}' +
-    '.scope-box{background:#f9f9f9;border-left:3px solid #000;padding:12px 16px;font-size:12px;color:#444;margin-top:4px;}' +
-    '.total-wrap{display:flex;justify-content:space-between;align-items:baseline;border-top:2px solid #000;padding-top:14px;margin-top:10px;}' +
-    '.total-label{font-size:15px;font-weight:700;}' +
-    '.total-value{font-size:26px;font-weight:700;}' +
-    '.footer{margin-top:36px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#888;text-align:center;}' +
-    '</style>';
-
-  const logoHtml = logoSrc
-    ? '<div class="logo-bar"><img src="' + logoSrc + '" alt="Cornerstone"></div>'
-    : '<div class="logo-bar-text">Cornerstone Hardscape &amp; Excavation</div><div class="logo-bar-sub">651 Reed Lane, Simpsonville, KY 40067 &nbsp;·&nbsp; 502-396-7887</div>';
-
   const subtotalRow = opts.markup > 0
     ? '<tr><td colspan="2" style="color:#888;font-size:12px;border-bottom:none;padding:6px 0;">Subtotal</td>' +
-      '<td class="r" style="color:#888;font-size:12px;border-bottom:none;padding:6px 0;">$' + Math.round(opts.subtotal).toLocaleString() + '</td></tr>' +
+      '<td style="text-align:right;font-weight:600;color:#888;font-size:12px;border-bottom:none;padding:6px 0;">$' + Math.round(opts.subtotal).toLocaleString() + '</td></tr>' +
       '<tr><td colspan="2" style="color:#888;font-size:12px;border-bottom:none;padding:6px 0;">Markup (' + opts.markup + '%)</td>' +
-      '<td class="r" style="color:#888;font-size:12px;border-bottom:none;padding:6px 0;">+$' + (opts.total - Math.round(opts.subtotal)).toLocaleString() + '</td></tr>'
+      '<td style="text-align:right;font-weight:600;color:#888;font-size:12px;border-bottom:none;padding:6px 0;">+$' + (opts.total - Math.round(opts.subtotal)).toLocaleString() + '</td></tr>'
     : '';
 
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8">' + css + '</head><body>' +
-    logoHtml +
-    '<div class="body">' +
-    '<div class="meta"><span>Quote #' + opts.leadId + ' &nbsp;·&nbsp; ' + opts.dateStr + '</span>' +
-    '<span style="color:#cc4444;font-weight:600;">Valid until ' + opts.offerStr + '</span></div>' +
-    '<div class="section-label">Prepared For</div>' +
-    '<div class="prepared">' + opts.name + '</div>' +
-    '<div class="prepared-detail">' +
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' +
+    '*{box-sizing:border-box;margin:0;padding:0;}' +
+    'body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#fff;font-size:13px;line-height:1.5;}' +
+    '</style></head><body>' +
+
+    // Black header — pure CSS, no image needed
+    '<table width="100%" cellpadding="0" cellspacing="0" style="background:#000;"><tr><td style="padding:22px 48px;">' +
+    '<div style="color:#fff;font-size:20px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;">Cornerstone Hardscape &amp; Excavation</div>' +
+    '<div style="color:rgba(255,255,255,0.45);font-size:10px;margin-top:5px;letter-spacing:0.3px;">651 Reed Lane, Simpsonville, KY 40067 &nbsp;·&nbsp; 502-396-7887 &nbsp;·&nbsp; isaacmosko@cornerstonehe.net</div>' +
+    '</td></tr></table>' +
+
+    // Body
+    '<div style="padding:24px 48px 40px;">' +
+
+    '<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;border-bottom:1px solid #eee;padding-bottom:16px;"><tr>' +
+    '<td style="font-size:11px;color:#888;">Quote #' + opts.leadId + ' &nbsp;·&nbsp; ' + opts.dateStr + '</td>' +
+    '<td style="text-align:right;font-size:11px;color:#cc4444;font-weight:600;">Valid until ' + opts.offerStr + '</td>' +
+    '</tr></table>' +
+
+    '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin:0 0 8px;">Prepared For</div>' +
+    '<div style="font-size:14px;font-weight:700;margin-bottom:4px;">' + opts.name + '</div>' +
+    '<div style="font-size:12px;color:#444;line-height:1.7;">' +
     (opts.phone   ? opts.phone + '<br>' : '') +
     (opts.email   ? opts.email + '<br>' : '') +
     (opts.address ? opts.address        : '') +
     '</div>' +
-    '<div class="section-label">Services</div>' +
-    '<table><thead><tr><th>Service</th><th class="c">Qty</th><th class="r">Amount</th></tr></thead>' +
-    '<tbody>' + opts.lineRows + subtotalRow + '</tbody></table>' +
-    '<div class="total-wrap"><span class="total-label">Total</span><span class="total-value">$' + opts.total.toLocaleString() + '</span></div>' +
-    (opts.scopeText ? '<div class="section-label">Scope of Work</div><div class="scope-box">' + opts.scopeText + '</div>' : '') +
-    (opts.notes     ? '<div class="section-label">Notes</div><div class="scope-box">' + opts.notes + '</div>'            : '') +
-    '<div class="footer">Thank you for choosing Cornerstone &nbsp;·&nbsp; Questions? Call 502-396-7887</div>' +
+
+    '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin:20px 0 8px;">Services</div>' +
+    '<table width="100%" cellpadding="0" cellspacing="0">' +
+    '<thead><tr>' +
+    '<th style="text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;padding:8px 0;border-bottom:2px solid #000;">Service</th>' +
+    '<th style="text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;padding:8px 0;border-bottom:2px solid #000;">Qty</th>' +
+    '<th style="text-align:right;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#888;padding:8px 0;border-bottom:2px solid #000;">Amount</th>' +
+    '</tr></thead><tbody>' + opts.lineRows + subtotalRow + '</tbody></table>' +
+
+    '<table width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #000;margin-top:10px;padding-top:14px;"><tr>' +
+    '<td style="font-size:15px;font-weight:700;">Total</td>' +
+    '<td style="text-align:right;font-size:26px;font-weight:700;">$' + opts.total.toLocaleString() + '</td>' +
+    '</tr></table>' +
+
+    (opts.scopeText ? '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin:20px 0 8px;">Scope of Work</div>' +
+      '<div style="background:#f9f9f9;border-left:3px solid #000;padding:12px 16px;font-size:12px;color:#444;">' + opts.scopeText + '</div>' : '') +
+    (opts.notes     ? '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin:20px 0 8px;">Notes</div>' +
+      '<div style="background:#f9f9f9;border-left:3px solid #000;padding:12px 16px;font-size:12px;color:#444;">' + opts.notes + '</div>' : '') +
+
+    '<div style="margin-top:36px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#888;text-align:center;">' +
+    'Thank you for choosing Cornerstone &nbsp;·&nbsp; Questions? Call 502-396-7887</div>' +
+
     '</div></body></html>';
 }
 
