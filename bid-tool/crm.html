@@ -1838,6 +1838,8 @@
 
   function qlUpdate(idx, field, val) {
     quoteLines[idx][field] = val;
+    const amt = document.getElementById('ql-amt-' + idx);
+    if (amt) amt.textContent = '$' + Math.round((parseFloat(quoteLines[idx].qty)||1)*(parseFloat(quoteLines[idx].unitPrice)||0)).toLocaleString();
     calcQuoteTotal();
   }
 
@@ -1877,7 +1879,7 @@
               onchange="qlUpdate(${i},'unitPrice',parseFloat(this.value)||0);calcQuoteTotal()"
               placeholder="Price" style="width:80px;${inp}text-align:right;" title="Unit price">
           </div>
-          <span style="color:#22C55E;font-size:12px;font-weight:600;min-width:52px;text-align:right;">
+          <span id="ql-amt-${i}" style="color:#22C55E;font-size:12px;font-weight:600;min-width:52px;text-align:right;">
             $${Math.round((parseFloat(line.qty)||1)*(parseFloat(line.unitPrice)||0)).toLocaleString()}
           </span>
         </div>
@@ -1905,29 +1907,18 @@
 
     document.getElementById('quoteStatus').textContent = 'Sending quote + generating PDF...';
 
-    const params = new URLSearchParams({
-      action:    'sendCustomQuote',
-      callback:  'cb_q_' + Date.now(),
-      id:        quoteLeadId,
-      name:      lead.name  || '',
-      email:     lead.email || '',
-      phone:     lead.phone || '',
-      address:   lead.address || '',
-      lineItems: JSON.stringify(quoteLines),
-      markup:    markup,
-      total:     total,
-      notes:     notes,
-    });
-
     try {
-      const res = await new Promise((resolve, reject) => {
-        const cbName = 'cb_q_' + Date.now();
-        window[cbName] = d => { delete window[cbName]; resolve(d); };
-        const s = document.createElement('script');
-        s.src = getCRMUrl() + '&' + params.toString().replace(/callback=[^&]+/, 'callback=' + cbName);
-        s.onerror = () => reject(new Error('Network error'));
-        document.head.appendChild(s);
-        setTimeout(() => reject(new Error('Timeout — check Apps Script logs')), 30000);
+      const res = await postCRM({
+        action:    'sendCustomQuote',
+        id:        quoteLeadId,
+        name:      lead.name  || '',
+        email:     lead.email || '',
+        phone:     lead.phone || '',
+        address:   lead.address || '',
+        lineItems: JSON.stringify(quoteLines),
+        markup,
+        total,
+        notes,
       });
       if (res.success) {
         document.getElementById('quoteStatus').textContent = 'Quote sent!';
