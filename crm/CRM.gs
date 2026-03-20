@@ -218,33 +218,6 @@ function doGet(e) {
       const firstName = (lead.name || 'there').split(' ')[0];
       const val = lead.estimateTotal ? '$' + Number(lead.estimateTotal).toLocaleString() : '';
 
-      // Email to client — thank you for partnering
-      const clientSubject = 'Thank you for partnering with ' + COMPANY.name.split(' ')[0] + '!';
-      const clientHtml = `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#222;max-width:580px;margin:0 auto;padding:20px;">
-        <table width="100%" bgcolor="#000000" cellpadding="0" cellspacing="0"><tr><td style="padding:0;">
-          <img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="${COMPANY.name}" width="100%" style="display:block;">
-        </td></tr></table>
-        <div style="padding:32px 0 8px;">
-          <p style="font-size:16px;font-weight:700;color:#0F172A;margin:0 0 12px;">Hi ${firstName}, you're all set.</p>
-          <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 16px;">
-            Thank you for choosing ${COMPANY.name}. We're excited to work with you and look forward to delivering an exceptional result.
-          </p>
-          <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 24px;">
-            Your signed quote has been recorded${val?' for '+val:''} and our team will be in touch shortly to confirm your project timeline.
-          </p>
-          <p style="font-size:13px;color:#888;border-top:1px solid #eee;padding-top:16px;margin:0;">
-            ${COMPANY.rep} &nbsp;·&nbsp; ${COMPANY.name}<br>
-            ${COMPANY.phone} &nbsp;·&nbsp; ${COMPANY.email}
-          </p>
-        </div>
-      </body></html>`;
-      try {
-        GmailApp.sendEmail(lead.email, clientSubject,
-          'Hi ' + firstName + ',\n\nThank you for partnering with ' + COMPANY.name + '. We\'re excited to work with you.\n\nYour signed quote has been recorded' + (val ? ' for ' + val : '') + '. We\'ll be in touch to confirm your project timeline.\n\n' + COMPANY.rep + '\n' + COMPANY.name + ' · ' + COMPANY.phone,
-          { htmlBody: clientHtml, name: COMPANY.name, replyTo: COMPANY.email }
-        );
-      } catch(mailErr) {}
-
       // Notification to owner
       notifyOwner(
         'Quote Signed — ' + (lead.name || 'Customer') + (val ? ' (' + val + ')' : ''),
@@ -257,12 +230,39 @@ function doGet(e) {
         '\n\nLog in to the CRM to schedule the job.'
       );
 
-      return htmlPage(`
-        <div class="mark"><svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <h2>You're all set, ${firstName}.</h2>
-        <p>Your quote is signed and approved. We'll reach out shortly to confirm your project timeline. Thank you for choosing ${COMPANY.name.split(' ')[0]}.</p>
-        <p class="co">${COMPANY.name} &middot; ${COMPANY.phone}</p>
-      `);
+      // Landing page IS the confirmation — no email sent to client
+      return HtmlService.createHtmlOutput(`<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>You're all set — ${COMPANY.name.split(' ')[0]}</title>
+</head>
+<body style="margin:0;padding:0;background:#f0f0f0;font-family:Arial,sans-serif;color:#222;">
+  <div style="max-width:680px;margin:0 auto;">
+    <table width="100%" bgcolor="#000000" cellpadding="0" cellspacing="0"><tr><td style="padding:0;">
+      <img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="${COMPANY.name}" width="100%" style="display:block;width:100%;border:0;">
+    </td></tr></table>
+    <div style="background:#fff;padding:40px 36px;">
+      <p style="font-size:22px;font-weight:700;color:#0F172A;margin:0 0 14px;">Hi ${firstName}, you're all set.</p>
+      <p style="font-size:14px;color:#444;line-height:1.8;margin:0 0 14px;">
+        Thank you for partnering with <strong>${COMPANY.name}</strong>. We're excited to work with you and look forward to delivering an exceptional result.
+      </p>
+      <p style="font-size:14px;color:#444;line-height:1.8;margin:0 0 28px;">
+        Your signed quote${val ? ' for <strong>' + val + '</strong>' : ''} has been recorded and our team will be in touch shortly to confirm your project timeline.
+      </p>
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:18px 20px;margin-bottom:28px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94A3B8;margin-bottom:10px;">Signature Confirmation</div>
+        <div style="font-size:14px;color:#0F172A;font-weight:600;margin-bottom:4px;">${sigName}</div>
+        <div style="font-size:12px;color:#64748B;">Signed on ${nowStr}</div>
+      </div>
+      <p style="font-size:13px;color:#888;border-top:1px solid #eee;padding-top:20px;margin:0;">
+        ${COMPANY.rep} &nbsp;·&nbsp; ${COMPANY.name}<br>
+        ${COMPANY.phone} &nbsp;·&nbsp; <a href="mailto:${COMPANY.email}" style="color:#888;">${COMPANY.email}</a>
+      </p>
+    </div>
+    <div style="background:#000;padding:14px 36px;font-size:11px;color:rgba(255,255,255,0.35);text-align:center;">
+      Thank you for choosing ${COMPANY.name}. We appreciate your business.
+    </div>
+  </div>
+</body></html>`);
     }
 
     // Customer-facing approval links (return HTML pages — no JSONP needed)
@@ -701,7 +701,7 @@ function sendQuoteEmail(data) {
   <div class="actions">
     <p>Please review your quote and let us know how you'd like to proceed.</p>
     <div class="btn-row">
-      <a class="btn btn-approve" href="${approveUrl}">Approve &amp; Sign</a>
+      <a class="btn btn-approve" href="${approveUrl}" style="color:#ffffff !important;">Approve &amp; Sign</a>
       <a class="btn btn-decline" href="${declineUrl}">Decline</a>
     </div>
     <a class="btn-finance" href="${financeUrl}">Interested in financing options?</a>
