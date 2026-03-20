@@ -1079,6 +1079,72 @@
 
     .login-screen.open { display: flex; }
 
+    /* ── Table checkboxes + actions ── */
+    .tbl-check-col { width: 36px; padding: 0 0 0 14px !important; }
+    .tbl-check { width: 15px; height: 15px; cursor: pointer; accent-color: #0A0A0A; }
+    .tbl-actions { display: flex; gap: 5px; align-items: center; }
+    .tbl-action-btn {
+      padding: 4px 9px;
+      border-radius: 6px;
+      border: 1px solid #E2E8F0;
+      background: #F8FAFC;
+      color: #374151;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: inherit;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .tbl-action-btn:hover { background: #F1F5F9; border-color: #CBD5E1; }
+
+    /* ── Delete selected bar ── */
+    .delete-bar {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #991B1B;
+      font-weight: 500;
+    }
+    .delete-bar.visible { display: flex; }
+    .delete-bar-btn {
+      padding: 5px 12px;
+      background: #DC2626;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .delete-bar-cancel {
+      padding: 5px 10px;
+      background: none;
+      border: none;
+      color: #6B7280;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* ── Table stage filter ── */
+    .table-filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
     /* ── Mobile ── */
     @media (max-width: 768px) {
       .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
@@ -1406,6 +1472,8 @@
   let currentView = 'table';
   let hideLost = localStorage.getItem('crm_hidelost') === '1';
   let listStageFilter = '';
+  let tableStageFilter = '';
+  let selectedLeadIds = new Set();
 
   // ── Setup ──────────────────────────────────────────────────────
   function getCRMUrl() { return localStorage.getItem('crm_url') || ''; }
@@ -1591,11 +1659,24 @@
   // ── Table view ─────────────────────────────────────────────────
   function renderTable(leads) {
     const board = document.getElementById('boardWrap');
-    if (!leads.length) {
-      board.innerHTML = `<div style="background:#fff;border-radius:12px;padding:60px;text-align:center;color:#9CA3AF;font-size:14px;">No leads yet. Click "+ New Lead" to get started.</div>`;
+    selectedLeadIds = new Set();
+
+    const allStages = STAGES;
+    const filterPills = `
+      <div class="table-filters">
+        <button class="lf-pill${tableStageFilter===''?' active':''}" onclick="setTableFilter('')">All</button>
+        ${allStages.map(s=>`<button class="lf-pill${tableStageFilter===s?' active':''}" onclick="setTableFilter('${s}')">${s}</button>`).join('')}
+      </div>`;
+
+    const filtered = tableStageFilter ? leads.filter(l => l.stage === tableStageFilter) : leads;
+
+    if (!filtered.length) {
+      board.innerHTML = filterPills + `<div style="background:#fff;border-radius:12px;padding:60px;text-align:center;color:#9CA3AF;font-size:14px;">No leads found.</div>`;
       return;
     }
-    const sorted = [...leads].sort((a,b) => new Date(b.lastTouch||0) - new Date(a.lastTouch||0));
+
+    const crmUrl = getCRMUrl();
+    const sorted = [...filtered].sort((a,b) => new Date(b.lastTouch||0) - new Date(a.lastTouch||0));
     const rows = sorted.map(lead => {
       const color = leadColor(lead);
       const stageCls = STAGE_BADGE_CLASS[lead.stage] || 'badge-lost';
@@ -1605,7 +1686,18 @@
         const diff = Math.floor((Date.now() - new Date(lead.lastTouch).getTime()) / 86400000);
         daysAgo = diff === 0 ? 'Today' : diff + 'd ago';
       }
-      return `<tr onclick="openPanel('${esc(lead.id)}')" style="border-left:3px solid ${color};">
+      const hasQuote = lead.lastQuoteJson || ['Quote Sent','Follow-Up','Won','Lost'].includes(lead.stage);
+      const quoteBtn = hasQuote && crmUrl
+        ? `<a class="tbl-action-btn" href="${crmUrl}?action=viewQuote&leadId=${esc(lead.id)}" target="_blank" onclick="event.stopPropagation()">Quote</a>`
+        : '';
+      const invoiceBtn = lead.estimateTotal && crmUrl
+        ? `<a class="tbl-action-btn" href="${crmUrl}?action=viewInvoice&leadId=${esc(lead.id)}" target="_blank" onclick="event.stopPropagation()">Invoice</a>`
+        : '';
+
+      return `<tr onclick="openPanel('${esc(lead.id)}')" style="border-left:3px solid ${color};" data-id="${esc(lead.id)}">
+        <td class="tbl-check-col" onclick="event.stopPropagation()">
+          <input type="checkbox" class="tbl-check" onchange="toggleLeadSelect('${esc(lead.id)}', this.checked)">
+        </td>
         <td><span class="tbl-name">${esc(lead.name||'Unnamed')}</span></td>
         <td><span class="badge ${stageCls}">${esc(lead.stage)}</span></td>
         <td class="tbl-muted">${esc(lead.phone||'—')}</td>
@@ -1613,21 +1705,79 @@
         <td class="${lead.estimateTotal ? 'tbl-value' : 'tbl-muted'}">${esc(value)}</td>
         <td class="tbl-hide-mobile tbl-muted">${esc(lead.source||'—')}</td>
         <td class="tbl-muted">${esc(daysAgo)}</td>
+        <td onclick="event.stopPropagation()"><div class="tbl-actions">${quoteBtn}${invoiceBtn}</div></td>
       </tr>`;
     }).join('');
-    board.innerHTML = `
+
+    board.innerHTML = filterPills + `
+      <div class="delete-bar" id="deleteBar">
+        <span id="deleteBarCount"></span>
+        <button class="delete-bar-btn" onclick="deleteSelectedLeads()">Delete Selected</button>
+        <button class="delete-bar-cancel" onclick="clearSelection()">Cancel</button>
+      </div>
       <div class="leads-table-wrap">
         <table class="leads-table">
           <thead><tr>
+            <th class="tbl-check-col"><input type="checkbox" class="tbl-check" onchange="toggleSelectAll(this.checked)"></th>
             <th>Name</th><th>Stage</th><th>Phone</th>
             <th class="tbl-hide-mobile">Address</th>
             <th>Value</th>
             <th class="tbl-hide-mobile">Source</th>
             <th>Last Touch</th>
+            <th></th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>`;
+  }
+
+  function setTableFilter(stage) {
+    tableStageFilter = stage;
+    renderBoard(getFilteredLeads());
+  }
+
+  function toggleLeadSelect(id, checked) {
+    if (checked) selectedLeadIds.add(id);
+    else selectedLeadIds.delete(id);
+    updateDeleteBar();
+  }
+
+  function toggleSelectAll(checked) {
+    document.querySelectorAll('.tbl-check:not([onchange*="toggleSelectAll"])').forEach(cb => {
+      cb.checked = checked;
+      const id = cb.closest('tr') ? cb.closest('tr').dataset.id : null;
+      if (id) { if (checked) selectedLeadIds.add(id); else selectedLeadIds.delete(id); }
+    });
+    updateDeleteBar();
+  }
+
+  function updateDeleteBar() {
+    const bar = document.getElementById('deleteBar');
+    const count = document.getElementById('deleteBarCount');
+    if (!bar) return;
+    if (selectedLeadIds.size > 0) {
+      bar.classList.add('visible');
+      count.textContent = selectedLeadIds.size + ' lead' + (selectedLeadIds.size > 1 ? 's' : '') + ' selected';
+    } else {
+      bar.classList.remove('visible');
+    }
+  }
+
+  function clearSelection() {
+    selectedLeadIds = new Set();
+    document.querySelectorAll('.tbl-check').forEach(cb => cb.checked = false);
+    updateDeleteBar();
+  }
+
+  async function deleteSelectedLeads() {
+    if (!selectedLeadIds.size) return;
+    if (!confirm(`Delete ${selectedLeadIds.size} lead${selectedLeadIds.size>1?'s':''}? This cannot be undone.`)) return;
+    const ids = [...selectedLeadIds];
+    for (const id of ids) {
+      await postCRM({ action: 'deleteLead', id });
+    }
+    selectedLeadIds = new Set();
+    loadLeads();
   }
 
   // ── Monthly pipeline summary ────────────────────────────────────

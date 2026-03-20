@@ -119,6 +119,88 @@ function doGet(e) {
       return HtmlService.createHtmlOutput(html);
     }
 
+    // ── Invoice page ──────────────────────────────────────────────
+    if (action === 'viewInvoice') {
+      const lead = getLead(e.parameter.leadId).lead;
+      if (!lead) return htmlPage('<h2>Invoice not found.</h2>');
+      const todayStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
+      const dueDate  = new Date(); dueDate.setDate(dueDate.getDate() + 30);
+      const dueDateStr = Utilities.formatDate(dueDate, Session.getScriptTimeZone(), 'MM/dd/yyyy');
+      const total = Math.round(parseFloat(lead.estimateTotal) || parseFloat(lead.dealValue) || 0);
+      let lineRowsHtml = '';
+      if (lead.lastQuoteJson) {
+        try {
+          const q = JSON.parse(lead.lastQuoteJson);
+          if (q.type === 'custom' && q.lineItems) {
+            lineRowsHtml = q.lineItems.map(function(item) {
+              const lt = Math.round((parseFloat(item.qty)||1)*(parseFloat(item.unitPrice)||0));
+              return '<tr><td style="padding:12px 0;border-bottom:1px solid #f5f5f5;font-size:14px;">' + item.service +
+                (item.description ? '<br><span style="font-size:12px;color:#888;">' + item.description + '</span>' : '') +
+                '</td><td style="padding:12px 0;border-bottom:1px solid #f5f5f5;text-align:right;font-weight:700;font-size:14px;">$' + lt.toLocaleString() + '</td></tr>';
+            }).join('');
+          }
+        } catch(err) {}
+      }
+      if (!lineRowsHtml) {
+        const dl = {light:'Light',medium:'Medium',dense:'Dense'}[lead.density]||lead.density||'';
+        const svcName = 'Forestry Mulching' + (dl ? ' — ' + dl + ' Density' : '');
+        lineRowsHtml = '<tr><td style="padding:12px 0;font-size:14px;">' + svcName +
+          (lead.acreage ? '<br><span style="font-size:12px;color:#888;">' + lead.acreage + ' acres</span>' : '') +
+          '</td><td style="padding:12px 0;text-align:right;font-weight:700;font-size:14px;">$' + total.toLocaleString() + '</td></tr>';
+      }
+      const invoiceHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Invoice — ${lead.name || 'Customer'}</title>
+<style>*{box-sizing:border-box;}body{margin:0;padding:20px;background:#f0f0f0;font-family:Arial,sans-serif;color:#222;}
+.page{max-width:680px;margin:0 auto;background:#fff;border-radius:4px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.1);}
+.bill{display:flex;justify-content:space-between;padding:24px 36px;border-bottom:1px solid #eee;gap:20px;}
+.bill-col h4{margin:0 0 6px;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#aaa;}
+.bill-col p{margin:2px 0;font-size:13px;color:#444;}
+.bill-col strong{color:#1a1a1a;font-size:14px;}
+.section{padding:20px 36px;border-bottom:1px solid #eee;}
+.section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#aaa;margin-bottom:10px;}
+.total-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:#888;}
+.total-row.grand{font-size:18px;font-weight:800;color:#1a1a1a;border-top:2px solid #1a1a1a;margin-top:8px;padding-top:14px;}
+.pay{padding:20px 36px;background:#F8FAFC;border-bottom:1px solid #eee;}
+.pay h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#aaa;margin:0 0 8px;}
+.pay p{font-size:13px;color:#444;margin:3px 0;line-height:1.6;}
+.footer{background:#000;padding:14px 36px;font-size:11px;color:rgba(255,255,255,0.4);text-align:center;}
+</style></head><body><div class="page">
+<table width="100%" bgcolor="#000000" cellpadding="0" cellspacing="0"><tr><td style="padding:0;">
+  <img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="${COMPANY.name}" width="100%" style="display:block;width:100%;border:0;">
+</td></tr></table>
+<div style="padding:14px 36px 0;font-size:12px;color:#aaa;">
+  Invoice <strong style="color:#333;">${lead.id}</strong> &nbsp;·&nbsp; ${todayStr}
+  &nbsp;&nbsp;<span style="color:#DC2626;font-weight:700;">Due: ${dueDateStr}</span>
+</div>
+<div class="bill">
+  <div class="bill-col">
+    <h4>Bill To</h4>
+    <strong>${lead.name || 'Customer'}</strong>
+    <p>${lead.phone || ''}</p><p>${lead.email || ''}</p><p>${lead.address || ''}</p>
+  </div>
+  <div class="bill-col" style="text-align:right">
+    <h4>From</h4>
+    <strong>${COMPANY.rep}</strong>
+    <p>${COMPANY.name}</p><p>${COMPANY.address}</p><p>${COMPANY.phone}</p><p>${COMPANY.email}</p>
+  </div>
+</div>
+<div class="section">
+  <div class="section-title">Services</div>
+  <table width="100%" cellpadding="0" cellspacing="0">${lineRowsHtml}</table>
+  <div style="padding-top:14px;">
+    <div class="total-row grand"><span>Total Due</span><span>$${total.toLocaleString()}</span></div>
+  </div>
+</div>
+<div class="pay">
+  <h4>Payment Instructions</h4>
+  <p>Please make payment by <strong>${dueDateStr}</strong>.</p>
+  <p>Contact us at <strong>${COMPANY.phone}</strong> or <strong>${COMPANY.email}</strong> with any questions.</p>
+</div>
+<div class="footer">Thank you for your business — ${COMPANY.name}</div>
+</div></body></html>`;
+      return HtmlService.createHtmlOutput(invoiceHtml);
+    }
+
     // ── Sign & Approve page ───────────────────────────────────────
     if (action === 'signQuote') {
       const id   = e.parameter.leadId;
