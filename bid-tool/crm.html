@@ -1494,6 +1494,7 @@
   let hideLost = localStorage.getItem('crm_hidelost') === '1';
   let listStageFilter = '';
   let tableStageFilters = new Set();
+  let tableActivityFilters = new Set(); // 'quoteSent', 'invoiceSent'
   let selectedLeadIds = new Set();
 
   // ── Setup ──────────────────────────────────────────────────────
@@ -1622,6 +1623,16 @@
       (String(l.phone || '')).toLowerCase().includes(searchQuery)
     );
     if (hideLost) leads = leads.filter(l => l.stage !== 'Lost');
+    const hasStage    = tableStageFilters.size > 0;
+    const hasActivity = tableActivityFilters.size > 0;
+    if (hasStage || hasActivity) {
+      leads = leads.filter(lead => {
+        if (hasStage    && tableStageFilters.has(lead.stage)) return true;
+        if (hasActivity && tableActivityFilters.has('quoteSent')   && (lead.lastQuoteJson || ['Quote Sent','Follow-Up','Won','Lost'].includes(lead.stage))) return true;
+        if (hasActivity && tableActivityFilters.has('invoiceSent') && lead.notes && lead.notes.includes('Invoice emailed')) return true;
+        return false;
+      });
+    }
     return leads;
   }
 
@@ -1700,7 +1711,7 @@
     const board = document.getElementById('boardWrap');
     selectedLeadIds = new Set();
 
-    const filtered = tableStageFilters.size > 0 ? leads.filter(l => tableStageFilters.has(l.stage)) : leads;
+    const filtered = leads; // already filtered by getFilteredLeads()
 
     if (!filtered.length) {
       board.innerHTML = `<div style="background:#fff;border-radius:12px;padding:60px;text-align:center;color:#9CA3AF;font-size:14px;">No leads found.</div>`;
@@ -1765,15 +1776,24 @@
     if (!panel) return;
     const isVisible = panel.style.display !== 'none';
     if (isVisible) { panel.style.display = 'none'; return; }
-    // Build panel content
+    const activityOpts = [
+      { key: 'quoteSent',   label: 'Quote Sent' },
+      { key: 'invoiceSent', label: 'Invoice Sent' },
+    ];
     panel.innerHTML = `
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9CA3AF;margin-bottom:10px;">Filter by Stage</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9CA3AF;margin-bottom:8px;">Stage</div>
       ${STAGES.map(s => `
-        <label style="display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;font-size:13px;color:#374151;">
+        <label style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;font-size:13px;color:#374151;">
           <input type="checkbox" value="${s}" ${tableStageFilters.has(s)?'checked':''} onchange="toggleStageFilter('${s}')" style="width:14px;height:14px;cursor:pointer;accent-color:#0A0A0A;">
           ${s}
         </label>`).join('')}
-      <button onclick="clearStageFilters()" style="margin-top:10px;width:100%;padding:6px;background:none;border:1px solid #E5E7EB;border-radius:6px;font-size:12px;font-weight:600;color:#6B7280;cursor:pointer;font-family:inherit;">Clear All</button>`;
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9CA3AF;margin:12px 0 8px;">Activity</div>
+      ${activityOpts.map(a => `
+        <label style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer;font-size:13px;color:#374151;">
+          <input type="checkbox" value="${a.key}" ${tableActivityFilters.has(a.key)?'checked':''} onchange="toggleActivityFilter('${a.key}')" style="width:14px;height:14px;cursor:pointer;accent-color:#0A0A0A;">
+          ${a.label}
+        </label>`).join('')}
+      <button onclick="clearAllFilters()" style="margin-top:12px;width:100%;padding:6px;background:none;border:1px solid #E5E7EB;border-radius:6px;font-size:12px;font-weight:600;color:#6B7280;cursor:pointer;font-family:inherit;">Clear All</button>`;
     panel.style.display = 'block';
   }
 
@@ -1781,22 +1801,34 @@
     if (tableStageFilters.has(stage)) tableStageFilters.delete(stage);
     else tableStageFilters.add(stage);
     updateFilterBadge();
-    renderBoard(getFilteredLeads());
+    renderAll();
   }
 
-  function clearStageFilters() {
+  function toggleActivityFilter(key) {
+    if (tableActivityFilters.has(key)) tableActivityFilters.delete(key);
+    else tableActivityFilters.add(key);
+    updateFilterBadge();
+    renderAll();
+  }
+
+  function clearAllFilters() {
     tableStageFilters.clear();
+    tableActivityFilters.clear();
     updateFilterBadge();
     document.getElementById('filterPanel').style.display = 'none';
-    renderBoard(getFilteredLeads());
+    renderAll();
   }
 
+  // keep old name as alias for clearStageFilters calls elsewhere
+  function clearStageFilters() { clearAllFilters(); }
+
   function updateFilterBadge() {
+    const total = tableStageFilters.size + tableActivityFilters.size;
     const badge = document.getElementById('filterBadge');
     if (!badge) return;
-    if (tableStageFilters.size > 0) {
+    if (total > 0) {
       badge.style.display = 'inline-block';
-      badge.textContent = tableStageFilters.size;
+      badge.textContent = total;
     } else {
       badge.style.display = 'none';
     }
