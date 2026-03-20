@@ -196,10 +196,10 @@ function doGet(e) {
   <p>Payment is due by <strong>${dueDateStr}</strong>. Please choose a payment method below.</p>
 </div>
 <div style="padding:24px 36px;border-bottom:1px solid #eee;">
-  <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#aaa;margin-bottom:16px;">Pay Now</div>
+  <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#aaa;margin-bottom:16px;">How are you paying?</div>
   <div style="display:flex;gap:12px;flex-wrap:wrap;">
     <a href="${ScriptApp.getService().getUrl()}?action=markPaid&leadId=${lead.id}&method=cash" style="display:inline-block;padding:13px 24px;background:#0A0A0A;color:#fff;border-radius:8px;text-decoration:none;font-size:14px;font-weight:700;font-family:Arial,sans-serif;">
-      ✓ &nbsp;Mark Paid — Cash / Check
+      I'll be paying with cash / check
     </a>
   </div>
   <p style="font-size:12px;color:#aaa;margin-top:16px;">Questions? Call <strong style="color:#444;">${COMPANY.phone}</strong> or email <a href="mailto:${COMPANY.email}" style="color:#444;">${COMPANY.email}</a></p>
@@ -439,9 +439,9 @@ function doGet(e) {
         const lead = getLead(id).lead;
         const name = lead ? (lead.name || 'Customer') : 'Customer';
         const val  = lead ? (lead.estimateTotal ? '$' + Number(lead.estimateTotal).toLocaleString() : '') : '';
-        addNote({ id, note: 'Invoice marked as paid — ' + method + ' — ' + nowStr });
+        addNote({ id, note: 'Customer will pay by cash/check — ' + nowStr });
         notifyOwner(
-          'Invoice Paid — ' + name + (val ? ' (' + val + ')' : ''),
+          'Cash/Check Payment Incoming — ' + name + (val ? ' (' + val + ')' : ''),
           name + ' marked their invoice as paid.\nMethod: ' + method +
           (val ? '\nAmount: ' + val : '') +
           '\nLead ID: ' + id +
@@ -450,8 +450,8 @@ function doGet(e) {
       }
       return htmlPage(`
         <div class="mark"><svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <h2>Payment Recorded</h2>
-        <p>Thank you! Your payment has been noted and we've been notified. We appreciate your business.</p>
+        <h2>Got it — we'll see you soon.</h2>
+        <p>Thanks for letting us know. We've been notified that you'll be paying by cash or check. We'll follow up shortly.</p>
         <p class="co">${COMPANY.name} &middot; ${COMPANY.phone}</p>
       `);
     }
