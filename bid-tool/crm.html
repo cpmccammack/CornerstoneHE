@@ -1259,6 +1259,7 @@
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
       <button onclick="openEditLead()" style="background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.12);border-radius:6px;color:#6B7280;font-size:12px;padding:4px 10px;cursor:pointer;">Edit</button>
+      <button onclick="confirmDeleteLead()" title="Delete lead" style="background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.12);border-radius:6px;color:#EF4444;padding:4px 8px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
       <button class="panel-close" onclick="closePanel()">×</button>
     </div>
   </div>
@@ -1282,8 +1283,7 @@
     <div class="modal-status" id="editLeadStatus"></div>
     <div class="modal-footer">
       <button class="modal-btn cancel" onclick="closeEditLead()">Cancel</button>
-      <button class="modal-btn cancel" onclick="confirmDeleteLead()" style="background:#7f1d1d;border-color:#7f1d1d;color:#fca5a5;">Delete Lead</button>
-      <button class="modal-btn submit" onclick="submitEditLead()">Save</button>
+<button class="modal-btn submit" onclick="submitEditLead()">Save</button>
     </div>
   </div>
 </div>
