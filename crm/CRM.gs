@@ -450,8 +450,8 @@ function doGet(e) {
       }
       return htmlPage(`
         <div class="mark"><svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <h2>Got it — we'll see you soon.</h2>
-        <p>Thanks for letting us know. We've been notified that you'll be paying by cash or check. We'll follow up shortly.</p>
+        <h2>Thanks — we'll be in touch shortly.</h2>
+        <p>We've been notified and will reach out to coordinate payment. We appreciate your business.</p>
         <p class="co">${COMPANY.name} &middot; ${COMPANY.phone}</p>
       `);
     }
@@ -467,6 +467,7 @@ function doGet(e) {
     if (action === 'sendJobConfirmation')  return corsResponse(sendJobConfirmation(data), cb);
     if (action === 'sendCustomQuote')      return corsResponse(sendCustomQuote(data), cb);
     if (action === 'deleteLead')           return corsResponse(deleteLead(data), cb);
+    if (action === 'sendInvoice')          return corsResponse(sendInvoice(data), cb);
 
     return corsResponse({ error: 'Unknown action' }, cb);
   } catch (err) {
@@ -1330,6 +1331,54 @@ function createCustomQuotePDF(data, lineItems, markup, total) {
   } catch(e) {
     return null;
   }
+}
+
+/// ── Send Invoice Email ────────────────────────────────────────
+function sendInvoice(data) {
+  const lead = getLead(data.id).lead;
+  if (!lead) return { error: 'Lead not found' };
+  if (!lead.email) return { error: 'No email address on this lead' };
+
+  const scriptUrl = ScriptApp.getService().getUrl();
+  const invoiceUrl = scriptUrl + '?action=viewInvoice&leadId=' + lead.id;
+  const total = Math.round(parseFloat(lead.estimateTotal) || parseFloat(lead.dealValue) || 0);
+  const firstName = (lead.name || 'there').split(' ')[0];
+  const dueDate = new Date(); dueDate.setDate(dueDate.getDate() + 30);
+  const dueDateStr = Utilities.formatDate(dueDate, Session.getScriptTimeZone(), 'MMMM d, yyyy');
+
+  const htmlBody = `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:20px;background:#f0f0f0;font-family:Arial,sans-serif;color:#222;">
+<div style="max-width:680px;margin:0 auto;">
+  <table width="100%" bgcolor="#000000" cellpadding="0" cellspacing="0"><tr><td style="padding:0;">
+    <img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="${COMPANY.name}" width="100%" style="display:block;width:100%;border:0;">
+  </td></tr></table>
+  <div style="background:#fff;padding:32px 36px;border-bottom:1px solid #eee;">
+    <p style="font-size:18px;font-weight:700;color:#0F172A;margin:0 0 8px;">Hi ${firstName}, your invoice is ready.</p>
+    <p style="font-size:13px;color:#64748B;margin:0 0 24px;line-height:1.7;">Please review your invoice and let us know if you have any questions.</p>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:24px;">
+      ${lead.address ? '<tr><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;color:#888;width:120px;">Address</td><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;">' + lead.address + '</td></tr>' : ''}
+      ${total ? '<tr><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;color:#888;">Amount Due</td><td style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-weight:700;font-size:16px;">$' + total.toLocaleString() + '</td></tr>' : ''}
+      <tr><td style="padding:8px 0;color:#888;">Due Date</td><td style="padding:8px 0;font-weight:600;color:#DC2626;">${dueDateStr}</td></tr>
+    </table>
+    <a href="${invoiceUrl}" style="display:inline-block;padding:13px 28px;background:#0A0A0A;color:#fff;border-radius:8px;text-decoration:none;font-size:14px;font-weight:700;font-family:Arial,sans-serif;">View Invoice</a>
+  </div>
+  <div style="background:#fff;padding:16px 36px;border-top:1px solid #eee;">
+    <p style="font-size:13px;color:#888;margin:0;">${COMPANY.rep} &nbsp;·&nbsp; ${COMPANY.name} &nbsp;·&nbsp; ${COMPANY.phone}</p>
+  </div>
+  <div style="background:#000;padding:12px 36px;font-size:11px;color:rgba(255,255,255,0.35);text-align:center;">
+    Thank you for your business — ${COMPANY.name}
+  </div>
+</div></body></html>`;
+
+  GmailApp.sendEmail(
+    lead.email,
+    'Invoice from ' + COMPANY.name + (total ? ' — $' + total.toLocaleString() : ''),
+    'Hi ' + firstName + ',\n\nYour invoice is ready. View it here:\n' + invoiceUrl + '\n\nDue: ' + dueDateStr + '\n\n' + COMPANY.rep + '\n' + COMPANY.name + '\n' + COMPANY.phone,
+    { name: COMPANY.name, replyTo: COMPANY.email, htmlBody: htmlBody }
+  );
+
+  addNote({ id: data.id, note: 'Invoice emailed to ' + lead.email });
+  return { success: true };
 }
 
 // ── Auth triggers: run once each to grant permissions ────────

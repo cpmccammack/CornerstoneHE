@@ -2297,6 +2297,7 @@
 
       <div class="panel-label">Actions</div>
       <button class="panel-btn green" onclick="openQuoteModal('${esc(lead.id)}')">Create & Send Quote</button>
+      ${(lead.estimateTotal || lead.dealValue) && lead.email ? `<button class="panel-btn outline" onclick="sendInvoiceEmail('${esc(lead.id)}')">Send Invoice</button>` : ''}
       <button class="panel-btn outline" onclick="panelSendFollowUp()">Send Follow-Up</button>
       <button class="panel-btn outline" onclick="openSchedule('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0}, '${esc(lead.mapImageUrl || '')}')">Schedule Job</button>
       <button class="panel-btn outline" onclick="openConfirm('${esc(lead.id)}', '${esc(lead.name)}', '${esc(lead.email)}', '${esc(lead.phone)}', '${esc(lead.address)}', ${lead.estimateTotal || 0})">Send Confirmation</button>
@@ -2476,6 +2477,24 @@
       const r = await postCRM({ action: 'addNote', id, note });
       if (r.success && ta) ta.value = '';
     } catch (e) { /* silent */ }
+  }
+
+  // ── Send invoice email ──────────────────────────────────────────
+  async function sendInvoiceEmail(leadId) {
+    setPanelStatus('Sending invoice…', false);
+    try {
+      const r = await postCRM({ action: 'sendInvoice', id: leadId });
+      if (r.success) {
+        setPanelStatus('Invoice sent!', false);
+        await loadLeads();
+        const updated = allLeads.find(l => String(l.id) === String(leadId));
+        if (updated) renderPanel(updated);
+      } else {
+        setPanelStatus(r.error || 'Error sending invoice', true);
+      }
+    } catch(e) {
+      setPanelStatus('Network error', true);
+    }
   }
 
   // ── Panel follow-up ────────────────────────────────────────────
