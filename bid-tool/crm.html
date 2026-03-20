@@ -1992,6 +1992,15 @@
 
       ${detailBoxHtml ? `<div class="panel-label">Details</div>${detailBoxHtml}` : ''}
 
+      ${lead.lastQuoteJson || ['Quote Sent','Follow-Up','Won','Lost'].includes(lead.stage) ? `
+        <div class="panel-label">Quote</div>
+        <a href="${getCRMUrl()}?action=viewQuote&leadId=${esc(lead.id)}" target="_blank" rel="noopener"
+           style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;text-decoration:none;color:#0F172A;font-size:13px;font-weight:500;transition:background 0.15s;margin-bottom:4px;">
+          <span>View Sent Quote</span>
+          <svg width="14" height="14" fill="none" stroke="#94A3B8" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+      ` : ''}
+
       <div class="panel-label">Change Stage</div>
       <div class="stage-pills" id="panelStagePills">${stagePillsHtml}</div>
 
