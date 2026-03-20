@@ -163,6 +163,7 @@ function doGet(e) {
     if (action === 'scheduleJob')          return corsResponse(scheduleJob(data), cb);
     if (action === 'sendJobConfirmation')  return corsResponse(sendJobConfirmation(data), cb);
     if (action === 'sendCustomQuote')      return corsResponse(sendCustomQuote(data), cb);
+    if (action === 'deleteLead')           return corsResponse(deleteLead(data), cb);
 
     return corsResponse({ error: 'Unknown action' }, cb);
   } catch (err) {
@@ -298,12 +299,15 @@ function updateLead(data) {
   if (rowIndex === -1) return { error: 'Lead not found' };
   const sheetRow = rowIndex + 2;
 
-  if (data.stage)     s.getRange(sheetRow, COLS.stage).setValue(data.stage);
-  if (data.notes)     s.getRange(sheetRow, COLS.notes).setValue(data.notes);
-  if (data.name)      s.getRange(sheetRow, COLS.name).setValue(data.name);
-  if (data.phone)     s.getRange(sheetRow, COLS.phone).setValue(data.phone);
-  if (data.email)     s.getRange(sheetRow, COLS.email).setValue(data.email);
-  if (data.dealValue) s.getRange(sheetRow, COLS.dealValue).setValue(data.dealValue);
+  if (data.stage)         s.getRange(sheetRow, COLS.stage).setValue(data.stage);
+  if (data.notes)         s.getRange(sheetRow, COLS.notes).setValue(data.notes);
+  if (data.name)          s.getRange(sheetRow, COLS.name).setValue(data.name);
+  if (data.phone)         s.getRange(sheetRow, COLS.phone).setValue(data.phone);
+  if (data.email)         s.getRange(sheetRow, COLS.email).setValue(data.email);
+  if (data.address)       s.getRange(sheetRow, COLS.address).setValue(data.address);
+  if (data.dealValue)     s.getRange(sheetRow, COLS.dealValue).setValue(data.dealValue);
+  if (data.estimateTotal) s.getRange(sheetRow, COLS.estimateTotal).setValue(data.estimateTotal);
+  if (data.archived)      s.getRange(sheetRow, COLS.stage).setValue('Archived');
 
   if (data.stage) {
     s.getRange(sheetRow, COLS.lastTouch).setValue(new Date());
@@ -313,6 +317,16 @@ function updateLead(data) {
     s.getRange(sheetRow, COLS.nextAction).setValue(nextDate);
   }
 
+  return { success: true };
+}
+
+function deleteLead(data) {
+  const s = getSheet();
+  if (s.getLastRow() < 2) return { error: 'No leads found' };
+  const rows = s.getRange(2, 1, s.getLastRow() - 1, 1).getValues();
+  const rowIndex = rows.findIndex(r => r[0] === data.id);
+  if (rowIndex === -1) return { error: 'Lead not found' };
+  s.deleteRow(rowIndex + 2);
   return { success: true };
 }
 
@@ -962,9 +976,9 @@ function sendCustomQuote(data) {
   const subject   = 'Your Quote from Cornerstone' + (data.address ? ' — ' + data.address : '');
   const plainText = 'Hi ' + firstName + ',\n\nPlease see your quote below.\n\nTotal: $' + total.toLocaleString() + '\nOffer valid until: ' + offerStr + '\n\n' + COMPANY.rep + '\n' + COMPANY.name + ' · ' + COMPANY.phone;
 
-  const pdfResult = createCustomQuotePDF(data, lineItems, markup, total);
+  // Save to Drive for record-keeping but do NOT attach — quote is inline in email body
+  createCustomQuotePDF(data, lineItems, markup, total);
   const emailOpts = { name: COMPANY.name, replyTo: COMPANY.email, htmlBody: htmlBody };
-  if (pdfResult) emailOpts.attachments = [pdfResult.blob];
 
   GmailApp.sendEmail(data.email, subject, plainText, emailOpts);
 
