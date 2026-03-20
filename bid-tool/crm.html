@@ -2313,7 +2313,7 @@
     const lead = allLeads.find(l => String(l.id) === String(leadId));
     if (lead) {
       lead.stage = newStage;
-      renderBoard(getFilteredLeads());
+      renderAll();
       // Update panel stage badge + pills
       const stageCls = STAGE_BADGE_CLASS[newStage] || 'badge-lost';
       document.getElementById('panelStageBadge').innerHTML =
