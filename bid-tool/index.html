@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cornerstone Bid</title>
+  <title>Bid Tool</title>
+  <script src="config.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -603,7 +604,7 @@
       <polygon points="3 11 22 2 13 21 11 13 3 11"/>
     </svg>
   </div>
-  <h2>Cornerstone Bid Tool</h2>
+  <h2 id="apiScreenTitle">Bid Tool</h2>
   <p>Enter your Google Maps API key.<br>You only need to do this once.</p>
   <input class="api-input" id="apiKeyInput" type="text" placeholder="Paste API key here…">
   <button class="api-go" onclick="saveApiKey()">Continue</button>
@@ -615,7 +616,7 @@
 <!-- Top bar -->
 <div class="top-bar">
   <div class="top-bar-row">
-    <h1>Cornerstone <span>Bid</span></h1>
+    <h1 id="topBarTitle">Bid</h1>
     <button class="glass-btn" id="drawBtn" onclick="startDrawing()">Draw</button>
     <button class="glass-btn" onclick="clearDrawing()">Clear</button>
     <a class="glass-btn crm-link" href="crm.html">CRM</a>
@@ -681,8 +682,28 @@
   // Paste your deployed Apps Script URL here after deploying CRM.gs
   const CRM_URL = localStorage.getItem('crm_url') || '';
 
-  const DAY_RATE = 3500;
-  const PROD_DAY = { light: 2, medium: 1, dense: 0.5 };
+  // ── Pull from config if available ─────────────────────────────
+  const CFG = (typeof COMPANY_CONFIG !== 'undefined') ? COMPANY_CONFIG : {};
+  const _svc = (CFG.services && CFG.services[0]) ? CFG.services[0] : {};
+  const _dens = _svc.densities || [
+    { label: 'Light',  acresPerDay: 2   },
+    { label: 'Medium', acresPerDay: 1   },
+    { label: 'Dense',  acresPerDay: 0.5 },
+  ];
+  const DAY_RATE = _svc.dayRate || 3500;
+  const PROD_DAY = {
+    light:  _dens[0] ? _dens[0].acresPerDay : 2,
+    medium: _dens[1] ? _dens[1].acresPerDay : 1,
+    dense:  _dens[2] ? _dens[2].acresPerDay : 0.5,
+  };
+  document.title = (CFG.companyName || 'Cornerstone') + ' Bid Tool';
+  // Apply names to DOM after load
+  document.addEventListener('DOMContentLoaded', () => {
+    const t = document.getElementById('topBarTitle');
+    const s = document.getElementById('apiScreenTitle');
+    if (t) t.innerHTML = `${CFG.companyName || 'Cornerstone'} <span>Bid</span>`;
+    if (s) s.textContent = (CFG.companyName || 'Cornerstone') + ' Bid Tool';
+  });
 
   let acreage = null, density = null, difficulty = 0;
   let map, drawingManager, polygon;
@@ -904,7 +925,7 @@
     const dLabel   = { light: 'Light', medium: 'Medium', dense: 'Dense' }[density];
     const diffCost = Math.round(base * (difficulty / 100));
     let text =
-      `Cornerstone Hardscape & Excavation\nForestry Mulching Estimate\n` +
+      `${(CFG.companyFull || 'Cornerstone Hardscape & Excavation')}\n${(_svc.name || 'Forestry Mulching')} Estimate\n` +
       `——————————————\n` +
       `Acreage: ${acreage.toFixed(2)} acres\nVegetation: ${dLabel}\n` +
       `Timeline: ${days} ${days === 1 ? 'day' : 'days'} @ $${DAY_RATE.toLocaleString()}/day\n`;

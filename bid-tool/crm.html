@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cornerstone CRM</title>
+  <title id="pageTitle">CRM</title>
+  <script src="config.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1123,9 +1124,9 @@
 
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <div class="sidebar-logo-text">Cornerstone <span>CRM</span></div>
-    <div class="sidebar-logo-sub">Hardscape & Excavation</div>
+  <div class="sidebar-logo" id="sidebarLogo">
+    <div class="sidebar-logo-text" id="sidebarName">CRM</div>
+    <div class="sidebar-logo-sub" id="sidebarTagline"></div>
   </div>
   <div class="nav-section">
     <div class="nav-divider"></div>
@@ -1365,8 +1366,20 @@
 </div>
 
 <script>
+  // ── Apply company config ────────────────────────────────────────
+  const CFG = (typeof COMPANY_CONFIG !== 'undefined') ? COMPANY_CONFIG : {};
+  document.title = (CFG.companyName || 'Cornerstone') + ' CRM';
+  const nameEl = document.getElementById('sidebarName');
+  const tagEl  = document.getElementById('sidebarTagline');
+  if (nameEl) nameEl.innerHTML = (CFG.companyName || 'Cornerstone') + ' <span>CRM</span>';
+  if (tagEl)  tagEl.textContent = CFG.tagline || '';
+  if (CFG.logoUrl) {
+    const logo = document.getElementById('sidebarLogo');
+    if (logo) logo.innerHTML = `<img src="${CFG.logoUrl}" alt="${CFG.companyName}" style="max-height:36px;max-width:160px;object-fit:contain;">`;
+  }
+
   // ── Constants ──────────────────────────────────────────────────
-  const STAGES = ['New Lead', 'Contacted', 'Quote Sent', 'Follow-Up', 'Won', 'Lost'];
+  const STAGES = (CFG.stages && CFG.stages.length) ? CFG.stages : ['New Lead', 'Contacted', 'Quote Sent', 'Follow-Up', 'Won', 'Lost'];
 
   const STAGE_BADGE_CLASS = {
     'New Lead':   'badge-new',
