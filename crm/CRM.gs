@@ -119,6 +119,152 @@ function doGet(e) {
       return HtmlService.createHtmlOutput(html);
     }
 
+    // ── Sign & Approve page ───────────────────────────────────────
+    if (action === 'signQuote') {
+      const id   = e.parameter.leadId;
+      const lead = id ? getLead(id).lead : null;
+      if (!lead) return htmlPage('<h2>Quote not found.</h2>');
+
+      // Already signed — show confirmation instead of form
+      if (lead.approved === 'approved') {
+        return htmlPage(`
+          <div class="mark"><svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h2>Already Signed</h2>
+          <p>This quote has already been approved and signed. We'll be in touch soon to get your project scheduled.</p>
+          <p class="co">${COMPANY.name} &middot; ${COMPANY.phone}</p>
+        `);
+      }
+
+      // Build quote HTML
+      const scriptUrl2 = ScriptApp.getService().getUrl();
+      const offerDate2 = new Date(); offerDate2.setDate(offerDate2.getDate() + 7);
+      const offerStr2  = Utilities.formatDate(offerDate2, Session.getScriptTimeZone(), 'MM/dd/yyyy');
+      const todayStr2  = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
+      let quoteHtml;
+      if (lead.lastQuoteJson) {
+        try {
+          const q2 = JSON.parse(lead.lastQuoteJson);
+          if (q2.type === 'custom') {
+            const sub2 = q2.lineItems.reduce(function(s,l){ return s+(parseFloat(l.qty)||1)*(parseFloat(l.unitPrice)||0);},0);
+            const lh2 = q2.lineItems.map(function(item){
+              const lt=Math.round((parseFloat(item.qty)||1)*(parseFloat(item.unitPrice)||0));
+              return `<div class="line"><div class="line-desc"><strong>${item.service}</strong>${item.description?'<span>'+item.description+'</span>':''}</div><div class="line-price">$${lt.toLocaleString()}</div></div>`;
+            }).join('');
+            const mk2 = q2.markup>0?`<div class="total-row"><span>Subtotal</span><span>$${Math.round(sub2).toLocaleString()}</span></div><div class="total-row"><span>Markup (${q2.markup}%)</span><span>+$${(q2.total-Math.round(sub2)).toLocaleString()}</span></div>`:'';
+            quoteHtml = buildEmailQuoteHtml({leadId:id,todayStr:todayStr2,offerStr:offerStr2,data:{...lead,mapImageUrl:''},densityLabel:'',days:null,total:q2.total,scopeLines:q2.notes||'',customLinesHtml:lh2+mk2});
+          }
+        } catch(err2) {}
+      }
+      if (!quoteHtml) {
+        const dl2 = {light:'Light',medium:'Medium',dense:'Dense'}[lead.density]||lead.density||'';
+        const pd2 = {light:2,medium:1,dense:0.5};
+        const dy2 = lead.acreage&&lead.density?Math.max(1,Math.round((lead.acreage/(pd2[lead.density]||1))*2)/2):1;
+        const tt2 = Math.round(parseFloat(lead.estimateTotal)||parseFloat(lead.dealValue)||0);
+        const sc2 = [
+          COMPANY.name+' will perform forestry mulching services at '+(lead.address||'the property')+'.',
+          lead.acreage?'The area to be cleared is approximately '+lead.acreage+' acres of '+dl2.toLowerCase()+' vegetation density.':'',
+          'Estimated project duration: '+dy2+' '+(dy2==1?'day':'days')+'.',
+          'Our crew will use a professional forestry mulcher to clear, chip, and spread all vegetation on site — leaving a clean, mulched surface with no hauling required.',
+        ].filter(Boolean).join(' ');
+        quoteHtml = buildEmailQuoteHtml({leadId:id,todayStr:todayStr2,offerStr:offerStr2,data:lead,densityLabel:dl2,days:dy2,total:tt2,scopeLines:sc2});
+      }
+
+      // Append signature form before </body>
+      const signForm = `
+<div style="max-width:680px;margin:24px auto 40px;background:#fff;border-radius:4px;padding:32px 36px;box-shadow:0 2px 16px rgba(0,0,0,0.08);font-family:Arial,sans-serif;">
+  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#aaa;margin-bottom:16px;">Sign & Approve</div>
+  <p style="font-size:13px;color:#444;line-height:1.7;margin:0 0 20px;">By signing below, you agree to the terms and pricing outlined in this quote and authorize <strong>${COMPANY.name}</strong> to proceed with the work.</p>
+  <form method="GET" action="${scriptUrl2}">
+    <input type="hidden" name="action" value="submitSignature">
+    <input type="hidden" name="leadId" value="${id}">
+    <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:6px;">Full Legal Name</label>
+    <input type="text" name="sigName" required placeholder="Type your full name to sign"
+      style="width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:6px;font-size:15px;font-family:Arial,sans-serif;margin-bottom:16px;outline:none;">
+    <label style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#555;line-height:1.5;margin-bottom:20px;cursor:pointer;">
+      <input type="checkbox" name="agreed" value="1" required style="margin-top:2px;flex-shrink:0;">
+      I have read and agree to the terms of this quote. I authorize ${COMPANY.name} to perform the work as described.
+    </label>
+    <button type="submit"
+      style="width:100%;padding:14px;background:#0A0A0A;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;letter-spacing:0.3px;">
+      Sign &amp; Approve
+    </button>
+  </form>
+</div>`;
+      const signedHtml = quoteHtml.replace('</body>', signForm + '</body>');
+      return HtmlService.createHtmlOutput(signedHtml);
+    }
+
+    // ── Process signature submission ──────────────────────────────
+    if (action === 'submitSignature') {
+      const id      = e.parameter.leadId;
+      const sigName = (e.parameter.sigName || '').trim();
+      if (!id || !sigName) return htmlPage('<h2>Missing information.</h2><p>Please go back and complete all fields.</p>');
+
+      const lead = getLead(id).lead;
+      if (!lead) return htmlPage('<h2>Quote not found.</h2>');
+      if (lead.approved === 'approved') {
+        return htmlPage(`
+          <div class="mark"><svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <h2>Already Signed</h2>
+          <p>This quote was already approved. We'll be in touch shortly.</p>
+          <p class="co">${COMPANY.name} &middot; ${COMPANY.phone}</p>
+        `);
+      }
+
+      const nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy hh:mm a');
+      updateLead({ id, stage: 'Won', approved: 'approved' });
+      addNote({ id, note: 'Quote signed by ' + sigName + ' on ' + nowStr });
+
+      const firstName = (lead.name || 'there').split(' ')[0];
+      const val = lead.estimateTotal ? '$' + Number(lead.estimateTotal).toLocaleString() : '';
+
+      // Email to client — thank you for partnering
+      const clientSubject = 'Thank you for partnering with ' + COMPANY.name.split(' ')[0] + '!';
+      const clientHtml = `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;color:#222;max-width:580px;margin:0 auto;padding:20px;">
+        <table width="100%" bgcolor="#000000" cellpadding="0" cellspacing="0"><tr><td style="padding:0;">
+          <img src="https://cpmccammack.github.io/CornerstoneHE/logo.png" alt="${COMPANY.name}" width="100%" style="display:block;">
+        </td></tr></table>
+        <div style="padding:32px 0 8px;">
+          <p style="font-size:16px;font-weight:700;color:#0F172A;margin:0 0 12px;">Hi ${firstName}, you're all set.</p>
+          <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 16px;">
+            Thank you for choosing ${COMPANY.name}. We're excited to work with you and look forward to delivering an exceptional result.
+          </p>
+          <p style="font-size:14px;color:#444;line-height:1.7;margin:0 0 24px;">
+            Your signed quote has been recorded${val?' for '+val:''} and our team will be in touch shortly to confirm your project timeline.
+          </p>
+          <p style="font-size:13px;color:#888;border-top:1px solid #eee;padding-top:16px;margin:0;">
+            ${COMPANY.rep} &nbsp;·&nbsp; ${COMPANY.name}<br>
+            ${COMPANY.phone} &nbsp;·&nbsp; ${COMPANY.email}
+          </p>
+        </div>
+      </body></html>`;
+      try {
+        GmailApp.sendEmail(lead.email, clientSubject,
+          'Hi ' + firstName + ',\n\nThank you for partnering with ' + COMPANY.name + '. We\'re excited to work with you.\n\nYour signed quote has been recorded' + (val ? ' for ' + val : '') + '. We\'ll be in touch to confirm your project timeline.\n\n' + COMPANY.rep + '\n' + COMPANY.name + ' · ' + COMPANY.phone,
+          { htmlBody: clientHtml, name: COMPANY.name, replyTo: COMPANY.email }
+        );
+      } catch(mailErr) {}
+
+      // Notification to owner
+      notifyOwner(
+        'Quote Signed — ' + (lead.name || 'Customer') + (val ? ' (' + val + ')' : ''),
+        (lead.name || 'Customer') + ' signed and approved their quote.' +
+        '\nSigned by: ' + sigName +
+        '\nTimestamp: ' + nowStr +
+        (lead.address ? '\nAddress: ' + lead.address : '') +
+        (val ? '\nTotal: ' + val : '') +
+        '\nLead ID: ' + id +
+        '\n\nLog in to the CRM to schedule the job.'
+      );
+
+      return htmlPage(`
+        <div class="mark"><svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <h2>You're all set, ${firstName}.</h2>
+        <p>Your quote is signed and approved. We'll reach out shortly to confirm your project timeline. Thank you for choosing ${COMPANY.name.split(' ')[0]}.</p>
+        <p class="co">${COMPANY.name} &middot; ${COMPANY.phone}</p>
+      `);
+    }
+
     // Customer-facing approval links (return HTML pages — no JSONP needed)
     if (action === 'approveQuote') {
       const id = e.parameter.leadId;
@@ -408,7 +554,7 @@ function sendQuoteEmail(data) {
   }
 
   const scriptUrl = ScriptApp.getService().getUrl();
-  const approveUrl  = `${scriptUrl}?action=approveQuote&leadId=${leadId}`;
+  const approveUrl  = `${scriptUrl}?action=signQuote&leadId=${leadId}`;
   const declineUrl  = `${scriptUrl}?action=declineQuote&leadId=${leadId}`;
   const financeUrl  = `${scriptUrl}?action=requestFinancing&leadId=${leadId}`;
 
@@ -555,7 +701,7 @@ function sendQuoteEmail(data) {
   <div class="actions">
     <p>Please review your quote and let us know how you'd like to proceed.</p>
     <div class="btn-row">
-      <a class="btn btn-approve" href="${approveUrl}">✓ &nbsp;Approve Quote</a>
+      <a class="btn btn-approve" href="${approveUrl}">Approve &amp; Sign</a>
       <a class="btn btn-decline" href="${declineUrl}">Decline</a>
     </div>
     <a class="btn-finance" href="${financeUrl}">Interested in financing options?</a>
