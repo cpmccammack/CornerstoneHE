@@ -193,8 +193,16 @@ function doGet(e) {
 </div>
 <div class="pay">
   <h4>Payment Instructions</h4>
-  <p>Please make payment by <strong>${dueDateStr}</strong>.</p>
-  <p>Contact us at <strong>${COMPANY.phone}</strong> or <strong>${COMPANY.email}</strong> with any questions.</p>
+  <p>Payment is due by <strong>${dueDateStr}</strong>. Please choose a payment method below.</p>
+</div>
+<div style="padding:24px 36px;border-bottom:1px solid #eee;">
+  <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#aaa;margin-bottom:16px;">Pay Now</div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <a href="${ScriptApp.getService().getUrl()}?action=markPaid&leadId=${lead.id}&method=cash" style="display:inline-block;padding:13px 24px;background:#0A0A0A;color:#fff;border-radius:8px;text-decoration:none;font-size:14px;font-weight:700;font-family:Arial,sans-serif;">
+      ✓ &nbsp;Mark Paid — Cash / Check
+    </a>
+  </div>
+  <p style="font-size:12px;color:#aaa;margin-top:16px;">Questions? Call <strong style="color:#444;">${COMPANY.phone}</strong> or email <a href="mailto:${COMPANY.email}" style="color:#444;">${COMPANY.email}</a></p>
 </div>
 <div class="footer">Thank you for your business — ${COMPANY.name}</div>
 </div></body></html>`;
@@ -418,6 +426,32 @@ function doGet(e) {
         <div class="mark"><svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
         <h2>Financing Request Received</h2>
         <p>We'll reach out shortly with options that work for your budget. Thanks for your interest!</p>
+        <p class="co">${COMPANY.name} &middot; ${COMPANY.phone}</p>
+      `);
+    }
+
+    // ── Mark invoice as paid ──────────────────────────────────────
+    if (action === 'markPaid') {
+      const id = e.parameter.leadId;
+      const method = e.parameter.method || 'cash';
+      if (id) {
+        const nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy hh:mm a');
+        const lead = getLead(id).lead;
+        const name = lead ? (lead.name || 'Customer') : 'Customer';
+        const val  = lead ? (lead.estimateTotal ? '$' + Number(lead.estimateTotal).toLocaleString() : '') : '';
+        addNote({ id, note: 'Invoice marked as paid — ' + method + ' — ' + nowStr });
+        notifyOwner(
+          'Invoice Paid — ' + name + (val ? ' (' + val + ')' : ''),
+          name + ' marked their invoice as paid.\nMethod: ' + method +
+          (val ? '\nAmount: ' + val : '') +
+          '\nLead ID: ' + id +
+          '\nTimestamp: ' + nowStr
+        );
+      }
+      return htmlPage(`
+        <div class="mark"><svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <h2>Payment Recorded</h2>
+        <p>Thank you! Your payment has been noted and we've been notified. We appreciate your business.</p>
         <p class="co">${COMPANY.name} &middot; ${COMPANY.phone}</p>
       `);
     }

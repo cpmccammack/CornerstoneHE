@@ -1205,6 +1205,9 @@
     <button class="nav-item" id="navMonthly" onclick="setView('monthly')">
       <span class="nav-icon"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Monthly
     </button>
+    <button class="nav-item" id="navInvoices" onclick="setView('invoices')">
+      <span class="nav-icon"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg></span> Invoices
+    </button>
     <div class="nav-divider"></div>
     <a class="nav-item" href="index.html">
       <span class="nav-icon"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span> Bid Tool
@@ -1225,6 +1228,13 @@
     <div class="top-bar-search">
       <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;display:flex;align-items:center;"><svg width="14" height="14" fill="none" stroke="#9CA3AF" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
       <input id="searchInput" type="text" placeholder="Search leads…" oninput="onSearch()">
+    </div>
+    <div style="position:relative;">
+      <button id="filterFunnelBtn" onclick="toggleFilterPanel(event)" title="Filter by stage" style="background:rgba(0,0,0,0.06);border:none;border-radius:8px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:inherit;height:36px;">
+        <svg width="14" height="14" fill="none" stroke="#555" stroke-width="2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        <span id="filterBadge" style="display:none;background:#0A0A0A;color:#fff;border-radius:10px;font-size:10px;font-weight:700;padding:1px 6px;line-height:16px;"></span>
+      </button>
+      <div id="filterPanel" style="display:none;position:absolute;top:calc(100% + 6px);left:0;background:#fff;border:1px solid #E5E7EB;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.14);padding:14px 16px;min-width:200px;z-index:300;"></div>
     </div>
     <button class="view-toggle-btn" id="hideLostBtn" onclick="toggleHideLost()" style="background:rgba(0,0,0,0.06);border-radius:8px;padding:5px 10px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#555;"></button>
     <button onclick="loadLeads()" style="background:none;border:1px solid rgba(0,0,0,0.12);color:#555;font-size:14px;padding:6px 10px;border-radius:8px;cursor:pointer;font-family:inherit;">↻</button>
@@ -1472,7 +1482,7 @@
   let currentView = 'table';
   let hideLost = localStorage.getItem('crm_hidelost') === '1';
   let listStageFilter = '';
-  let tableStageFilter = '';
+  let tableStageFilters = new Set();
   let selectedLeadIds = new Set();
 
   // ── Setup ──────────────────────────────────────────────────────
@@ -1490,6 +1500,15 @@
     document.getElementById('setupScreen').style.display = 'none';
     loadLeads();
   }
+
+  // Close filter panel when clicking outside
+  document.addEventListener('click', (e) => {
+    const panel = document.getElementById('filterPanel');
+    const btn = document.getElementById('filterFunnelBtn');
+    if (panel && btn && !btn.contains(e.target) && !panel.contains(e.target)) {
+      panel.style.display = 'none';
+    }
+  });
 
   window.addEventListener('load', () => {
     if (!getCRMUrl()) return;
@@ -1637,7 +1656,7 @@
   // ── View toggle ────────────────────────────────────────────────
   function setView(v) {
     currentView = v;
-    ['table','kanban','monthly'].forEach(name => {
+    ['table','kanban','monthly','invoices'].forEach(name => {
       const el = document.getElementById('nav' + name.charAt(0).toUpperCase() + name.slice(1));
       if (el) el.classList.toggle('active', v === name);
     });
@@ -1653,6 +1672,7 @@
     if (currentView === 'monthly') renderMonthly(filtered);
     else if (currentView === 'table') renderTable(filtered);
     else if (currentView === 'list') renderList(filtered);
+    else if (currentView === 'invoices') renderInvoices(filtered);
     else renderBoard(filtered);
   }
 
@@ -1661,17 +1681,10 @@
     const board = document.getElementById('boardWrap');
     selectedLeadIds = new Set();
 
-    const allStages = STAGES;
-    const filterPills = `
-      <div class="table-filters">
-        <button class="lf-pill${tableStageFilter===''?' active':''}" onclick="setTableFilter('')">All</button>
-        ${allStages.map(s=>`<button class="lf-pill${tableStageFilter===s?' active':''}" onclick="setTableFilter('${s}')">${s}</button>`).join('')}
-      </div>`;
-
-    const filtered = tableStageFilter ? leads.filter(l => l.stage === tableStageFilter) : leads;
+    const filtered = tableStageFilters.size > 0 ? leads.filter(l => tableStageFilters.has(l.stage)) : leads;
 
     if (!filtered.length) {
-      board.innerHTML = filterPills + `<div style="background:#fff;border-radius:12px;padding:60px;text-align:center;color:#9CA3AF;font-size:14px;">No leads found.</div>`;
+      board.innerHTML = `<div style="background:#fff;border-radius:12px;padding:60px;text-align:center;color:#9CA3AF;font-size:14px;">No leads found.</div>`;
       return;
     }
 
@@ -1709,10 +1722,14 @@
       </tr>`;
     }).join('');
 
-    board.innerHTML = filterPills + `
+    board.innerHTML = `
       <div class="delete-bar" id="deleteBar">
         <span id="deleteBarCount"></span>
-        <button class="delete-bar-btn" onclick="deleteSelectedLeads()">Delete Selected</button>
+        <select id="bulkStageSelect" onchange="bulkMoveLeads(this.value)" style="font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,0.3);border-radius:6px;background:rgba(255,255,255,0.15);color:#fff;padding:4px 8px;cursor:pointer;font-family:inherit;">
+          <option value="">Move to stage…</option>
+          ${STAGES.map(s=>`<option value="${s}">${s}</option>`).join('')}
+        </select>
+        <button class="delete-bar-btn" onclick="deleteSelectedLeads()">Delete</button>
         <button class="delete-bar-cancel" onclick="clearSelection()">Cancel</button>
       </div>
       <div class="leads-table-wrap">
@@ -1731,9 +1748,116 @@
       </div>`;
   }
 
-  function setTableFilter(stage) {
-    tableStageFilter = stage;
+  // ── Stage filter (funnel) ───────────────────────────────────────
+  function toggleFilterPanel(event) {
+    event.stopPropagation();
+    const panel = document.getElementById('filterPanel');
+    if (!panel) return;
+    const isVisible = panel.style.display !== 'none';
+    if (isVisible) { panel.style.display = 'none'; return; }
+    // Build panel content
+    panel.innerHTML = `
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#9CA3AF;margin-bottom:10px;">Filter by Stage</div>
+      ${STAGES.map(s => `
+        <label style="display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer;font-size:13px;color:#374151;">
+          <input type="checkbox" value="${s}" ${tableStageFilters.has(s)?'checked':''} onchange="toggleStageFilter('${s}')" style="width:14px;height:14px;cursor:pointer;accent-color:#0A0A0A;">
+          ${s}
+        </label>`).join('')}
+      <button onclick="clearStageFilters()" style="margin-top:10px;width:100%;padding:6px;background:none;border:1px solid #E5E7EB;border-radius:6px;font-size:12px;font-weight:600;color:#6B7280;cursor:pointer;font-family:inherit;">Clear All</button>`;
+    panel.style.display = 'block';
+  }
+
+  function toggleStageFilter(stage) {
+    if (tableStageFilters.has(stage)) tableStageFilters.delete(stage);
+    else tableStageFilters.add(stage);
+    updateFilterBadge();
     renderBoard(getFilteredLeads());
+  }
+
+  function clearStageFilters() {
+    tableStageFilters.clear();
+    updateFilterBadge();
+    document.getElementById('filterPanel').style.display = 'none';
+    renderBoard(getFilteredLeads());
+  }
+
+  function updateFilterBadge() {
+    const badge = document.getElementById('filterBadge');
+    if (!badge) return;
+    if (tableStageFilters.size > 0) {
+      badge.style.display = 'inline-block';
+      badge.textContent = tableStageFilters.size;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  async function bulkMoveLeads(stage) {
+    const sel = document.getElementById('bulkStageSelect');
+    if (!stage || !selectedLeadIds.size) { if (sel) sel.value = ''; return; }
+    if (!confirm(`Move ${selectedLeadIds.size} lead${selectedLeadIds.size>1?'s':''} to "${stage}"?`)) { if (sel) sel.value = ''; return; }
+    const ids = [...selectedLeadIds];
+    for (const id of ids) {
+      await postCRM({ action: 'updateLead', id, stage });
+    }
+    selectedLeadIds = new Set();
+    loadLeads();
+  }
+
+  // ── Invoices view ───────────────────────────────────────────────
+  function renderInvoices(leads) {
+    const board = document.getElementById('boardWrap');
+    const crmUrl = getCRMUrl();
+    const invoiceLeads = leads
+      .filter(l => Number(l.estimateTotal) > 0 || Number(l.dealValue) > 0)
+      .sort((a,b) => new Date(b.lastTouch||0) - new Date(a.lastTouch||0));
+
+    if (!invoiceLeads.length) {
+      board.innerHTML = `<div style="background:#fff;border-radius:12px;padding:60px;text-align:center;color:#9CA3AF;font-size:14px;">No invoices yet. Leads with a deal value will appear here.</div>`;
+      return;
+    }
+
+    const rows = invoiceLeads.map(lead => {
+      const value = fmtMoney(Number(lead.estimateTotal) || Number(lead.dealValue));
+      const isPaid = lead.notes && lead.notes.toLowerCase().includes('invoice marked as paid');
+      let statusBadge;
+      if (isPaid) statusBadge = '<span class="badge badge-won">Paid</span>';
+      else if (lead.stage === 'Won') statusBadge = '<span class="badge badge-won">Won</span>';
+      else if (lead.stage === 'Lost') statusBadge = '<span class="badge badge-lost">Lost</span>';
+      else if (['Quote Sent','Follow-Up'].includes(lead.stage)) statusBadge = '<span class="badge badge-quote">Sent</span>';
+      else statusBadge = '<span class="badge badge-new">Pending</span>';
+      let daysAgo = '—';
+      if (lead.lastTouch) {
+        const diff = Math.floor((Date.now() - new Date(lead.lastTouch).getTime()) / 86400000);
+        daysAgo = diff === 0 ? 'Today' : diff + 'd ago';
+      }
+      const invoiceLink = crmUrl
+        ? `<a class="tbl-action-btn" href="${crmUrl}?action=viewInvoice&leadId=${esc(lead.id)}" target="_blank" onclick="event.stopPropagation()">View Invoice</a>`
+        : '';
+      return `<tr onclick="openPanel('${esc(lead.id)}')" data-id="${esc(lead.id)}">
+        <td><span class="tbl-name">${esc(lead.name||'Unnamed')}</span></td>
+        <td class="tbl-muted tbl-hide-mobile">${esc(lead.address||'—')}</td>
+        <td class="tbl-value">${esc(value)}</td>
+        <td>${statusBadge}</td>
+        <td class="tbl-muted">${esc(daysAgo)}</td>
+        <td onclick="event.stopPropagation()"><div class="tbl-actions">${invoiceLink}</div></td>
+      </tr>`;
+    }).join('');
+
+    board.innerHTML = `
+      <div class="leads-table-wrap">
+        <table class="leads-table">
+          <thead><tr>
+            <th>Customer</th>
+            <th class="tbl-hide-mobile">Address</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Last Touch</th>
+            <th></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
   }
 
   function toggleLeadSelect(id, checked) {
