@@ -78,15 +78,6 @@ function doGet(e) {
     if (action === 'viewQuote') {
       const lead = getLead(e.parameter.leadId).lead;
       if (!lead) return htmlPage('<h2>Quote not found</h2>');
-      // Track when customer opens quote from email link
-      if (e.parameter.ref === 'email') {
-        const ts = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy hh:mm a');
-        addNote({ id: lead.id, note: `Quote viewed by customer — ${ts}` });
-        notifyOwner(
-          `Quote Opened: ${lead.name}`,
-          `${lead.name} opened their quote.\n\nAddress: ${lead.address || '—'}\nPhone: ${lead.phone || '—'}\nTime: ${ts}`
-        );
-      }
       const offerDate = new Date(); offerDate.setDate(offerDate.getDate() + 7);
       const offerStr  = Utilities.formatDate(offerDate, Session.getScriptTimeZone(), 'MM/dd/yyyy');
       const todayStr  = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MM/dd/yyyy');
@@ -831,9 +822,6 @@ function sendQuoteEmail(data) {
       <a class="btn btn-decline" href="${declineUrl}">Decline</a>
     </div>
     <a class="btn-finance" href="${financeUrl}">Interested in financing options?</a>
-    <p style="margin:16px 0 0;font-size:11px;color:#aaa;">
-      <a href="${scriptUrl}?action=viewQuote&leadId=${leadId}&ref=email" style="color:#aaa;">View quote in browser</a>
-    </p>
   </div>
 
   <!-- Map Image -->
