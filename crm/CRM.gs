@@ -40,17 +40,28 @@ function htmlPage(body) {
     <!DOCTYPE html><html><head><meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <style>
-      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-        background:#f5f5f5;display:flex;align-items:center;justify-content:center;
-        min-height:100vh;margin:0;padding:20px;box-sizing:border-box;}
-      .card{background:white;border-radius:12px;padding:40px 36px;max-width:420px;
-        width:100%;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.08);}
-      h2{margin:0 0 10px;font-size:22px;color:#1a1a1a;}
-      p{color:#666;font-size:14px;line-height:1.6;margin:0;}
-      .icon{font-size:48px;margin-bottom:16px;}
-      .co{font-size:12px;color:#aaa;margin-top:20px;}
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+      *{box-sizing:border-box;margin:0;padding:0;}
+      body{font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+        background:#F8FAFC;display:flex;align-items:center;justify-content:center;
+        min-height:100vh;padding:20px;}
+      .card{background:white;border-radius:16px;padding:48px 40px;max-width:440px;
+        width:100%;text-align:center;border:1px solid #E2E8F0;
+        box-shadow:0 4px 24px rgba(0,0,0,0.06);}
+      .mark{width:56px;height:56px;border-radius:14px;background:#0A0A0A;
+        display:flex;align-items:center;justify-content:center;margin:0 auto 24px;}
+      h2{font-size:22px;font-weight:700;color:#0F172A;margin-bottom:10px;line-height:1.3;}
+      p{color:#64748B;font-size:14px;line-height:1.7;margin:0;}
+      .co{font-size:12px;color:#94A3B8;margin-top:28px;padding-top:20px;
+        border-top:1px solid #F1F5F9;}
     </style></head><body><div class="card">${body}</div></body></html>
   `);
+}
+
+function notifyOwner(subject, body) {
+  try {
+    GmailApp.sendEmail(COMPANY.email, subject, body, { name: COMPANY.name + ' CRM' });
+  } catch(e) {}
 }
 
 // ── GET handler ───────────────────────────────────────────────
@@ -115,12 +126,24 @@ function doGet(e) {
         updateLead({ id, stage: 'Won' });
         addNote({ id, note: 'Customer approved quote via email link' });
         markFinancing(id, e.parameter.financing === '1');
+        const lead = getLead(id);
+        const name = lead ? (lead.name || 'A customer') : 'A customer';
+        const addr = lead ? (lead.address || '') : '';
+        const val  = lead ? (lead.estimateTotal ? '$' + Number(lead.estimateTotal).toLocaleString() : '') : '';
+        notifyOwner(
+          'Quote Approved — ' + name + (val ? ' (' + val + ')' : ''),
+          name + ' approved their quote.' +
+          (addr ? '\nAddress: ' + addr : '') +
+          (val  ? '\nTotal: ' + val : '') +
+          '\n\nLead ID: ' + id +
+          '\n\nLog in to the CRM to schedule the job.'
+        );
       }
       return htmlPage(`
-        <div class="icon">✅</div>
-        <h2>Quote Approved!</h2>
-        <p>Thanks for choosing Cornerstone. We'll be in touch shortly to get your project scheduled.</p>
-        <p class="co">Cornerstone Hardscape & Excavation · 502-396-7887</p>
+        <div class="mark"><svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <h2>Quote Approved</h2>
+        <p>Thank you for choosing ${COMPANY.name.split(' ')[0]}. We'll be in touch shortly to get your project scheduled.</p>
+        <p class="co">${COMPANY.name} &middot; ${COMPANY.phone}</p>
       `);
     }
 
@@ -129,12 +152,20 @@ function doGet(e) {
       if (id) {
         updateLead({ id, stage: 'Lost' });
         addNote({ id, note: 'Customer declined quote via email link' });
+        const lead = getLead(id);
+        const name = lead ? (lead.name || 'A customer') : 'A customer';
+        notifyOwner(
+          'Quote Declined — ' + name,
+          name + ' declined their quote.' +
+          '\nLead ID: ' + id +
+          '\n\nConsider a follow-up or adjusted quote.'
+        );
       }
       return htmlPage(`
-        <div class="icon">👋</div>
-        <h2>Got it, no worries.</h2>
-        <p>Thanks for considering Cornerstone. If you change your mind or need anything in the future, we're always here.</p>
-        <p class="co">Cornerstone Hardscape & Excavation · 502-396-7887</p>
+        <div class="mark" style="background:#F1F5F9;"><svg width="24" height="24" fill="none" stroke="#64748B" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+        <h2>No worries at all.</h2>
+        <p>Thanks for considering ${COMPANY.name.split(' ')[0]}. If your plans change or you need anything down the road, we're always here.</p>
+        <p class="co">${COMPANY.name} &middot; ${COMPANY.phone}</p>
       `);
     }
 
@@ -144,12 +175,22 @@ function doGet(e) {
         addNote({ id, note: 'Customer requested financing info via email link' });
         updateLead({ id, stage: 'Follow-Up' });
         markFinancing(id, true);
+        const lead = getLead(id);
+        const name = lead ? (lead.name || 'A customer') : 'A customer';
+        const val  = lead ? (lead.estimateTotal ? '$' + Number(lead.estimateTotal).toLocaleString() : '') : '';
+        notifyOwner(
+          'Financing Requested — ' + name + (val ? ' (' + val + ')' : ''),
+          name + ' is interested in financing.' +
+          (val ? '\nQuote Total: ' + val : '') +
+          '\nLead ID: ' + id +
+          '\n\nFollow up with financing options.'
+        );
       }
       return htmlPage(`
-        <div class="icon">💰</div>
+        <div class="mark"><svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
         <h2>Financing Request Received</h2>
-        <p>We'll reach out with financing options shortly. Thanks for your interest!</p>
-        <p class="co">Cornerstone Hardscape & Excavation · 502-396-7887</p>
+        <p>We'll reach out shortly with options that work for your budget. Thanks for your interest!</p>
+        <p class="co">${COMPANY.name} &middot; ${COMPANY.phone}</p>
       `);
     }
 
