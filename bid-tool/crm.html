@@ -6,15 +6,15 @@
   <title>Cornerstone CRM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
       width: 100%; height: 100%;
       background: #EDEAE5;
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-      color: #0A0A0A;
-      letter-spacing: -0.02em;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      color: #1E293B;
       overflow-x: hidden;
     }
 
@@ -43,31 +43,38 @@
 
     .top-bar {
       background: #FFFFFF;
-      border-bottom: 1px solid rgba(0,0,0,0.08);
-      padding: 14px 24px;
+      border-bottom: 1px solid #F1F5F9;
+      padding: 12px 24px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-shrink: 0;
     }
 
     .content-area {
-      padding: 20px 24px;
+      padding: 20px 24px 32px;
       flex: 1;
     }
 
     /* ── Sidebar ── */
     .sidebar-logo {
-      padding: 20px 18px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 22px 18px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
       flex-shrink: 0;
     }
 
     .sidebar-logo-text {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
-      color: #FFFFFF;
-      letter-spacing: -0.3px;
+      color: rgba(255,255,255,0.92);
+    }
+
+    .sidebar-logo-sub {
+      font-size: 10.5px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.3px;
+      margin-top: 1px;
     }
 
     .sidebar-logo-text span { color: #22C55E; }
@@ -80,32 +87,37 @@
     .nav-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 9px 10px;
-      border-radius: 8px;
-      color: rgba(255,255,255,0.55);
+      gap: 9px;
+      padding: 8px 10px;
+      border-radius: 7px;
+      color: rgba(255,255,255,0.5);
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
       transition: background 0.15s, color 0.15s;
-      margin-bottom: 2px;
+      margin-bottom: 1px;
       border: none;
       background: none;
       width: 100%;
       text-align: left;
       font-family: inherit;
       text-decoration: none;
+      letter-spacing: 0.1px;
     }
 
-    .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
-    .nav-item.active { background: rgba(34,197,94,0.15); color: #22C55E; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+    .nav-item.active { background: rgba(34,197,94,0.14); color: #22C55E; font-weight: 600; }
 
     .nav-icon {
-      font-size: 15px;
       width: 18px;
-      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
+      opacity: 0.8;
     }
+
+    .nav-item.active .nav-icon { opacity: 1; }
 
     .nav-divider {
       height: 1px;
@@ -130,17 +142,21 @@
       width: 100%;
       padding: 8px 12px 8px 34px;
       border-radius: 8px;
-      border: 1px solid rgba(0,0,0,0.1);
-      background: #F5F5F5;
+      border: 1px solid #E2E8F0;
+      background: #F8FAFC;
       font-size: 13px;
       outline: none;
       font-family: inherit;
-      color: #111;
+      color: #1E293B;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
+
+    .top-bar-search input::placeholder { color: #94A3B8; }
 
     .top-bar-search input:focus {
       border-color: #22C55E;
-      box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.1);
     }
 
     .new-lead-btn {
@@ -153,37 +169,47 @@
       border: none;
       border-radius: 8px;
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 600;
       cursor: pointer;
       font-family: inherit;
       white-space: nowrap;
-      transition: box-shadow 0.15s, transform 0.15s;
+      transition: background 0.15s, box-shadow 0.15s, transform 0.15s;
       flex-shrink: 0;
+      letter-spacing: 0.1px;
     }
 
-    .new-lead-btn:hover { box-shadow: 0 2px 8px rgba(34,197,94,0.3); transform: translateY(-1px); }
+    .new-lead-btn:hover { background: #16A34A; box-shadow: 0 2px 10px rgba(34,197,94,0.35); transform: translateY(-1px); }
     .new-lead-btn:active { transform: scale(0.98); }
 
     /* ── Stats inline ── */
     .stats-inline {
       display: flex;
-      gap: 24px;
-      padding: 12px 24px;
+      gap: 0;
+      padding: 0 24px;
       background: #FFFFFF;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
+      border-bottom: 1px solid #F1F5F9;
       flex-shrink: 0;
     }
 
-    .stat-inline { display: flex; flex-direction: column; }
-    .stat-inline .siv { font-size: 18px; font-weight: 700; color: #22C55E; }
-    .stat-inline .sil { font-size: 10px; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+    .stat-inline {
+      display: flex;
+      flex-direction: column;
+      padding: 12px 20px 12px 0;
+      margin-right: 20px;
+      border-right: 1px solid #F1F5F9;
+    }
+    .stat-inline:last-child { border-right: none; }
+
+    .stat-inline .siv { font-size: 19px; font-weight: 700; color: #22C55E; line-height: 1.2; font-variant-numeric: tabular-nums; }
+    .stat-inline .sil { font-size: 10px; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600; margin-top: 2px; }
 
     /* ── Table ── */
     .leads-table-wrap {
       background: #FFFFFF;
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03);
     }
 
     .leads-table {
@@ -193,36 +219,38 @@
     }
 
     .leads-table th {
-      padding: 10px 14px;
+      padding: 11px 16px;
       text-align: left;
-      font-size: 10px;
-      font-weight: 700;
+      font-size: 10.5px;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: #9CA3AF;
-      border-bottom: 1px solid rgba(0,0,0,0.06);
-      background: #FAFAFA;
+      letter-spacing: 0.7px;
+      color: #94A3B8;
+      border-bottom: 1px solid #F1F5F9;
+      background: #FAFBFC;
+      white-space: nowrap;
     }
 
     .leads-table td {
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(0,0,0,0.05);
-      color: #111827;
+      padding: 13px 16px;
+      border-bottom: 1px solid #F1F5F9;
+      color: #1E293B;
       vertical-align: middle;
+      font-size: 13.5px;
     }
 
     .leads-table tr:last-child td { border-bottom: none; }
 
     .leads-table tbody tr {
       cursor: pointer;
-      transition: background 0.1s;
+      transition: background 0.12s;
     }
 
-    .leads-table tbody tr:hover { background: #F9F9F9; }
+    .leads-table tbody tr:hover { background: #F8FAFC; }
 
-    .tbl-name { font-weight: 600; color: #111827; }
-    .tbl-value { font-weight: 700; color: #22C55E; }
-    .tbl-muted { color: #9CA3AF; }
+    .tbl-name { font-weight: 600; color: #0F172A; font-size: 14px; }
+    .tbl-value { font-weight: 700; color: #22C55E; font-variant-numeric: tabular-nums; }
+    .tbl-muted { color: #94A3B8; font-size: 13px; }
 
     /* ── Spinner ── */
     .spinner {
@@ -442,11 +470,11 @@
     .panel-header-info { flex: 1; min-width: 0; }
 
     .panel-name {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
-      color: #0A0A0A;
+      color: #0F172A;
       margin-bottom: 5px;
-      line-height: 1.2;
+      line-height: 1.3;
     }
 
     .panel-close {
@@ -692,48 +720,54 @@
 
     .modal-box {
       background: #FFFFFF;
-      border: 1px solid rgba(0,0,0,0.1);
+      border: 1px solid #E2E8F0;
       border-radius: 16px;
       padding: 28px;
       width: 100%;
       max-width: 400px;
       max-height: 90vh;
       overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
     }
 
     .modal-title {
       font-size: 16px;
       font-weight: 700;
-      color: #0A0A0A;
+      color: #0F172A;
       margin-bottom: 20px;
     }
 
     .modal-label {
       font-size: 11px;
-      color: #6B7280;
+      color: #64748B;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
+      font-weight: 600;
       display: block;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
 
     .modal-input, .modal-select, .modal-textarea {
       width: 100%;
-      background: rgba(0,0,0,0.04);
-      border: 1px solid rgba(0,0,0,0.12);
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
       border-radius: 8px;
       padding: 10px 12px;
-      color: #0A0A0A;
+      color: #0F172A;
       font-size: 14px;
       font-family: inherit;
       outline: none;
       margin-bottom: 14px;
       box-sizing: border-box;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
 
-    .modal-input::placeholder, .modal-textarea::placeholder { color: #9CA3AF; }
-    .modal-input:focus, .modal-select:focus, .modal-textarea:focus { border-color: #22C55E; }
+    .modal-input::placeholder, .modal-textarea::placeholder { color: #94A3B8; }
+    .modal-input:focus, .modal-select:focus, .modal-textarea:focus {
+      border-color: #22C55E;
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.1);
+    }
 
     .modal-select { appearance: none; cursor: pointer; }
     .modal-select option { background: #FFFFFF; color: #0A0A0A; }
@@ -826,8 +860,7 @@
     .month-name {
       font-size: 14px;
       font-weight: 700;
-      color: #0A0A0A;
-      letter-spacing: -0.3px;
+      color: #0F172A;
     }
 
     .month-name .month-year {
@@ -1068,7 +1101,7 @@
 
 <!-- Setup screen (first load) -->
 <div class="setup-screen" id="setupScreen">
-  <div class="setup-mark">C</div>
+  <div class="setup-mark" style="font-size:18px;font-weight:700;color:#22C55E;">C</div>
   <h2>Connect CRM</h2>
   <div class="sub">Paste your deployed Apps Script web app URL. Deploy CRM.gs → Deploy → New Deployment → Web App.</div>
   <div class="setup-label">Apps Script Web App URL</div>
@@ -1080,7 +1113,7 @@
 
 <!-- Login screen -->
 <div class="login-screen" id="loginScreen">
-  <div class="setup-mark">🔒</div>
+  <div class="setup-mark"><svg width="22" height="22" fill="none" stroke="#22C55E" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
   <h2 style="font-size:22px;font-weight:700;color:#0A0A0A;margin-bottom:8px;">Welcome back</h2>
   <div class="sub">Enter your password to unlock the CRM.</div>
   <div class="setup-label">Password</div>
@@ -1093,28 +1126,29 @@
 <div class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="sidebar-logo-text">Cornerstone <span>CRM</span></div>
+    <div class="sidebar-logo-sub">Hardscape & Excavation</div>
   </div>
   <div class="nav-section">
     <div class="nav-divider"></div>
     <button class="nav-item active" id="navTable" onclick="setView('table')">
-      <span class="nav-icon">☰</span> Leads
+      <span class="nav-icon"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></span> Leads
     </button>
     <button class="nav-item" id="navKanban" onclick="setView('kanban')">
-      <span class="nav-icon">⊞</span> Pipeline
+      <span class="nav-icon"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="16" rx="1"/><rect x="10" y="3" width="5" height="11" rx="1"/><rect x="17" y="3" width="5" height="13" rx="1"/></svg></span> Pipeline
     </button>
     <button class="nav-item" id="navMonthly" onclick="setView('monthly')">
-      <span class="nav-icon">📅</span> Monthly
+      <span class="nav-icon"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Monthly
     </button>
     <div class="nav-divider"></div>
     <a class="nav-item" href="index.html">
-      <span class="nav-icon">🔧</span> Bid Tool
+      <span class="nav-icon"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></span> Bid Tool
     </a>
   </div>
   <div class="sidebar-bottom">
-    <button class="nav-item" onclick="exportCSV()"><span class="nav-icon">↑</span> Export</button>
+    <button class="nav-item" onclick="exportCSV()"><span class="nav-icon"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></span> Export</button>
     <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCSVImport(event)">
-    <button class="nav-item" onclick="document.getElementById('csvFileInput').click()"><span class="nav-icon">↓</span> Import</button>
-    <button class="nav-item" onclick="lockCRM()" id="lockBtn" style="display:none;"><span class="nav-icon">🔒</span> Lock</button>
+    <button class="nav-item" onclick="document.getElementById('csvFileInput').click()"><span class="nav-icon"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span> Import</button>
+    <button class="nav-item" onclick="lockCRM()" id="lockBtn" style="display:none;"><span class="nav-icon"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Lock</button>
   </div>
 </div>
 
@@ -1123,7 +1157,7 @@
   <!-- Top bar -->
   <div class="top-bar">
     <div class="top-bar-search">
-      <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9CA3AF;font-size:13px;pointer-events:none;">⌕</span>
+      <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);pointer-events:none;display:flex;align-items:center;"><svg width="14" height="14" fill="none" stroke="#9CA3AF" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
       <input id="searchInput" type="text" placeholder="Search leads…" oninput="onSearch()">
     </div>
     <button class="view-toggle-btn" id="hideLostBtn" onclick="toggleHideLost()" style="background:rgba(0,0,0,0.06);border-radius:8px;padding:5px 10px;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:#555;"></button>
